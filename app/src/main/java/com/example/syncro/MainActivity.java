@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+import com.example.syncro.client.DLMSConnection;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -31,9 +32,9 @@ public class MainActivity extends AppCompatActivity {
             txtStatus.setText("Conectando...");
             new Thread(() -> {
                 try {
-                    String portName = "COM5";
+                    //String portName = "COM5";
 
-                    DLMSConnection connection = DLMSConnection.initializeConnection(portName);
+                    DLMSConnection connection = DLMSConnection.initializeConnection(this);
 
                     runOnUiThread(() -> {
                         txtStatus.setText("Conectado correctamente");
