@@ -1350,6 +1350,7 @@ public class GXDLMSReader {
      * Read all objects from the meter. This is only example. Usually there is
      * no need to read all data from the meter.
      */
+    /*
     void readAll(String outputFile) throws Exception {
         initializeConnection();
         boolean read = false;
@@ -1384,6 +1385,7 @@ public class GXDLMSReader {
             dlms.getObjects().save(outputFile, s);
         }
     }
+     */
 
     /*
      * Read list using access service.

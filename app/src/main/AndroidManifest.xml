@@ -2,20 +2,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Permisos Bluetooth Clásico y BLE -->
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
-    <!-- Android 12+ requiere permisos separados -->
-    <uses-permission
-        android:name="android.permission.BLUETOOTH_CONNECT"
-        android:required="false" />
-    <uses-permission
-        android:name="android.permission.BLUETOOTH_SCAN"
-        android:required="false" />
-    <uses-permission
-        android:name="android.permission.BLUETOOTH_ADVERTISE"
-        android:required="false" />
 
     <!-- Permisos de ubicación (necesarios para descubrir dispositivos Bluetooth) -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
