@@ -1,5 +1,8 @@
 package com.example.syncro.client;
 
+import android.content.Context;
+import android.util.Log;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -77,14 +80,17 @@ public class GXDLMSReader {
     TraceLevel Trace;
     GXDLMSSecureClient2 dlms;
     int waitTime = 60000;
-    final PrintWriter logFile;
+    //final PrintWriter logFile;
     // Invocation counter (frame counter).
     String invocationCounter = null;
 
+    private Context context;
+    private BufferedWriter traceWriter;
+
     public GXDLMSReader(GXDLMSSecureClient2 client, IGXMedia media, TraceLevel trace, final String frameCounter)
             throws Exception {
-        Files.deleteIfExists(Paths.get("trace.txt"));
-        logFile = new PrintWriter(new BufferedWriter(new FileWriter("logFile.txt")));
+        //Files.deleteIfExists(Paths.get("trace.txt"));
+        //logFile = new PrintWriter(new BufferedWriter(new FileWriter("logFile.txt")));
         Trace = trace;
         Media = media;
         dlms = client;
@@ -147,20 +153,31 @@ public class GXDLMSReader {
         return new SimpleDateFormat("HH:mm:ss.SSS").format(java.util.Calendar.getInstance().getTime());
     }
 
+    public void setContext(Context context) {
+        this.context = context;
+        initTraceWriter();
+    }
+
+    private void initTraceWriter() {
+        if (context == null) return;
+        try {
+            File file = new File(context.getFilesDir(), "trace.txt");
+            traceWriter = new BufferedWriter(new FileWriter(file, true));
+        } catch (IOException e) {
+            Log.e("DLMS", "Error abriendo trace.txt", e);
+        }
+    }
+
     void writeTrace(String line, TraceLevel level) {
         if (Trace.ordinal() >= level.ordinal()) {
             System.out.println(line);
         }
-        PrintWriter logFile = null;
-        try {
-            logFile = new PrintWriter(new BufferedWriter(new FileWriter("trace.txt", true)));
-            logFile.println(line);
-        } catch (IOException ex) {
-            throw new RuntimeException(ex.getMessage());
-        } finally {
-            if (logFile != null) {
-                logFile.close();
-            }
+        if (traceWriter != null) {
+            try {
+                traceWriter.write(line);
+                traceWriter.newLine();
+                traceWriter.flush();
+            } catch (IOException ignored) {}
         }
     }
 

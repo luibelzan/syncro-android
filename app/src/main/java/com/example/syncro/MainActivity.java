@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
             txtStatus.setText("Conectando...");
             new Thread(() -> {
                 try {
-                    String connection = Utils.test(this);
+                    Utils.test(this);
                     runOnUiThread(() -> {
                         txtStatus.setText("Conectado correctamente");
                         Toast.makeText(this, "Conexión DLMS activa", Toast.LENGTH_SHORT).show();
