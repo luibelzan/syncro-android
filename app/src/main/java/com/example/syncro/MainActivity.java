@@ -17,6 +17,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.example.syncro.client.DLMSConnection;
+import com.example.syncro.utils.Utils;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -52,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
             txtStatus.setText("Conectando...");
             new Thread(() -> {
                 try {
-                    DLMSConnection connection = DLMSConnection.initializeConnection(this);
+                    String connection = Utils.test(this);
                     runOnUiThread(() -> {
                         txtStatus.setText("Conectado correctamente");
                         Toast.makeText(this, "Conexión DLMS activa", Toast.LENGTH_SHORT).show();

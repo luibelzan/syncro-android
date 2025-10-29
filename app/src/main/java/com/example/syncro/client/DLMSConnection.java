@@ -26,7 +26,7 @@ import gurux.dlms.enums.InterfaceType;
 
 public class DLMSConnection {
 
-    private final GXDLMSSecureClient2 client;
+    public final GXDLMSSecureClient2 client;
     private final BluetoothSocket socket;
     private final InputStream in;
     private final OutputStream out;
