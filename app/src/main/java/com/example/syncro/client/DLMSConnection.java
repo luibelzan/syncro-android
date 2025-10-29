@@ -209,11 +209,26 @@ public class DLMSConnection {
 
     public void close() {
         try {
+            if (client != null) {
+                try {
+                    byte[] disconnect = client.disconnectRequest();
+                    if (disconnect != null && out != null) {
+                        out.write(disconnect);
+                        out.flush();
+                        Log.i("DLMS", "DLMS disconnectRequest enviado correctamente.");
+                    }
+                } catch (Exception e) {
+                    Log.w("DLMS", "Error enviando disconnectRequest", e);
+                }
+            }
+
             socket.close();
+            Log.i("DLMS", "Socket Bluetooth cerrado.");
         } catch (Exception e) {
             Log.e("DLMS", "Error cerrando socket", e);
         }
     }
+
 
     private static String bytesToHex(byte[] bytes, int length) {
         StringBuilder sb = new StringBuilder();
