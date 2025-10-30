@@ -4,6 +4,7 @@ import gurux.common.IGXMedia;
 import gurux.common.IGXMediaListener;
 import gurux.common.ReceiveParameters;
 import gurux.common.enums.TraceLevel;
+import gurux.dlms.GXByteBuffer;
 
 import android.bluetooth.BluetoothSocket;
 import android.util.Log;
@@ -32,6 +33,7 @@ public class BluetoothCommunicator implements IGXMedia {
     private int configurableSettings = 0;
     private Object synchronous = new Object();
     private boolean isSynchronous = false;
+    private int waitTime = 10000; // 10 segundos por defecto
 
     public BluetoothCommunicator(BluetoothSocket socket) throws Exception {
         this.socket = socket;
@@ -143,32 +145,77 @@ public class BluetoothCommunicator implements IGXMedia {
 
     @Override
     public <T> boolean receive(ReceiveParameters<T> params) {
-        if (!isOpen()) return false;
+        if (!isOpen() || params == null) return false;
 
         try {
-            int count = in.available();
-            if (count == 0) return false;
+            GXByteBuffer buffer = new GXByteBuffer();
+            long startTime = System.currentTimeMillis();
+            byte eopByte = -1;
 
-            byte[] buffer = new byte[Math.min(count, 512)];
-            int read = in.read(buffer);
-            if (read > 0) {
-                byte[] data = new byte[read];
-                System.arraycopy(buffer, 0, data, 0, read);
-                bytesReceived += read;
+            // Determinar EOP
+            if (params.getEop() instanceof Byte) {
+                eopByte = (Byte) params.getEop();
+            } else if (params.getEop() instanceof byte[]) {
+                byte[] eopArr = (byte[]) params.getEop();
+                if (eopArr.length > 0) eopByte = eopArr[0];
+            }
 
-                if (params.getReply() != null && params.getReply() instanceof byte[]) {
-                    // Asignar datos recibidos
-                    System.arraycopy(data, 0, params.getReply(), 0, Math.min(data.length, ((byte[]) params.getReply()).length));
+            // Si no hay EOP, no sabemos cuándo termina → error
+            if (eopByte == -1 && params.getEop() != null) {
+                return false;
+            }
+
+            int minFrameSize = 8; // HDLC mínimo
+
+            while (true) {
+                // Timeout
+                if (params.getWaitTime() > 0 && (System.currentTimeMillis() - startTime) > params.getWaitTime()) {
+                    Log.d("BT", "Timeout en receive()");
+                    return false;
                 }
 
-                //notifyTrace(new TraceEventArgs(TraceTypes.INFO, "RX: " + bytesToHex(data)));
-                return true;
+                // Leer byte por byte
+                if (in.available() > 0) {
+                    int b = in.read();
+                    if (b == -1) return false;
+
+                    buffer.setUInt8((byte) b);
+                    bytesReceived++;
+
+                    // Si tenemos EOP y suficiente tamaño
+                    if (eopByte != -1 && b == eopByte && buffer.size() >= minFrameSize) {
+                        // Verificar que también empieza con 0x7E
+                        if (buffer.getUInt8(0) == 0x7E) {
+                            // ¡Frame completo!
+                            byte[] replyData = buffer.array();
+
+                            // Asignar al parámetro de salida
+                            if (params.getReply() == null) {
+                                params.setReply((T) replyData);
+                            } else if (params.getReply() instanceof byte[]) {
+                                byte[] target = (byte[]) params.getReply();
+                                if (target.length >= replyData.length) {
+                                    System.arraycopy(replyData, 0, target, 0, replyData.length);
+                                } else {
+                                    // Si el buffer es pequeño, crear uno nuevo
+                                    params.setReply((T) replyData);
+                                }
+                            }
+
+                            Log.d("BT", "Frame HDLC recibido: " + bytesToHex(replyData));
+                            return true;
+                        }
+                    }
+                } else {
+                    Thread.sleep(5); // Evitar busy-wait
+                }
             }
         } catch (Exception e) {
             Log.e("DLMS", "Error en receive()", e);
+            return false;
         }
-        return false;
     }
+
 
     @Override
     public void resetSynchronousBuffer() {
@@ -232,5 +279,13 @@ public class BluetoothCommunicator implements IGXMedia {
             sb.append(String.format("%02X ", b));
         }
         return sb.toString().trim();
+    }
+
+    public int getWaitTime() {
+        return waitTime;
+    }
+
+    public void setWaitTime(int value) {
+        this.waitTime = value;
     }
 }

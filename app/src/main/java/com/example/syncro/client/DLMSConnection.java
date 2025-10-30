@@ -113,7 +113,7 @@ public class DLMSConnection {
             reader.setContext(context); // Para trace.txt
 
             // Handshake inicial
-            reader.initializeConnection();
+            reader.initializeConnectionBluetooth();
             Log.i("DLMS", "Handshake IEC completado. Conexión DLMS activa.");
 
             return new DLMSConnection(reader, media, client);
