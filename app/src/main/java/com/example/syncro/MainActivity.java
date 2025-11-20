@@ -17,7 +17,14 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.example.syncro.client.DLMSConnection;
+import com.example.syncro.objects.LoadProfileReader;
 import com.example.syncro.utils.Utils;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.TimeZone;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -53,7 +60,21 @@ public class MainActivity extends AppCompatActivity {
             txtStatus.setText("Conectando...");
             new Thread(() -> {
                 try {
-                    Utils.controlDisconnectMode(this, false);
+                    // === Ajustar rango solicitado ===
+                    Calendar calFrom = Calendar.getInstance();
+                    calFrom.set(2025, Calendar.NOVEMBER, 1, 0, 0, 0); // 1/11/2025 00:00
+                    Date from = calFrom.getTime();
+
+                    Calendar calTo = Calendar.getInstance();
+                    calTo.set(2025, Calendar.NOVEMBER, 2, 0, 0, 0); // 2/11/2025 00:00
+                    Date to = calTo.getTime();
+
+                    List<List<Object>> registros = LoadProfileReader.readLoadProfileDayByDay(this, from, to);
+
+                    System.out.println("Registros recibidos: " + registros.size());
+                    for (List<Object> fila : registros) {
+                        System.out.println(fila);
+                    }
                     runOnUiThread(() -> {
                         txtStatus.setText("Conectado correctamente");
                         Toast.makeText(this, "Conexión DLMS activa", Toast.LENGTH_SHORT).show();

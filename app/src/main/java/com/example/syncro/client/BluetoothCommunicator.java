@@ -33,7 +33,7 @@ public class BluetoothCommunicator implements IGXMedia {
     private int configurableSettings = 0;
     private Object synchronous = new Object();
     private boolean isSynchronous = false;
-    private int waitTime = 10000; // 10 segundos por defecto
+    private int waitTime = 60000; // 10 segundos por defecto
 
     public BluetoothCommunicator(BluetoothSocket socket) throws Exception {
         this.socket = socket;

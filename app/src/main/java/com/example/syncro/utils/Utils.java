@@ -1,5 +1,6 @@
 package com.example.syncro.utils;
 
+import static android.content.ContentValues.TAG;
 import static gurux.dlms.objects.enums.ControlState.CONNECTED;
 import static gurux.dlms.objects.enums.ControlState.DISCONNECTED;
 import static gurux.dlms.objects.enums.ControlState.READY_FOR_RECONNECTION;
@@ -12,13 +13,23 @@ import com.example.syncro.client.GXDLMSReader;
 import com.example.syncro.client.GXDLMSSecureClient2;
 
 import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HexFormat;
+import java.util.List;
 import java.util.Map;
 
+import gurux.dlms.GXArray;
+import gurux.dlms.GXDLMSAccessItem;
 import gurux.dlms.GXDLMSClient;
 import gurux.dlms.GXDateTime;
 import gurux.dlms.GXReplyData;
+import gurux.dlms.GXStructure;
+import gurux.dlms.GXUInt32;
 import gurux.dlms.enums.DataType;
 import gurux.dlms.objects.GXDLMSCaptureObject;
 import gurux.dlms.objects.GXDLMSClock;
@@ -27,6 +38,7 @@ import gurux.dlms.objects.GXDLMSDisconnectControl;
 import gurux.dlms.objects.GXDLMSObject;
 import gurux.dlms.objects.GXDLMSProfileGeneric;
 import gurux.dlms.objects.enums.ControlState;
+import gurux.dlms.secure.GXDLMSSecureClient;
 
 public class Utils {
 
@@ -390,10 +402,6 @@ public class Utils {
         } finally {
             DLMSConnection.closeConnection(con.reader, con.serial);
         }
-    }
-
-    public static void readLoadProfile1() {
-        
     }
 
 
