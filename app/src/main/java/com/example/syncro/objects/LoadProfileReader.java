@@ -5,163 +5,89 @@ import android.util.Log;
 
 import com.example.syncro.client.DLMSConnection;
 import com.example.syncro.client.GXDLMSReader;
+import com.example.syncro.client.GXDLMSSecureClient2;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import gurux.dlms.GXArray;
 import gurux.dlms.GXDLMSClient;
 import gurux.dlms.GXDateTime;
 import gurux.dlms.GXStructure;
+import gurux.dlms.enums.DateTimeSkips;
 import gurux.dlms.objects.GXDLMSProfileGeneric;
 
 public class LoadProfileReader {
 
-    public static List<List<Object>> readLoadProfileDayByDay(Context context, Date fromDate, Date toDate)
-            throws Exception {
-
-        DLMSConnection con = DLMSConnection.initializeConnection2(context);
-        GXDLMSReader reader = con.reader;
-        GXDLMSClient client = con.client;
+    public static void readLoadProfileDayByDay(GXDLMSReader reader, GXDLMSSecureClient2 client, String fechaInicio, String fechaFin) {
         try {
-            List<List<Object>> allRecords = new ArrayList<>();
+            // 1. Definir el objeto Profile Generic (LP1)
+            GXDLMSProfileGeneric lp1 = new GXDLMSProfileGeneric("1.0.99.1.0.255");
 
-            GXDLMSProfileGeneric loadProfile = new GXDLMSProfileGeneric("1.0.99.1.0.255");
+            // 2. Leer objetos de captura (Atributo 3) para mapear columnas
+            System.out.println("Leyendo escalares (Capture Objects)...");
+            reader.read(lp1, 3);
 
-            // 1. Leer capture objects
-            reader.read(loadProfile, 3);
-            System.out.println("Capture objects: " + loadProfile.getCaptureObjects().size());
+            // 3. Configurar el rango de tiempo
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd");
 
-            // 2. Leer número de entradas y capture period
-            reader.read(loadProfile, 7);
-            reader.read(loadProfile, 4);
-            long totalEntries = loadProfile.getEntriesInUse();
-            long capturePeriod = loadProfile.getCapturePeriod(); // en segundos
-            System.out.println("Entradas totales: " + totalEntries + ", Capture period: " + capturePeriod + "s");
-
-            if (capturePeriod != 3600) {
-                throw new Exception("Este ejemplo asume 1 hora por entrada (3600s). Ajusta si es diferente.");
-            }
-
-            int entriesPerDay = 24;
-            int blockSize = 8; // como en el log: 6-8 por bloque
-
-            // 3. Iterar día por día
-            Calendar cal = Calendar.getInstance();
-            cal.setTime(fromDate);
-            cal.set(Calendar.HOUR_OF_DAY, 0);
-            cal.set(Calendar.MINUTE, 0);
-            cal.set(Calendar.SECOND, 0);
-            cal.set(Calendar.MILLISECOND, 0);
+            Calendar startCal = Calendar.getInstance();
+            startCal.setTime(formatter.parse(fechaInicio));
+            startCal.set(Calendar.HOUR_OF_DAY, 0);
+            startCal.set(Calendar.MINUTE, 0);
+            startCal.set(Calendar.SECOND, 0);
 
             Calendar endCal = Calendar.getInstance();
-            endCal.setTime(toDate);
+            endCal.setTime(formatter.parse(fechaFin));
+            endCal.set(Calendar.HOUR_OF_DAY, 0);
+            endCal.set(Calendar.MINUTE, 0);
+            endCal.set(Calendar.SECOND, 0);
 
-            while (!cal.after(endCal)) {
-                Date dayStart = cal.getTime();
-                Date dayEnd = new Date(cal.getTimeInMillis() + 24 * 60 * 60 * 1000L);
+            GXDateTime start = new GXDateTime(startCal);
+            GXDateTime end = new GXDateTime(endCal);
 
-                System.out.println("Leyendo datos del día: " +
-                        String.format("%1$td/%1$tm/%1$tY", dayStart));
+            // 4. Configurar omisiones (Skips) usando el SET directamente
+            // Según el error, setSkip espera Set<DateTimeSkips>, no un int.
+            Set<DateTimeSkips> skips = new HashSet<>();
+            skips.add(DateTimeSkips.DEVIATION); // Evita el error de zona horaria (FF C4)
+            skips.add(DateTimeSkips.STATUS);    // Evita el error de byte de estado
 
-                // Calcular índice aproximado del día (desde el final)
-                long now = System.currentTimeMillis();
-                long dayMs = dayStart.getTime();
-                long daysAgo = (now - dayMs) / (24 * 60 * 60 * 1000L);
-                int approxIndex = (int) (totalEntries - (daysAgo * entriesPerDay));
+            // PASAR EL SET DIRECTAMENTE
+            start.setSkip(skips);
+            end.setSkip(skips);
 
-                // Ajustar límites
-                int startIndex = Math.max(1, approxIndex - entriesPerDay); // margen
-                int safeEnd = (int) Math.min(totalEntries, startIndex + entriesPerDay * 2);
+            System.out.println("Leyendo LP1 desde " + fechaInicio + " hasta " + fechaFin);
 
-                List<List<Object>> dayRecords = new ArrayList<>();
+            // 5. Leer los datos por rango
+            // El reader gestiona la segmentación y los paquetes "Next Data Block"
+            Object[] rows = reader.readRowsByRange(lp1, start, end);
 
-                // Leer en bloques de `blockSize`
-                for (int idx = startIndex; idx < safeEnd; idx += blockSize) {
-                    int count = Math.min(blockSize, safeEnd - idx);
-                    if (count <= 0)
-                        break;
+            // 6. Procesar y mostrar los datos
+            if (rows != null && rows.length > 0) {
+                System.out.println(rows.length + " registro/s recuperados.");
 
-                    System.out.println("  Leyendo bloque: índice " + idx + ", count: " + count);
-                    try {
-                        Object result = reader.readRowsByEntry(loadProfile, idx, count);
-                        List<List<Object>> block = parseResult(result);
-
-                        // Filtrar por fecha del día
-                        for (List<Object> row : block) {
-                            if (row.isEmpty())
-                                continue;
-                            Object timeObj = row.get(0);
-                            if (!(timeObj instanceof GXDateTime))
-                                continue;
-
-                            GXDateTime rowTime = (GXDateTime) timeObj;
-                            Date rowDate = rowTime.getMeterCalendar().getTime();
-
-                            if (rowDate.compareTo(dayStart) >= 0 && rowDate.compareTo(dayEnd) < 0) {
-                                dayRecords.add(row);
-                            }
-                        }
-                    } catch (Exception e) {
-                        System.err.println("Error leyendo bloque " + idx + ": " + e.getMessage());
-                        // Continuar con el siguiente bloque
+                for (Object row : rows) {
+                    Object[] columns = (Object[]) row;
+                    StringBuilder sb = new StringBuilder();
+                    for (Object col : columns) {
+                        sb.append(col).append(" | ");
                     }
-
-                    // Pequeña pausa para no saturar
-                    Thread.sleep(50);
+                    System.out.println(sb.toString());
                 }
-
-                System.out.println("  -> " + dayRecords.size() + " registros recuperados para este día");
-                allRecords.addAll(dayRecords);
-
-                // Siguiente día
-                cal.add(Calendar.DAY_OF_MONTH, 1);
+            } else {
+                System.out.println("No se encontraron registros o el medidor devolvió buffer vacío.");
             }
 
-            System.out.println("Total registros recuperados: " + allRecords.size());
-            return allRecords;
         } catch (Exception e) {
-            Log.e("DLMS", "Error al conectar/desconectar", e);
-            throw e; // Re-lanzar para que el llamador sepa que falló
-        } finally {
-            DLMSConnection.closeConnection(con.reader, con.serial);
+            System.err.println("Error durante la lectura del perfil: " + e.getMessage());
+            e.printStackTrace();
         }
-    }
-
-    private static List<List<Object>> parseResult(Object result) {
-        List<List<Object>> records = new ArrayList<>();
-        if (result instanceof GXArray) {
-            for (Object rowObj : (GXArray) result) {
-                records.add(parseRow(rowObj));
-            }
-        } else if (result instanceof Object[]) {
-            for (Object rowObj : (Object[]) result) {
-                records.add(parseRow(rowObj));
-            }
-        }
-        return records;
-    }
-
-    private static List<Object> parseRow(Object rowObj) {
-        List<Object> row = new ArrayList<>();
-        if (rowObj instanceof GXStructure) {
-            GXStructure struct = (GXStructure) rowObj;
-            for (Object value : struct) {
-                if (value instanceof GXDateTime) {
-                    row.add(value);
-                } else {
-                    row.add(value);
-                }
-            }
-        } else if (rowObj instanceof Object[]) {
-            row.addAll(Arrays.asList((Object[]) rowObj));
-        } else {
-            row.add(rowObj);
-        }
-        return row;
     }
 
 }
