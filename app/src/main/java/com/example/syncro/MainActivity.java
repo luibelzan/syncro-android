@@ -62,11 +62,11 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     // === Ajustar rango solicitado ===
                     Calendar calFrom = Calendar.getInstance();
-                    calFrom.set(2025, Calendar.NOVEMBER, 1, 0, 0, 0); // 1/11/2025 00:00
+                    calFrom.set(2026, Calendar.JANUARY, 20, 0, 0, 0); // 1/11/2025 00:00
                     Date from = calFrom.getTime();
 
                     Calendar calTo = Calendar.getInstance();
-                    calTo.set(2025, Calendar.NOVEMBER, 2, 0, 0, 0); // 2/11/2025 00:00
+                    calTo.set(2026, Calendar.JANUARY, 21, 0, 0, 0); // 2/11/2025 00:00
                     Date to = calTo.getTime();
 
                     List<List<Object>> registros = LoadProfileReader.readLoadProfileDayByDay(this, from, to);

@@ -1,6 +1,7 @@
 package com.example.syncro.objects;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.example.syncro.client.DLMSConnection;
 import com.example.syncro.client.GXDLMSReader;
@@ -123,7 +124,10 @@ public class LoadProfileReader {
             System.out.println("Total registros recuperados: " + allRecords.size());
             return allRecords;
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            Log.e("DLMS", "Error al conectar/desconectar", e);
+            throw e; // Re-lanzar para que el llamador sepa que falló
+        } finally {
+            DLMSConnection.closeConnection(con.reader, con.serial);
         }
     }
 
