@@ -1,12 +1,10 @@
-package com.example.syncro.objects;
+package com.example.syncro.objects.params;
 
-import android.content.Context;
 import android.util.Log;
 
-import com.example.syncro.client.DLMSConnection;
 import com.example.syncro.client.GXDLMSReader;
+import com.example.syncro.client.GXDLMSSecureClient2;
 
-import gurux.dlms.GXDLMSClient;
 import gurux.dlms.GXReplyData;
 import gurux.dlms.enums.DataType;
 import gurux.dlms.objects.GXDLMSDisconnectControl;
@@ -14,10 +12,7 @@ import gurux.dlms.objects.enums.ControlState;
 
 public class ControlDisconnectMode {
 
-    public static void setControlDisconnectMode(Context context, boolean connect) throws Exception {
-        DLMSConnection con = DLMSConnection.initializeConnection2(context);
-        GXDLMSReader reader = con.reader;
-        GXDLMSClient client = con.client;
+    public static void setControlDisconnectMode(GXDLMSReader reader, GXDLMSSecureClient2 client, boolean connect) throws Exception {
 
         try {
             System.out.println("\n=== CONTROL DE CONEXIÓN / DESCONEXIÓN ===");
@@ -61,8 +56,6 @@ public class ControlDisconnectMode {
         } catch (Exception e) {
             Log.e("DLMS", "Error al conectar/desconectar", e);
             throw e; // Re-lanzar para que el llamador sepa que falló
-        } finally {
-            DLMSConnection.closeConnection(con.reader, con.serial);
         }
     }
 

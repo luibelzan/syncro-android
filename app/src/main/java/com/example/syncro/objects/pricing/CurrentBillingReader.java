@@ -1,9 +1,7 @@
-package com.example.syncro.objects;
+package com.example.syncro.objects.pricing;
 
-import android.content.Context;
 import android.util.Log;
 
-import com.example.syncro.client.DLMSConnection;
 import com.example.syncro.client.GXDLMSReader;
 
 import java.time.LocalDateTime;
@@ -13,7 +11,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import gurux.dlms.GXDLMSClient;
 import gurux.dlms.GXDateTime;
 import gurux.dlms.objects.GXDLMSCaptureObject;
 import gurux.dlms.objects.GXDLMSObject;
@@ -22,10 +19,8 @@ import gurux.dlms.objects.GXDLMSRegister;
 
 public class CurrentBillingReader {
 
-    public static void readCurrentBilling(Context context) throws Exception {
-        DLMSConnection con = DLMSConnection.initializeConnection2(context);
-        GXDLMSReader reader = con.reader;
-        GXDLMSClient client = con.client;
+    public static void readCurrentBilling(GXDLMSReader reader) throws Exception {
+
         try {
             System.out.println("------------------------------");
             System.out.println("Cierres en curso");
@@ -77,7 +72,9 @@ public class CurrentBillingReader {
             Log.e("DLMS", "Error al conectar/desconectar", e);
             throw e; // Re-lanzar para que el llamador sepa que falló
         } finally {
-            DLMSConnection.closeConnection(con.reader, con.serial);
+            if(reader != null) {
+                reader.close();
+            }
         }
     }
 

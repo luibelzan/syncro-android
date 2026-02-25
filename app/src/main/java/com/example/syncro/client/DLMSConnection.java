@@ -20,6 +20,7 @@ import gurux.common.enums.TraceLevel;
 import com.example.syncro.client.GXDLMSSecureClient2;
 
 import gurux.dlms.GXByteBuffer;
+import gurux.dlms.GXDLMSClient;
 import gurux.dlms.GXReplyData;
 import gurux.dlms.enums.Authentication;
 import gurux.dlms.enums.Conformance;
@@ -27,13 +28,19 @@ import gurux.dlms.enums.InterfaceType;
 import gurux.io.BaudRate;
 import gurux.io.Parity;
 import gurux.io.StopBits;
+import gurux.net.GXNet;
+import gurux.net.enums.NetworkType;
 import gurux.serial.GXSerial;
 
 public class DLMSConnection {
 
-    public final GXDLMSSecureClient2 client;
-    public final BluetoothCommunicator serial;
-    public GXDLMSReader reader;
+    private final String device;
+    private final String ip;
+    private final int port;
+    private static GXDLMSSecureClient2 client;
+    private static BluetoothCommunicator serial;
+    private static GXDLMSReader reader;
+    private static GXNet net;
 
 
     /*
@@ -50,14 +57,70 @@ public class DLMSConnection {
 
      */
 
-    public DLMSConnection(GXDLMSReader reader, BluetoothCommunicator serial, GXDLMSSecureClient2 client) {
-        this.reader = reader;
-        this.serial = serial;
-        this.client = client;
+    public DLMSConnection(String device) {
+        this.device = device;
+        this.ip = null;
+        this.port = -1;
+    }
+
+    public DLMSConnection(String ip, int port) {
+        this.ip = ip;
+        this.port = port;
+        this.device = null;
+    }
+
+    public GXDLMSReader bluetoothConnnect(Context context) throws Exception {
+        //configurarSerial();
+        configurarClienteDlms();
+
+        reader = new GXDLMSReader(client, serial, TraceLevel.VERBOSE, null);
+        initializeConnection2(context, device);
+
+        System.out.println("Handshake IEC completado. Cambiando a DLMS.");
+        return reader;
+    }
+
+    public GXDLMSReader tcpConnect() throws Exception {
+        net = new GXNet(NetworkType.TCP, ip, port);
+        net.setTrace(TraceLevel.VERBOSE);
+        net.open();
+
+        System.out.println("Conectado por TCP/IP a " + ip + ":" + port);
+
+        configurarClienteDlms();
+
+        reader = new GXDLMSReader(client, net, TraceLevel.VERBOSE, null);
+        reader.initializeConnection();
+        System.out.println("Handshake IEC completado. Cambiando a DLMS.");
+        return reader;
+    }
+
+    private static void configurarClienteDlms() {
+        client = new GXDLMSSecureClient2(true);
+
+        // 1. IMPORTANTE: En puerto serie suele ser HDLC, en TCP suele ser WRAPPER
+        client.setInterfaceType(InterfaceType.HDLC);
+
+        // 2. CONFIGURACIÓN DE DIRECCIÓN (Aquí está el truco)
+        // Para obtener la trama 00 02 00 21:
+        // El primer '1' es el Management Logical Device.
+        // El '16' es el Physical Device ID (común en Sagemcom/Landis).
+        client.setServerAddress(GXDLMSClient.getServerAddress(1, 16, 4));
+
+        // Si lo anterior falla, intenta forzar el ServerAddressSize a 1
+        // como tenías al principio, pero usa el ClientAddress 0x1 (decimal 1)
+        // client.setServerAddress(0x03); // A veces el ID físico es simplemente 0x03
+
+        client.setClientAddress(1);
+        client.setUseLogicalNameReferencing(true);
+        client.setAuthentication(Authentication.LOW);
+        client.setPassword("00000002".getBytes());
+        // Limitar el tamaño de PDU para evitar que el Gateway TCP se sature
+        client.setMaxReceivePDUSize(236);
     }
 
 
-    public static DLMSConnection initializeConnection2(Context context) throws Exception {
+    public static DLMSConnection initializeConnection2(Context context, String dispositivo) throws Exception {
         BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
         if (adapter == null) throw new Exception("Bluetooth no disponible en este dispositivo");
 
@@ -96,27 +159,20 @@ public class DLMSConnection {
             Log.d("DLMS", "Conexión Bluetooth SPP establecida.");
 
             // 3. AHORA crear el comunicador
-            BluetoothCommunicator media = new BluetoothCommunicator(socket);
+            serial = new BluetoothCommunicator(socket);
 
             // Configurar cliente DLMS
-            GXDLMSSecureClient2 client = new GXDLMSSecureClient2(true);
-            client.setInterfaceType(InterfaceType.HDLC);
-            client.setServerAddressSize(2);
-            client.setServerAddress(144);
-            client.setClientAddress(1);
-            client.setUseLogicalNameReferencing(true);
-            client.setAuthentication(Authentication.LOW);
-            client.setPassword("00000002");
+            configurarClienteDlms();
 
             // Crear lector DLMS
-            GXDLMSReader reader = new GXDLMSReader(client, media, TraceLevel.VERBOSE, null);
+            reader = new GXDLMSReader(client, serial, TraceLevel.VERBOSE, null);
             reader.setContext(context); // Para trace.txt
 
             // Handshake inicial
             reader.initializeConnectionBluetooth();
             Log.i("DLMS", "Handshake IEC completado. Conexión DLMS activa.");
 
-            return new DLMSConnection(reader, media, client);
+            return new DLMSConnection(dispositivo);
 
         } catch (IOException e) {
             Log.e("DLMS", "Error conectando Bluetooth", e);
@@ -126,30 +182,6 @@ public class DLMSConnection {
             throw new Exception("Fallo al conectar Bluetooth: " + e.getMessage());
         }
     }
-
-    /*
-    public void close() {
-        try {
-            if (client != null) {
-                try {
-                    byte[] disconnect = client.disconnectRequest();
-                    if (disconnect != null && out != null) {
-                        out.write(disconnect);
-                        out.flush();
-                        Log.i("DLMS", "DLMS disconnectRequest enviado correctamente.");
-                    }
-                } catch (Exception e) {
-                    Log.w("DLMS", "Error enviando disconnectRequest", e);
-                }
-            }
-
-            socket.close();
-            Log.i("DLMS", "Socket Bluetooth cerrado.");
-        } catch (Exception e) {
-            Log.e("DLMS", "Error cerrando socket", e);
-        }
-    }
-    */
 
     public static void closeConnection(GXDLMSReader reader, BluetoothCommunicator serial) {
         try {
@@ -171,8 +203,9 @@ public class DLMSConnection {
         }
     }
 
-
-
+    public GXDLMSSecureClient2 getClient() {
+        return client;
+    }
 
     private static String bytesToHex(byte[] bytes, int length) {
         StringBuilder sb = new StringBuilder();
@@ -181,5 +214,16 @@ public class DLMSConnection {
         }
         return sb.toString();
     }
+
+    public void close() {
+        try {
+            if (reader != null) reader.close();
+            if (serial != null && serial.isOpen()) serial.close();
+            if (net != null && net.isOpen()) net.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 
 }

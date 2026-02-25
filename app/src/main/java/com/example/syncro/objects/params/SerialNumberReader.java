@@ -1,9 +1,7 @@
-package com.example.syncro.objects;
+package com.example.syncro.objects.params;
 
-import android.content.Context;
 import android.util.Log;
 
-import com.example.syncro.client.DLMSConnection;
 import com.example.syncro.client.GXDLMSReader;
 import com.example.syncro.utils.Utils;
 
@@ -11,9 +9,7 @@ import gurux.dlms.objects.GXDLMSData;
 
 public class SerialNumberReader {
 
-    public static void readSerialNumer(Context context) throws Exception {
-        DLMSConnection con = DLMSConnection.initializeConnection2(context);
-        GXDLMSReader reader = con.reader;
+    public static void readSerialNumer(GXDLMSReader reader) throws Exception {
         try {
             System.out.println("Leyendo numero de serie");
             GXDLMSData serialNumber = new GXDLMSData("0.0.96.1.0.255");
@@ -39,7 +35,9 @@ public class SerialNumberReader {
             Log.e("DLMS", "Error al leer el Serial Number", e);
             throw e; // Re-lanzar para que el llamador sepa que falló
         } finally {
-            DLMSConnection.closeConnection(con.reader, con.serial);
+            if (reader != null) {
+                reader.close();
+            }
         }
     }
 

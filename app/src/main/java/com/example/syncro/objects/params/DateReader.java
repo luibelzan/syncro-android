@@ -1,23 +1,19 @@
-package com.example.syncro.objects;
+package com.example.syncro.objects.params;
 
-import android.content.Context;
 import android.util.Log;
 
-import com.example.syncro.client.DLMSConnection;
 import com.example.syncro.client.GXDLMSReader;
+import com.example.syncro.client.GXDLMSSecureClient2;
 
 import java.util.Date;
 
-import gurux.dlms.GXDLMSClient;
 import gurux.dlms.GXDateTime;
 import gurux.dlms.GXReplyData;
 import gurux.dlms.objects.GXDLMSClock;
 
 public class DateReader {
 
-    public static void readDate(Context context) throws Exception {
-        DLMSConnection con = DLMSConnection.initializeConnection2(context);
-        GXDLMSReader reader = con.reader;
+    public static void readDate(GXDLMSReader reader) throws Exception {
 
         try {
             System.out.println("Leyendo fecha y hora del equipo");
@@ -34,15 +30,10 @@ public class DateReader {
         } catch (Exception e) {
             Log.e("DLMS", "Error al leer Fecha y hora del equipo", e);
             throw e; // Re-lanzar para que el llamador sepa que falló
-        } finally {
-            DLMSConnection.closeConnection(con.reader, con.serial);
         }
     }
 
-    public static void syncClock(Context context) throws Exception {
-        DLMSConnection con = DLMSConnection.initializeConnection2(context);
-        GXDLMSReader reader = con.reader;
-        GXDLMSClient client = con.client;
+    public static void syncClock(GXDLMSReader reader, GXDLMSSecureClient2 client) throws Exception {
 
         try {
             System.out.println("\n=== Sincronizacion de fecha y hora ===");
@@ -122,8 +113,6 @@ public class DateReader {
         } catch (Exception e) {
             Log.e("DLMS", "Error al sincronizar la fecha y hora del equipo", e);
             throw e; // Re-lanzar para que el llamador sepa que falló
-        } finally {
-            DLMSConnection.closeConnection(con.reader, con.serial);
         }
     }
 }

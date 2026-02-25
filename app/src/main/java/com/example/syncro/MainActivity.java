@@ -12,18 +12,13 @@ import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
-import com.example.syncro.client.DLMSConnection;
-import com.example.syncro.objects.LoadProfileReader;
-import com.example.syncro.utils.Utils;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.TimeZone;
+import com.example.syncro.client.GXDLMSReader;
+import com.example.syncro.client.GXDLMSSecureClient2;
+import com.example.syncro.objects.events.StandarEventLogReader;
+import com.example.syncro.objects.instantValues.InstantaneousValuesReader;
+import com.example.syncro.objects.params.DateReader;
+import com.example.syncro.utils.MeterData;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -60,13 +55,30 @@ public class MainActivity extends AppCompatActivity {
             txtStatus.setText("Conectando...");
             new Thread(() -> {
                 try {
-                    
-                    List<List<Object>> registros = LoadProfileReader.readLoadProfileDayByDay(this, from, to);
+                    DLMSConnection conn = new DLMSConnection("prueba");
+                    GXDLMSReader reader = conn.bluetoothConnnect(this);
+                    GXDLMSSecureClient2 client = conn.getClient();
 
-                    System.out.println("Registros recibidos: " + registros.size());
-                    for (List<Object> fila : registros) {
-                        System.out.println(fila);
-                    }
+                    //TARIFICACION
+                    //BillingDataReader.readBillingDataContract1(reader);
+                    //CurrentBillingReader.readCurrentBilling(reader);
+
+                    //CURVAS
+                    //LoadProfileReader.leerCurvaCarga(reader, "2026/02/09", "2026/02/10");
+                    
+                    //PARAMETROS
+                    //DateReader.readDate(reader);
+                    //DateReader.syncClock(reader, client);
+                    //SerialNumberReader.readSerialNumer(reader);
+
+                    //EVENTOS
+                    //StandarEventLogReader.readStandarEventLog(reader);
+
+                    //VALORES INSTANTANEOS
+                    InstantaneousValuesReader.readMeterData(reader);
+                    conn.close();
+
+
                     runOnUiThread(() -> {
                         txtStatus.setText("Conectado correctamente");
                         Toast.makeText(this, "Conexión DLMS activa", Toast.LENGTH_SHORT).show();

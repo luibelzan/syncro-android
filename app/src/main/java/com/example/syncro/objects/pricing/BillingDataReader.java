@@ -1,9 +1,7 @@
-package com.example.syncro.objects;
+package com.example.syncro.objects.pricing;
 
-import android.content.Context;
 import android.util.Log;
 
-import com.example.syncro.client.DLMSConnection;
 import com.example.syncro.client.GXDLMSReader;
 
 import java.nio.charset.StandardCharsets;
@@ -17,9 +15,7 @@ import gurux.dlms.objects.GXDLMSProfileGeneric;
 
 public class BillingDataReader {
 
-    public static void readBillingDataContract1(Context context) throws Exception {
-        DLMSConnection con = DLMSConnection.initializeConnection2(context);
-        GXDLMSReader reader = con.reader;
+    public static void readBillingDataContract1(GXDLMSReader reader) throws Exception {
 
         try {
             System.out.println("Leyendo perfil de facturación (Data Billing) del contrato 1...\n");
@@ -90,7 +86,9 @@ public class BillingDataReader {
             Log.e("DLMS", "Error al leer Billing Data Contract 1", e);
             throw e; // Re-lanzar para que el llamador sepa que falló
         } finally {
-            DLMSConnection.closeConnection(con.reader, con.serial);
+            if(reader != null) {
+                reader.close();
+            }
         }
     }
 }

@@ -52,9 +52,8 @@ public class Utils {
         return sb.toString();
     }
 
-    public static void readSerialNumer(Context context) throws Exception {
-        DLMSConnection con = DLMSConnection.initializeConnection2(context);
-        GXDLMSReader reader = con.reader;
+    public static void readSerialNumer(GXDLMSReader reader) throws Exception {
+
         try {
             System.out.println("Leyendo numero de serie");
             GXDLMSData serialNumber = new GXDLMSData("0.0.96.1.0.255");
@@ -79,15 +78,10 @@ public class Utils {
         } catch (Exception e) {
             Log.e("DLMS", "Error al leer el Serial Number", e);
             throw e; // Re-lanzar para que el llamador sepa que falló
-        } finally {
-            DLMSConnection.closeConnection(con.reader, con.serial);
         }
     }
 
-    public static void readDate(Context context) throws Exception {
-        DLMSConnection con = DLMSConnection.initializeConnection2(context);
-        GXDLMSReader reader = con.reader;
-
+    public static void readDate(GXDLMSReader reader) throws Exception {
         try {
             System.out.println("Leyendo fecha y hora del equipo");
             GXDLMSClock clock = new GXDLMSClock("0.0.1.0.0.255");
@@ -103,14 +97,10 @@ public class Utils {
         } catch (Exception e) {
             Log.e("DLMS", "Error al leer Fecha y hora del equipo", e);
             throw e; // Re-lanzar para que el llamador sepa que falló
-        } finally {
-            DLMSConnection.closeConnection(con.reader, con.serial);
         }
     }
 
-    public static void readStandarEventLog(Context context) throws Exception {
-        DLMSConnection con = DLMSConnection.initializeConnection2(context);
-        GXDLMSReader reader = con.reader;
+    public static void readStandarEventLog(GXDLMSReader reader) throws Exception {
         try {
             System.out.println("Leyendo perfil de cierres mensuales...\n");
 
@@ -165,15 +155,10 @@ public class Utils {
         } catch (Exception e) {
             Log.e("DLMS", "Error al leer Standar Event Log", e);
             throw e; // Re-lanzar para que el llamador sepa que falló
-        } finally {
-            DLMSConnection.closeConnection(con.reader, con.serial);
         }
     }
 
-    public static void readBillingDataContract1(Context context) throws Exception {
-        DLMSConnection con = DLMSConnection.initializeConnection2(context);
-        GXDLMSReader reader = con.reader;
-
+    public static void readBillingDataContract1(GXDLMSReader reader) throws Exception {
         try {
             System.out.println("Leyendo perfil de facturación (Data Billing) del contrato 1...\n");
 
@@ -242,16 +227,10 @@ public class Utils {
         } catch (Exception e) {
             Log.e("DLMS", "Error al leer Billing Data Contract 1", e);
             throw e; // Re-lanzar para que el llamador sepa que falló
-        } finally {
-            DLMSConnection.closeConnection(con.reader, con.serial);
         }
     }
 
-    public static void controlDisconnectMode(Context context, boolean connect) throws Exception {
-        DLMSConnection con = DLMSConnection.initializeConnection2(context);
-        GXDLMSReader reader = con.reader;
-        GXDLMSClient client = con.client;
-
+    public static void controlDisconnectMode(GXDLMSReader reader, GXDLMSSecureClient2 client, boolean connect) throws Exception {
         try {
             System.out.println("\n=== CONTROL DE CONEXIÓN / DESCONEXIÓN ===");
 
@@ -294,8 +273,6 @@ public class Utils {
         } catch (Exception e) {
             Log.e("DLMS", "Error al conectar/desconectar", e);
             throw e; // Re-lanzar para que el llamador sepa que falló
-        } finally {
-            DLMSConnection.closeConnection(con.reader, con.serial);
         }
     }
 
@@ -316,11 +293,7 @@ public class Utils {
         }
     }
 
-    public static void syncClock(Context context) throws Exception {
-        DLMSConnection con = DLMSConnection.initializeConnection2(context);
-        GXDLMSReader reader = con.reader;
-        GXDLMSClient client = con.client;
-
+    public static void syncClock(GXDLMSReader reader, GXDLMSSecureClient2 client) throws Exception {
         try {
             System.out.println("\n=== Sincronizacion de fecha y hora ===");
             GXDLMSClock clock = new GXDLMSClock();
@@ -399,8 +372,6 @@ public class Utils {
         } catch (Exception e) {
             Log.e("DLMS", "Error al sincronizar la fecha y hora del equipo", e);
             throw e; // Re-lanzar para que el llamador sepa que falló
-        } finally {
-            DLMSConnection.closeConnection(con.reader, con.serial);
         }
     }
 
