@@ -1,9 +1,17 @@
 package com.example.syncro;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.RadioGroup;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.example.syncro.client.DLMSConnection;
@@ -26,15 +34,18 @@ public class MainActivity extends AppCompatActivity {
     private TextView txtStatus;
     private Button btnConnect;
     private static final int REQUEST_BLUETOOTH_PERMISSIONS = 1;
+    private RadioGroup radioGroupConexion;
+    private LinearLayout layoutBluetooth;
+    private LinearLayout layoutTcp;
+    private String dispositivo;
+    private String ip;
+    private int port;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
-
-        txtStatus = findViewById(R.id.txtStatus);
-        btnConnect = findViewById(R.id.btnConnect);
 
         // 🔹 Verificar permisos Bluetooth
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT)
@@ -51,45 +62,76 @@ public class MainActivity extends AppCompatActivity {
             }, REQUEST_BLUETOOTH_PERMISSIONS);
         }
 
-        btnConnect.setOnClickListener(v -> {
-            txtStatus.setText("Conectando...");
-            new Thread(() -> {
-                try {
-                    DLMSConnection conn = new DLMSConnection("prueba");
-                    GXDLMSReader reader = conn.bluetoothConnnect(this);
-                    GXDLMSSecureClient2 client = conn.getClient();
+        // Referencias
+        radioGroupConexion = findViewById(R.id.radioGroupConexion);
+        layoutBluetooth = findViewById(R.id.layoutBluetooth);
+        layoutTcp = findViewById(R.id.layoutTcp);
 
-                    //TARIFICACION
-                    //BillingDataReader.readBillingDataContract1(reader);
-                    //CurrentBillingReader.readCurrentBilling(reader);
+        // Mostrar layout inicial según selección por defecto
+        layoutBluetooth.setVisibility(View.VISIBLE);
+        layoutTcp.setVisibility(View.GONE);
 
-                    //CURVAS
-                    //LoadProfileReader.leerCurvaCarga(reader, "2026/02/09", "2026/02/10");
-                    
-                    //PARAMETROS
-                    //DateReader.readDate(reader);
-                    //DateReader.syncClock(reader, client);
-                    //SerialNumberReader.readSerialNumer(reader);
+        if (radioGroupConexion.getCheckedRadioButtonId() == R.id.rbTcp) {
+            layoutBluetooth.setVisibility(View.GONE);
+            layoutTcp.setVisibility(View.VISIBLE);
+        }
 
-                    //EVENTOS
-                    //StandarEventLogReader.readStandarEventLog(reader);
+        // Listener para cambio de selección
+        radioGroupConexion.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
 
-                    //VALORES INSTANTANEOS
-                    InstantaneousValuesReader.readMeterData(reader);
-                    conn.close();
+                if (checkedId == R.id.rbBluetooth) {
 
+                    layoutBluetooth.setVisibility(View.VISIBLE);
+                    layoutTcp.setVisibility(View.GONE);
 
-                    runOnUiThread(() -> {
-                        txtStatus.setText("Conectado correctamente");
-                        Toast.makeText(this, "Conexión DLMS activa", Toast.LENGTH_SHORT).show();
-                    });
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    runOnUiThread(() -> {
-                        txtStatus.setText("Error de conexión: " + e.getMessage());
-                    });
+                } else if (checkedId == R.id.rbTcp) {
+
+                    layoutBluetooth.setVisibility(View.GONE);
+                    layoutTcp.setVisibility(View.VISIBLE);
                 }
-            }).start();
+            }
         });
+
+        // 🔹 Inicializar Spinner AQUÍ
+        Spinner spinnerSonda = findViewById(R.id.spinnerSonda);
+
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
+                this,
+                R.array.sondas_array,
+                android.R.layout.simple_spinner_item
+        );
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        spinnerSonda.setAdapter(adapter);
+
+        spinnerSonda.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String seleccion = parent.getItemAtPosition(position).toString();
+                // Aquí puedes usar la selección
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                // No hacer nada
+            }
+        });
+
+        ImageButton btnNext = findViewById(R.id.btnNext);
+
+        btnNext.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                Intent intent = new Intent(MainActivity.this, SecondActivity.class);
+                startActivity(intent);
+
+            }
+        });
+
+
+
     }
 }

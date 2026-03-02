@@ -1,3 +1,19 @@
 <resources>
     <string name="app_name">Syncro</string>
+    <string name="tipo_sonda">Tipo de sonda a usar:</string>
+    <string name="bluetooth">Bluetooth</string>
+    <string name="tcp">TCP/IP</string>
+    <string name="dispositivo">Dispositivo:</string>
+    <string name="welcome">Configuracion Inicial</string>
+    <string-array name="sondas_array">
+        <item>TesPro</item>
+        <item>Prueba</item>
+    </string-array>
+    <string name="next">Siguiente</string>
+    <string name="ip">IP</string>
+    <string name="port">Puerto</string>
+    <string name="config">Configuracion</string>
+    <string name="reads">Lecturas</string>
+    <string name="contracts">Contratos</string>
+    <string name="params">Parametros</string>
 </resources>
