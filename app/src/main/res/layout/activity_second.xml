@@ -35,16 +35,15 @@
                 android:focusable="true">
 
                 <ImageView
-                    android:layout_width="70dp"
-                    android:layout_height="70dp"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
                     android:src="@drawable/configuracion"
                     android:padding="16dp"/>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/config"
-                    android:layout_marginTop="8dp"/>
+                    android:text="@string/config"/>
             </LinearLayout>
 
             <!-- ICONO 2 -->
@@ -59,16 +58,15 @@
                 android:focusable="true">
 
                 <ImageView
-                    android:layout_width="70dp"
-                    android:layout_height="70dp"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
                     android:src="@drawable/lectura"
                     android:padding="16dp"/>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/reads"
-                    android:layout_marginTop="8dp"/>
+                    android:text="@string/reads"/>
             </LinearLayout>
 
         </LinearLayout>
@@ -78,6 +76,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
+            android:layout_marginBottom="24dp"
             android:weightSum="2">
 
             <!-- ICONO 3 -->
@@ -92,16 +91,15 @@
                 android:focusable="true">
 
                 <ImageView
-                    android:layout_width="70dp"
-                    android:layout_height="70dp"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
                     android:src="@drawable/contratos"
                     android:padding="16dp"/>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/contracts"
-                    android:layout_marginTop="8dp"/>
+                    android:text="@string/contracts"/>
             </LinearLayout>
 
             <!-- ICONO 4 -->
@@ -116,16 +114,104 @@
                 android:focusable="true">
 
                 <ImageView
-                    android:layout_width="70dp"
-                    android:layout_height="70dp"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
                     android:src="@drawable/parametros"
                     android:padding="16dp"/>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/params"
-                    android:layout_marginTop="8dp"/>
+                    android:text="@string/params"/>
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- FILA 3 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="24dp"
+            android:weightSum="2">
+
+            <!-- ICONO 5 -->
+            <LinearLayout
+                android:id="@+id/btnFirmware"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:clickable="true"
+                android:focusable="true">
+
+                <ImageView
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:src="@drawable/firmware"
+                    android:padding="16dp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/firmware"/>
+            </LinearLayout>
+
+            <!-- ICONO 6 -->
+            <LinearLayout
+                android:id="@+id/btnReports"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:clickable="true"
+                android:focusable="true">
+
+                <ImageView
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:src="@drawable/reportes"
+                    android:padding="16dp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/reports"/>
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- FILA 4 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="24dp"
+            android:weightSum="2">
+
+            <!-- ICONO 5 -->
+            <LinearLayout
+                android:id="@+id/btnAbout"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:clickable="true"
+                android:focusable="true">
+
+                <ImageView
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:src="@drawable/acerca"
+                    android:padding="16dp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/about"/>
             </LinearLayout>
 
         </LinearLayout>

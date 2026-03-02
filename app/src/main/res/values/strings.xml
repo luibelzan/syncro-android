@@ -16,4 +16,7 @@
     <string name="reads">Lecturas</string>
     <string name="contracts">Contratos</string>
     <string name="params">Parametros</string>
+    <string name="firmware">Firmware</string>
+    <string name="reports">Reportes</string>
+    <string name="about">Acerca de</string>
 </resources>
