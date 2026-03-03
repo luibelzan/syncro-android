@@ -1,4 +1,5 @@
 <resources>
+    <!-- MAIN ACTIVITY -->
     <string name="app_name">Syncro</string>
     <string name="tipo_sonda">Tipo de sonda a usar:</string>
     <string name="bluetooth">Bluetooth</string>
@@ -12,6 +13,8 @@
     <string name="next">Siguiente</string>
     <string name="ip">IP</string>
     <string name="port">Puerto</string>
+
+    <!-- SECOND ACTIVITY -->
     <string name="config">Configuracion</string>
     <string name="reads">Lecturas</string>
     <string name="contracts">Contratos</string>
@@ -20,6 +23,7 @@
     <string name="reports">Reportes</string>
     <string name="about">Acerca de</string>
 
+    <!-- LECTURAS -->
     <string name="curvas">Curvas de Carga</string>
     <string name="cierres">Cierres</string>
     <string name="events">Eventos</string>
@@ -27,4 +31,14 @@
     <string name="instantvalues">Valores Instantaneos</string>
     <string name="params2">Parametros(S06)</string>
     <string name="sondastatus">Estado Sonda</string>
+
+    <!-- CURVAS -->
+    <string name="fechainicio">Seleccione la fecha de inicio:</string>
+    <string name="fechafin">Seleccione la fecha de fin:</string>
+    <string name="dateInput">Seleccionar fecha</string>
+    <string name="tipoCurva">Tipo de curva de carga:</string>
+    <string-array name="curvas_array">
+        <item>Load_Profile_1_Incremental_S02</item>
+        <item>Load_Profile_2_Absoluto_S03</item>
+    </string-array>
 </resources>
