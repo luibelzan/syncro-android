@@ -19,4 +19,12 @@
     <string name="firmware">Firmware</string>
     <string name="reports">Reportes</string>
     <string name="about">Acerca de</string>
+
+    <string name="curvas">Curvas de Carga</string>
+    <string name="cierres">Cierres</string>
+    <string name="events">Eventos</string>
+    <string name="ids">Identificadores</string>
+    <string name="instantvalues">Valores Instantaneos</string>
+    <string name="params2">Parametros(S06)</string>
+    <string name="sondastatus">Estado Sonda</string>
 </resources>
