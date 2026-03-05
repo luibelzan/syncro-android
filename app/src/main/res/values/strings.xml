@@ -41,4 +41,5 @@
         <item>Load_Profile_1_Incremental_S02</item>
         <item>Load_Profile_2_Absoluto_S03</item>
     </string-array>
+    <string name="loading">Cargando...</string>
 </resources>

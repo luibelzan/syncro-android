@@ -3,6 +3,7 @@ package com.example.syncro.objects.loadProfiles;
 import com.example.syncro.client.GXDLMSReader;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.EnumSet;
 
@@ -12,7 +13,8 @@ import gurux.dlms.objects.GXDLMSProfileGeneric;
 
 public class LoadProfileReader {
 
-    public static void leerCurvaCarga(GXDLMSReader reader, String fechaInicio, String fechaFin) {
+    public static ArrayList<String> leerCurvaCarga(GXDLMSReader reader, String fechaInicio, String fechaFin) {
+        ArrayList<String> resultados = new ArrayList<>();
         try {
             GXDLMSProfileGeneric lp1 = new GXDLMSProfileGeneric("1.0.99.1.0.255");
 
@@ -67,16 +69,19 @@ public class LoadProfileReader {
 
             Object[] rows = reader.readRowsByRange(lp1, start, end);
 
-            if (rows != null && rows.length > 0) {
-                System.out.println("¡Éxito! Registros: " + rows.length);
+            if (rows != null) {
+
                 for (Object row : rows) {
+
                     Object[] columns = (Object[]) row;
-                    // Impresión dinámica según el número de columnas que tenga el medidor
+
                     StringBuilder sb = new StringBuilder();
-                    for(Object col : columns) {
+
+                    for (Object col : columns) {
                         sb.append(col).append(" | ");
                     }
-                    System.out.println(sb.toString());
+
+                    resultados.add(sb.toString());
                 }
             } else {
                 System.out.println("Buffer vacío.");
@@ -85,6 +90,7 @@ public class LoadProfileReader {
         } catch (Exception e) {
             System.err.println("Error crítico: " + e.getMessage());
         }
+        return resultados;
     }
 
     // Método auxiliar para limpiar el código

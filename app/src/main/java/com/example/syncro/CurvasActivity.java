@@ -1,12 +1,15 @@
 package com.example.syncro;
 
 import android.app.DatePickerDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -22,7 +25,9 @@ import com.example.syncro.objects.loadProfiles.LoadProfileReader;
 import com.example.syncro.session.ConnectionConfig;
 import com.example.syncro.session.SessionManager;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Locale;
 
 public class CurvasActivity extends AppCompatActivity {
 
@@ -35,7 +40,9 @@ public class CurvasActivity extends AppCompatActivity {
         DatePickerDialog datePickerDialog = new DatePickerDialog(
                 this,
                 (view, selectedYear, selectedMonth, selectedDay) -> {
-                    String date = selectedDay + "/" + (selectedMonth + 1) + "/" + selectedYear;
+                    String date = selectedYear + "/" +
+                            String.format(Locale.US,"%02d", selectedMonth + 1) + "/" +
+                            String.format(Locale.US,"%02d", selectedDay);
                     editText.setText(date);
                 },
                 year, month, day);
@@ -74,6 +81,8 @@ public class CurvasActivity extends AppCompatActivity {
         editFechaInicio.setOnClickListener(v -> showDatePicker(editFechaInicio));
         editFechaFin.setOnClickListener(v -> showDatePicker(editFechaFin));
 
+        LinearLayout progressBar = findViewById(R.id.progressContainer);
+
         ImageButton btnNext = findViewById(R.id.btnNext);
 
         btnNext.setOnClickListener(v -> {
@@ -92,6 +101,8 @@ public class CurvasActivity extends AppCompatActivity {
                             "Fecha Fin: " + fechaFin,
                     Toast.LENGTH_LONG).show();
 
+            progressBar.setVisibility(View.VISIBLE);
+
             // 🔹 Hilo secundario para evitar NetworkOnMainThreadException
             new Thread(() -> {
                 try {
@@ -107,11 +118,20 @@ public class CurvasActivity extends AppCompatActivity {
                     }
 
                     // Leer curvas
-                    LoadProfileReader.leerCurvaCarga(reader, fechaInicio, fechaFin);
+                    ArrayList<String> datos = LoadProfileReader.leerCurvaCarga(reader, fechaInicio, fechaFin);
                     conn.close();
 
+                    runOnUiThread(() -> {
+                        progressBar.setVisibility(View.GONE);
+
+                        Intent intent = new Intent(CurvasActivity.this, ResultadosCurvasActivity.class);
+                        intent.putStringArrayListExtra("datos_curva", datos);
+                        startActivity(intent);
+
+                    });
 
                 } catch (Exception e) {
+                    progressBar.setVisibility(View.GONE);
                     e.printStackTrace(); // Para Logcat
                     // Mostrar mensaje de error en UI thread
                     runOnUiThread(() -> Toast.makeText(CurvasActivity.this,
