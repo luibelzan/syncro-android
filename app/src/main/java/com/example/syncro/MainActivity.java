@@ -8,8 +8,10 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -26,6 +28,8 @@ import com.example.syncro.client.GXDLMSSecureClient2;
 import com.example.syncro.objects.events.StandarEventLogReader;
 import com.example.syncro.objects.instantValues.InstantaneousValuesReader;
 import com.example.syncro.objects.params.DateReader;
+import com.example.syncro.session.ConnectionConfig;
+import com.example.syncro.session.SessionManager;
 import com.example.syncro.utils.MeterData;
 
 
@@ -119,16 +123,41 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        //startActivity(new Intent(this, SecondActivity.class));
+
         ImageButton btnNext = findViewById(R.id.btnNext);
 
-        btnNext.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        btnNext.setOnClickListener(v -> {
+            RadioButton rbBluetooth = findViewById(R.id.rbBluetooth);
+            EditText etIp = findViewById(R.id.etIp);
+            EditText etPort = findViewById(R.id.etPort);
+            //Spinner spinnerSonda = findViewById(R.id.spinnerSonda);
 
-                Intent intent = new Intent(MainActivity.this, SecondActivity.class);
-                startActivity(intent);
+            ConnectionConfig config;
 
+            if (rbBluetooth.isChecked()) {
+                config = new ConnectionConfig(ConnectionConfig.ConnectionType.BLUETOOTH);
+                String deviceName = spinnerSonda.getSelectedItem().toString();
+                config.setBluetoothDeviceName(deviceName);
+            } else {
+                config = new ConnectionConfig(ConnectionConfig.ConnectionType.TCP);
+                String ip = etIp.getText().toString();
+                int port = 0;
+                try {
+                    port = Integer.parseInt(etPort.getText().toString());
+                } catch (NumberFormatException e) {
+                    Toast.makeText(this, "Puerto inválido", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                config.setIp(ip);
+                config.setPort(port);
             }
+
+            // Guardamos la configuración actual
+            SessionManager.getInstance().setConnectionConfig(config);
+
+            // Ir a la siguiente actividad
+            startActivity(new Intent(MainActivity.this, SecondActivity.class));
         });
 
 
