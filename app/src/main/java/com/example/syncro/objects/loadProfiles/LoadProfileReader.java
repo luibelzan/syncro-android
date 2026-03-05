@@ -1,6 +1,7 @@
 package com.example.syncro.objects.loadProfiles;
 
 import com.example.syncro.client.GXDLMSReader;
+import com.example.syncro.models.CurvaFila;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -13,8 +14,8 @@ import gurux.dlms.objects.GXDLMSProfileGeneric;
 
 public class LoadProfileReader {
 
-    public static ArrayList<String> leerCurvaCarga(GXDLMSReader reader, String fechaInicio, String fechaFin) {
-        ArrayList<String> resultados = new ArrayList<>();
+    public static ArrayList<CurvaFila> leerCurvaCarga(GXDLMSReader reader, String fechaInicio, String fechaFin) {
+        ArrayList<CurvaFila> resultados = new ArrayList<>();
         try {
             GXDLMSProfileGeneric lp1 = new GXDLMSProfileGeneric("1.0.99.1.0.255");
 
@@ -70,18 +71,16 @@ public class LoadProfileReader {
             Object[] rows = reader.readRowsByRange(lp1, start, end);
 
             if (rows != null) {
-
                 for (Object row : rows) {
+                    Object[] cols = (Object[]) row;
 
-                    Object[] columns = (Object[]) row;
+                    String fechaHora = cols[0].toString();
+                    String energiaActiva = cols.length > 1 ? cols[1].toString() : "-";
+                    String energiaReactiva = cols.length > 2 ? cols[2].toString() : "-";
+                    String potenciaActiva = cols.length > 3 ? cols[3].toString() : "-";
+                    String potenciaReactiva = cols.length > 4 ? cols[4].toString() : "-";
 
-                    StringBuilder sb = new StringBuilder();
-
-                    for (Object col : columns) {
-                        sb.append(col).append(" | ");
-                    }
-
-                    resultados.add(sb.toString());
+                    resultados.add(new CurvaFila(fechaHora, energiaActiva, energiaReactiva, potenciaActiva, potenciaReactiva));
                 }
             } else {
                 System.out.println("Buffer vacío.");

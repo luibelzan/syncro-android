@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="4dp">
+
+    <TextView
+        android:id="@+id/tvFechaHora"
+        android:layout_width="0dp"
+        android:layout_weight="2"
+        android:layout_height="wrap_content"
+        android:text="Fecha"
+        android:textSize="14sp"/>
+
+    <TextView
+        android:id="@+id/tvEnergiaActiva"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:text="kWh"
+        android:textSize="14sp"/>
+
+    <TextView
+        android:id="@+id/tvEnergiaReactiva"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:text="kVArh"
+        android:textSize="14sp"/>
+
+    <TextView
+        android:id="@+id/tvPotenciaActiva"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:text="kW"
+        android:textSize="14sp"/>
+
+    <TextView
+        android:id="@+id/tvPotenciaReactiva"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:text="kVAr"
+        android:textSize="14sp"/>
+</LinearLayout>

@@ -21,6 +21,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.syncro.client.DLMSConnection;
 import com.example.syncro.client.GXDLMSReader;
+import com.example.syncro.models.CurvaFila;
 import com.example.syncro.objects.loadProfiles.LoadProfileReader;
 import com.example.syncro.session.ConnectionConfig;
 import com.example.syncro.session.SessionManager;
@@ -118,25 +119,27 @@ public class CurvasActivity extends AppCompatActivity {
                     }
 
                     // Leer curvas
-                    ArrayList<String> datos = LoadProfileReader.leerCurvaCarga(reader, fechaInicio, fechaFin);
+                    ArrayList<CurvaFila> datos = LoadProfileReader.leerCurvaCarga(reader, fechaInicio, fechaFin);
                     conn.close();
 
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);
 
                         Intent intent = new Intent(CurvasActivity.this, ResultadosCurvasActivity.class);
-                        intent.putStringArrayListExtra("datos_curva", datos);
+                        intent.putParcelableArrayListExtra("datos_curva_tabla", datos);
                         startActivity(intent);
 
                     });
 
                 } catch (Exception e) {
-                    progressBar.setVisibility(View.GONE);
-                    e.printStackTrace(); // Para Logcat
-                    // Mostrar mensaje de error en UI thread
-                    runOnUiThread(() -> Toast.makeText(CurvasActivity.this,
-                            "Error de conexión: " + e.getClass().getSimpleName() +
-                                    " - " + e.getMessage(), Toast.LENGTH_LONG).show());
+                    e.printStackTrace();
+                    // Toda actualización de UI dentro de runOnUiThread
+                    runOnUiThread(() -> {
+                        progressBar.setVisibility(View.GONE);
+                        Toast.makeText(CurvasActivity.this,
+                                "Error de conexión: " + e.getClass().getSimpleName() +
+                                        " - " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    });
                 }
             }).start();
 

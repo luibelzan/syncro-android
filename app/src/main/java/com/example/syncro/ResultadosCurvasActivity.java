@@ -9,6 +9,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.syncro.adapters.CurvaAdapter;
+import com.example.syncro.models.CurvaFila;
 
 import java.util.ArrayList;
 
@@ -19,17 +24,14 @@ public class ResultadosCurvasActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_resultados_curvas);
 
-        ListView listView = findViewById(R.id.listResultados);
+        RecyclerView rv = findViewById(R.id.rvResultados);
+        rv.setLayoutManager(new LinearLayoutManager(this));
 
-        ArrayList<String> datos = getIntent().getStringArrayListExtra("datos_curva");
+        ArrayList<CurvaFila> datos = getIntent().getParcelableArrayListExtra("datos_curva_tabla");
 
-        if(datos!= null) {
-            ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                    this,
-                    android.R.layout.simple_list_item_1,
-                    datos
-            );
-            listView.setAdapter(adapter);
+        if(datos != null) {
+            CurvaAdapter adapter = new CurvaAdapter(datos);
+            rv.setAdapter(adapter);
         }
     }
 }
