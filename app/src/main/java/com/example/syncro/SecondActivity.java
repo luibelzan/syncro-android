@@ -10,7 +10,7 @@ import androidx.core.view.WindowInsetsCompat;
 import android.content.Intent;
 import android.widget.LinearLayout;
 
-public class SecondActivity extends AppCompatActivity {
+public class SecondActivity extends BaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

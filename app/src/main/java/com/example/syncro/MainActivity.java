@@ -33,7 +33,7 @@ import com.example.syncro.session.SessionManager;
 import com.example.syncro.utils.MeterData;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseActivity {
 
     private TextView txtStatus;
     private Button btnConnect;

@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Locale;
 
-public class CurvasActivity extends AppCompatActivity {
+public class CurvasActivity extends BaseActivity {
 
     private void showDatePicker(EditText editText) {
         Calendar calendar = Calendar.getInstance();

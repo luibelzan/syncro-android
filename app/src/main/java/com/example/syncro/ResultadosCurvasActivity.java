@@ -17,7 +17,7 @@ import com.example.syncro.models.CurvaFila;
 
 import java.util.ArrayList;
 
-public class ResultadosCurvasActivity extends AppCompatActivity {
+public class ResultadosCurvasActivity extends BaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
