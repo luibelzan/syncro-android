@@ -1,5 +1,8 @@
 package com.example.syncro.client;
 
+import android.content.Context;
+import android.util.Log;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -77,22 +80,50 @@ public class GXDLMSReader {
     TraceLevel Trace;
     GXDLMSSecureClient2 dlms;
     int waitTime = 60000;
-    final PrintWriter logFile;
+    //final PrintWriter logFile;
     // Invocation counter (frame counter).
     String invocationCounter = null;
 
-    public GXDLMSReader(GXDLMSSecureClient2 client, IGXMedia media, TraceLevel trace, final String frameCounter)
-            throws Exception {
-        Files.deleteIfExists(Paths.get("trace.txt"));
-        logFile = new PrintWriter(new BufferedWriter(new FileWriter("logFile.txt")));
+    private Context context;
+    private BufferedWriter traceWriter;
+    private BufferedWriter logWriter;
+
+    public GXDLMSReader(GXDLMSSecureClient2 client, IGXMedia media, TraceLevel trace, final String frameCounter) {
         Trace = trace;
         Media = media;
         dlms = client;
         invocationCounter = frameCounter;
+
         if (trace.ordinal() > TraceLevel.WARNING.ordinal()) {
             System.out.println("Authentication: " + dlms.getAuthentication());
             System.out.println("ClientAddress: 0x" + Integer.toHexString(dlms.getClientAddress()));
             System.out.println("ServerAddress: 0x" + Integer.toHexString(dlms.getServerAddress()));
+        }
+    }
+
+    public void setContext(Context context) {
+        this.context = context;
+        initLogFiles();
+    }
+
+    private void initLogFiles() {
+        if (context == null) return;
+
+        File dir = context.getFilesDir();
+        try {
+            File traceFile = new File(dir, "trace.txt");
+            File logFile = new File(dir, "logFile.txt");
+
+            // Borrar archivos anteriores (opcional)
+            if (traceFile.exists()) traceFile.delete();
+            if (logFile.exists()) logFile.delete();
+
+            traceWriter = new BufferedWriter(new FileWriter(traceFile, true));
+            logWriter = new BufferedWriter(new FileWriter(logFile, true));
+
+            Log.d("DLMS", "Archivos de log creados en: " + dir.getAbsolutePath());
+        } catch (IOException e) {
+            Log.e("DLMS", "Error creando archivos de log", e);
         }
     }
 
@@ -147,21 +178,40 @@ public class GXDLMSReader {
         return new SimpleDateFormat("HH:mm:ss.SSS").format(java.util.Calendar.getInstance().getTime());
     }
 
+    private void initTraceWriter() {
+        if (context == null) return;
+        try {
+            File file = new File(context.getFilesDir(), "trace.txt");
+            traceWriter = new BufferedWriter(new FileWriter(file, true));
+        } catch (IOException e) {
+            Log.e("DLMS", "Error abriendo trace.txt", e);
+        }
+    }
+
     void writeTrace(String line, TraceLevel level) {
         if (Trace.ordinal() >= level.ordinal()) {
             System.out.println(line);
         }
-        PrintWriter logFile = null;
-        try {
-            logFile = new PrintWriter(new BufferedWriter(new FileWriter("trace.txt", true)));
-            logFile.println(line);
-        } catch (IOException ex) {
-            throw new RuntimeException(ex.getMessage());
-        } finally {
-            if (logFile != null) {
-                logFile.close();
-            }
+        if (traceWriter != null) {
+            try {
+                traceWriter.write(line);
+                traceWriter.newLine();
+                traceWriter.flush();
+            } catch (IOException ignored) {}
         }
+        // También escribe en logFile.txt
+        if (logWriter != null) {
+            try {
+                logWriter.write(line);
+                logWriter.newLine();
+                logWriter.flush();
+            } catch (IOException ignored) {}
+        }
+    }
+
+    public void closeLogs() {
+        try { if (traceWriter != null) traceWriter.close(); } catch (Exception ignored) {}
+        try { if (logWriter != null) logWriter.close(); } catch (Exception ignored) {}
     }
 
     public void readDLMSPacket(byte[][] data) throws Exception {
@@ -575,6 +625,37 @@ public class GXDLMSReader {
                     GXx509Certificate cert = GXx509Certificate.load(path);
                     dlms.getCiphering().setSigningKeyPair(new KeyPair(cert.getPublicKey(), key.getPrivateKey()));
                 }
+                for (byte[] it : dlms.getApplicationAssociationRequest()) {
+                    readDLMSPacket(it, reply);
+                }
+                dlms.parseApplicationAssociationResponse(reply.getData());
+            }
+        }
+    }
+
+    public void initializeConnectionBluetooth() throws Exception, InterruptedException {
+        System.out.println("Standard: " + dlms.getStandard().toString());
+
+        updateFrameCounter();
+
+        GXReplyData reply = new GXReplyData();
+        byte[] data = dlms.snrmRequest();
+        if (data.length != 0) {
+            readDLMSPacket(data, reply);
+            dlms.parseUAResponse(reply.getData());
+        }
+
+        reply.clear();
+        byte[][] aarq = dlms.aarqRequest();
+        if (aarq.length != 0) {
+            readDataBlock(aarq, reply);
+            dlms.parseAareResponse(reply.getData());
+            reply.clear();
+
+            System.out.println("Negotiated conformance: " + dlms.getNegotiatedConformance());
+            System.out.println("Max PDU: " + dlms.getMaxReceivePDUSize());
+
+            if (dlms.getAuthentication().getValue() > Authentication.LOW.getValue()) {
                 for (byte[] it : dlms.getApplicationAssociationRequest()) {
                     readDLMSPacket(it, reply);
                 }
@@ -1350,6 +1431,7 @@ public class GXDLMSReader {
      * Read all objects from the meter. This is only example. Usually there is
      * no need to read all data from the meter.
      */
+    /*
     void readAll(String outputFile) throws Exception {
         initializeConnection();
         boolean read = false;
@@ -1384,6 +1466,7 @@ public class GXDLMSReader {
             dlms.getObjects().save(outputFile, s);
         }
     }
+     */
 
     /*
      * Read list using access service.
