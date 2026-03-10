@@ -20,6 +20,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.syncro.client.DLMSConnection;
 import com.example.syncro.client.GXDLMSReader;
+import com.example.syncro.models.CierreFila;
 import com.example.syncro.models.CurvaFila;
 import com.example.syncro.objects.loadProfiles.LoadProfileReader;
 import com.example.syncro.objects.pricing.BillingDataReader;
@@ -29,9 +30,10 @@ import com.example.syncro.session.SessionManager;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
 
-public class CierresActivity extends AppCompatActivity {
+public class CierresActivity extends BaseActivity {
 
     private void showDatePicker(EditText editText) {
         Calendar calendar = Calendar.getInstance();
@@ -136,19 +138,17 @@ public class CierresActivity extends AppCompatActivity {
                     }
 
                     // Leer curvas
-                    DailyBillingS05.leerS05(reader, fechaInicio, fechaFin, 1);
+                    ArrayList<CierreFila> datos = DailyBillingS05.leerS05(reader, fechaInicio, fechaFin, 1);
                     conn.close();
 
-                    /*
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);
 
-                        Intent intent = new Intent(CierresActivity.this, ResultadosCurvasActivity.class);
-                        intent.putParcelableArrayListExtra("datos_curva_tabla", datos);
+                        Intent intent = new Intent(CierresActivity.this, ResultadosCierresActivity.class);
+                        intent.putParcelableArrayListExtra("datos_cierres_tabla", datos);
                         startActivity(intent);
 
                     });
-                    */
 
                 } catch (Exception e) {
                     e.printStackTrace();

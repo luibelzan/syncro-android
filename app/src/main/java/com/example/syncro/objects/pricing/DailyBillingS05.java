@@ -1,6 +1,7 @@
 package com.example.syncro.objects.pricing;
 
 import com.example.syncro.client.GXDLMSReader;
+import com.example.syncro.models.CierreFila;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -17,8 +18,8 @@ import gurux.dlms.objects.GXDLMSProfileGeneric;
 
 public class DailyBillingS05 {
 
-    public static List<Object[]> leerS05(GXDLMSReader reader, String from, String to, int contract) {
-        List<Object[]> result = new ArrayList<>();
+    public static ArrayList<CierreFila> leerS05(GXDLMSReader reader, String from, String to, int contract) {
+        ArrayList<CierreFila> result = new ArrayList<>();
         try {
             System.out.println("Leyendo S05 del contrato " + contract + "...");
 
@@ -66,13 +67,56 @@ public class DailyBillingS05 {
             Object[] rows = reader.readRowsByRange(s05, start, end);
 
             if (rows != null && rows.length > 0) {
-                List<Object[]> listaParaProcesar = new ArrayList<>();
+
                 for (Object row : rows) {
-                    listaParaProcesar.add((Object[]) row);
+
+                    Object[] fila = (Object[]) row;
+
+                    String fechaOriginal = fila[0].toString();
+                    String fechaFormateada = formatearFechaS05(fechaOriginal);
+
+                    for (int p = 0; p <= 6; p++) {
+
+                        Object activa, export, r1, r2, r3, r4;
+
+                        if (p == 0) {
+                            activa = fila[3];
+                            export = fila[10];
+                            r1 = fila[17];
+                            r2 = fila[24];
+                            r3 = fila[31];
+                            r4 = fila[38];
+                        }
+                        else if (p == 1) {
+                            activa = fila[2];
+                            export = fila[9];
+                            r1 = fila[16];
+                            r2 = fila[23];
+                            r3 = fila[30];
+                            r4 = fila[37];
+                        }
+                        else {
+                            activa = fila[2 + p];
+                            export = fila[9 + p];
+                            r1 = fila[16 + p];
+                            r2 = fila[23 + p];
+                            r3 = fila[30 + p];
+                            r4 = (37 + p < fila.length) ? fila[37 + p] : 0;
+                        }
+
+                        result.add(new CierreFila(
+                                fechaFormateada,
+                                p,
+                                String.valueOf(activa),
+                                String.valueOf(export),
+                                String.valueOf(r1),
+                                String.valueOf(r2),
+                                String.valueOf(r3),
+                                String.valueOf(r4)
+                        ));
+                    }
                 }
 
-                // Llamada al nuevo método
-                imprimirFormatoFuncional(listaParaProcesar);
             } else {
                 System.out.println("No hay registros en este rango.");
             }
