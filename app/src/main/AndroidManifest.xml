@@ -27,6 +27,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Syncro">
         <activity
+            android:name=".CierresActivity"
+            android:exported="false" />
+        <activity
             android:name=".ResultadosCurvasActivity"
             android:exported="false" />
         <activity

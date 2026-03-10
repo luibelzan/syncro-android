@@ -42,4 +42,17 @@
         <item>Load_Profile_2_Absoluto_S03</item>
     </string-array>
     <string name="loading">Cargando...</string>
+
+    <!-- CIERRES -->
+    <string name="tipoCierre">Tipo de cierre:</string>
+    <string name="contrato">Contrato a leer:</string>
+    <string-array name="cierres_array">
+        <item>Diarios_S05</item>
+        <item>Mensuales_S04</item>
+        <item>EnCurso_S27</item>
+    </string-array>
+    <string-array name="contratos_array">
+        <item>Contrato 1</item>
+        <item>Contrato 2</item>
+    </string-array>
 </resources>

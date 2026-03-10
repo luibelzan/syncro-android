@@ -25,11 +25,20 @@ public class ReadsActivity extends BaseActivity {
         });
 
         LinearLayout btnCurvas = findViewById(R.id.btnCurvas);
+        LinearLayout btnCierres = findViewById(R.id.btnCierres);
 
         btnCurvas.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(ReadsActivity.this, CurvasActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        btnCierres.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(ReadsActivity.this, CierresActivity.class);
                 startActivity(intent);
             }
         });
