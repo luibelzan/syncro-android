@@ -55,4 +55,21 @@
         <item>Contrato 1</item>
         <item>Contrato 2</item>
     </string-array>
+
+
+    <!-- EVENTOS -->
+    <string name="tipoEvent">Tipo de evento:</string>
+    <string-array name="events_array">
+        <item>Standard Event Log</item>
+        <item>Fraud Event Log</item>
+        <item>Disconnect Event Log</item>
+        <item>Imp Pow Contract Event Log</item>
+        <item>Firmware Event Log</item>
+        <item>Power Quality Event Log</item>
+        <item>Demand Mgmnt Event Log</item>
+        <item>Common Event Log</item>
+        <item>Sync Event Log</item>
+        <item>Finished PQ Event Log</item>
+        <item>Exp Pow Contract Event Log</item>
+    </string-array>
 </resources>

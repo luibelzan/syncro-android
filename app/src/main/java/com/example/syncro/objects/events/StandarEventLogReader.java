@@ -4,8 +4,10 @@ import android.util.Log;
 
 import com.example.syncro.client.GXDLMSReader;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -18,7 +20,7 @@ import gurux.dlms.objects.GXDLMSObject;
 import gurux.dlms.objects.GXDLMSProfileGeneric;
 
 public class StandarEventLogReader {
-    public static List<Object[]> readStandardEventLog(GXDLMSReader reader, LocalDate from, LocalDate to) {
+    public static List<Object[]> readStandardEventLog(GXDLMSReader reader, String from, String to) {
         List<Object[]> result = new ArrayList<>();
         try {
             String obisLog = "0.0.99.98.0.255";
@@ -44,9 +46,24 @@ public class StandarEventLogReader {
                 eventLog.getCaptureObjects().add(new java.util.AbstractMap.SimpleEntry<>(eventCode, capEvent));
             }
 
-            // Configurar rango
-            GXDateTime start = new GXDateTime(from.getYear(), from.getMonthValue(), from.getDayOfMonth(), 0, 0, 0, 0);
-            GXDateTime end = new GXDateTime(to.getYear(), to.getMonthValue(), to.getDayOfMonth(), 23, 59, 59, 0);
+            // --- CONFIGURACIÓN DE FECHAS ULTRA-COMPATIBLE ---
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd");
+
+            // Creamos Calendar para asegurar que los segundos sean 0
+            Calendar calStart = Calendar.getInstance();
+            calStart.setTime(formatter.parse(from));
+            calStart.set(Calendar.SECOND, 0);
+            calStart.set(Calendar.MILLISECOND, 0);
+
+            Calendar calEnd = Calendar.getInstance();
+            calEnd.setTime(formatter.parse(to));
+            calEnd.set(Calendar.HOUR_OF_DAY, 23);
+            calEnd.set(Calendar.MINUTE, 45); // Sagemcom a veces prefiere el inicio del último bloque
+            calEnd.set(Calendar.SECOND, 0);
+            calEnd.set(Calendar.MILLISECOND, 0);
+
+            GXDateTime start = new GXDateTime(calStart.getTime());
+            GXDateTime end = new GXDateTime(calEnd.getTime());
 
             // ZIV suele ser muy estricto con los bytes de estado en el filtrado por rango
             Set<DateTimeSkips> skips = EnumSet.of(

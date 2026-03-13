@@ -2,8 +2,10 @@ package com.example.syncro.objects.events;
 
 import com.example.syncro.client.GXDLMSReader;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -14,7 +16,7 @@ import gurux.dlms.objects.GXDLMSProfileGeneric;
 
 public class DisconnectEventLog {
 
-    public static List<Object[]> readDisconnectEventLog(GXDLMSReader reader, LocalDate from, LocalDate to) {
+    public static List<Object[]> readDisconnectEventLog(GXDLMSReader reader, String from, String to) {
         List<Object[]> result = new ArrayList<>();
         try {
             // OBIS para Disconnect Event Log: 0.0.99.98.2.255
@@ -24,9 +26,24 @@ public class DisconnectEventLog {
             System.out.println("Leyendo estructura de Disconnect Event Log...");
             reader.read(disconnectLog, 3); // Lee los objetos capturados (columnas)
 
-            // Configurar rango de fechas
-            GXDateTime start = new GXDateTime(from.getYear(), from.getMonthValue(), from.getDayOfMonth(), 0, 0, 0, 0);
-            GXDateTime end = new GXDateTime(to.getYear(), to.getMonthValue(), to.getDayOfMonth(), 23, 59, 59, 0);
+            // --- CONFIGURACIÓN DE FECHAS ULTRA-COMPATIBLE ---
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd");
+
+            // Creamos Calendar para asegurar que los segundos sean 0
+            Calendar calStart = Calendar.getInstance();
+            calStart.setTime(formatter.parse(from));
+            calStart.set(Calendar.SECOND, 0);
+            calStart.set(Calendar.MILLISECOND, 0);
+
+            Calendar calEnd = Calendar.getInstance();
+            calEnd.setTime(formatter.parse(to));
+            calEnd.set(Calendar.HOUR_OF_DAY, 23);
+            calEnd.set(Calendar.MINUTE, 45); // Sagemcom a veces prefiere el inicio del último bloque
+            calEnd.set(Calendar.SECOND, 0);
+            calEnd.set(Calendar.MILLISECOND, 0);
+
+            GXDateTime start = new GXDateTime(calStart.getTime());
+            GXDateTime end = new GXDateTime(calEnd.getTime());
 
             Set<DateTimeSkips> skips = new HashSet<>();
             skips.add(DateTimeSkips.DEVIATION); // Evita el error de zona horaria (FF C4)
