@@ -3,6 +3,7 @@ package com.example.syncro.objects.events;
 import android.util.Log;
 
 import com.example.syncro.client.GXDLMSReader;
+import com.example.syncro.models.EventFila;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -20,8 +21,8 @@ import gurux.dlms.objects.GXDLMSObject;
 import gurux.dlms.objects.GXDLMSProfileGeneric;
 
 public class StandarEventLogReader {
-    public static List<Object[]> readStandardEventLog(GXDLMSReader reader, String from, String to) {
-        List<Object[]> result = new ArrayList<>();
+    public static List<EventFila> readStandardEventLog(GXDLMSReader reader, String from, String to) {
+        List<EventFila> result = new ArrayList<>();
         try {
             String obisLog = "0.0.99.98.0.255";
             GXDLMSProfileGeneric eventLog = new GXDLMSProfileGeneric(obisLog);
@@ -79,12 +80,31 @@ public class StandarEventLogReader {
             // si el filtro por rango da error, pero intentemos primero el rango:
             Object[] rows = reader.readRowsByRange(eventLog, start, end);
 
-            if (rows != null) {
+            if (rows != null && rows.length > 0) {
+
+                int contador = 1;
+
                 for (Object row : rows) {
+
                     Object[] fila = (Object[]) row;
-                    result.add(fila);
-                    System.out.println("Evento detectado: Fecha=" + fila[0] + " | ID=" + fila[1]);
+                    String fecha = fila[0].toString();
+                    int id = Integer.parseInt(fila[1].toString());
+                    String descripcion = getEventDescription(id);
+
+                    EventFila evento = new EventFila(
+                            fecha,
+                            id,
+                            descripcion,
+                            contador
+                    );
+
+                    result.add(evento);
+
+                    contador++;
                 }
+
+            } else {
+                System.out.println("No se encontraron eventos comunes.");
             }
         } catch (Exception e) {
             // Tip Industrial: Si falla por "Access Error" al filtrar, el Gateway podría
@@ -93,5 +113,35 @@ public class StandarEventLogReader {
             e.printStackTrace();
         }
         return result;
+    }
+
+    private static String getEventDescription(int code) {
+
+        switch (code) {
+
+            case 2:
+                return "Power Restore";
+
+            case 3:
+                return "Power Fail";
+
+            case 9:
+                return "Clock Adjusted";
+
+            case 10:
+                return "Tariff Change";
+
+            case 21:
+                return "Local Programming";
+
+            case 22:
+                return "Remote Programming";
+
+            case 23:
+                return "Firmware Upgrade";
+
+            default:
+                return "Unknown Event";
+        }
     }
 }

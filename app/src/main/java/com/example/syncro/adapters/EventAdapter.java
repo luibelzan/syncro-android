@@ -31,10 +31,11 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder>{
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         EventFila fila = datos.get(position);
+
         holder.tvFh.setText(fila.fh);
-        holder.tvId.setText(fila.id);
+        holder.tvId.setText(String.valueOf(fila.id));
         holder.tvDescription.setText(fila.description);
-        holder.tvCod.setText(fila.cod);
+        holder.tvCod.setText(String.valueOf(fila.cod));
     }
 
     @Override

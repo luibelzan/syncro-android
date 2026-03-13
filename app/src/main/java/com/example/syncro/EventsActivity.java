@@ -26,6 +26,7 @@ import com.example.syncro.client.DLMSConnection;
 import com.example.syncro.client.GXDLMSReader;
 import com.example.syncro.models.CurvaFila;
 import com.example.syncro.models.EventFila;
+import com.example.syncro.objects.events.CommonEventLog;
 import com.example.syncro.objects.events.StandarEventLogReader;
 import com.example.syncro.objects.loadProfiles.LoadProfileReader;
 import com.example.syncro.session.ConnectionConfig;
@@ -76,16 +77,6 @@ public class EventsActivity extends BaseActivity {
 
         listEvents.setAdapter(adapter);
 
-        SparseBooleanArray checked = listEvents.getCheckedItemPositions();
-
-        ArrayList<Integer> eventosSeleccionados = new ArrayList<>();
-
-        for (int i = 0; i < listEvents.getCount(); i++) {
-            if (checked.get(i)) {
-                eventosSeleccionados.add(i);
-            }
-        }
-
         EditText editFechaInicio = findViewById(R.id.editFechaInicio);
         EditText editFechaFin = findViewById(R.id.editFechaFin);
         editFechaInicio.setOnClickListener(v -> showDatePicker(editFechaInicio));
@@ -129,15 +120,28 @@ public class EventsActivity extends BaseActivity {
 
                     ArrayList<EventFila> datos = new ArrayList<>();
 
-                    if(eventosSeleccionados.contains(0)) {
-                        datos.addAll(StandarEventLogReader.readStandardEventLog(reader, fechaInicio, fechaFin));
+                    SparseBooleanArray checked = listEvents.getCheckedItemPositions();
+                    ArrayList<Integer> eventosSeleccionados = new ArrayList<>();
+
+                    for (int i = 0; i < listEvents.getCount(); i++) {
+                        if (checked.get(i)) {
+                            eventosSeleccionados.add(i);
+                        }
                     }
+
+                    if(eventosSeleccionados.contains(0)) {
+                        System.out.println("TAMOS DENTRO");
+                        datos.addAll(CommonEventLog.leerCommonEventLog(reader, fechaInicio, fechaFin));
+                        System.out.println(datos.size());
+                    }
+
+                    conn.close();
 
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);
 
-                        Intent intent = new Intent(EventsActivity.this, ResultadosCurvasActivity.class);
-                        intent.putParcelableArrayListExtra("datos_curva_tabla", datos);
+                        Intent intent = new Intent(EventsActivity.this, ResultadosEventsActivity.class);
+                        intent.putParcelableArrayListExtra("datos_event_tabla", datos);
                         startActivity(intent);
 
                     });

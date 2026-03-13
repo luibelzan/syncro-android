@@ -27,6 +27,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Syncro">
         <activity
+            android:name=".ResultadosEventsActivity"
+            android:exported="false" />
+        <activity
             android:name=".EventsActivity"
             android:exported="false" />
         <activity
