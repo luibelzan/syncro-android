@@ -27,7 +27,16 @@ import com.example.syncro.client.GXDLMSReader;
 import com.example.syncro.models.CurvaFila;
 import com.example.syncro.models.EventFila;
 import com.example.syncro.objects.events.CommonEventLog;
+import com.example.syncro.objects.events.DemandMgmntEventLog;
+import com.example.syncro.objects.events.DisconnectEventLog;
+import com.example.syncro.objects.events.ExpPowContractEventLog;
+import com.example.syncro.objects.events.FinishedPQEventLog;
+import com.example.syncro.objects.events.FirmwareEventLog;
+import com.example.syncro.objects.events.FraudEventLog;
+import com.example.syncro.objects.events.PowContractEventLog;
+import com.example.syncro.objects.events.PowerQualityEventLog;
 import com.example.syncro.objects.events.StandarEventLogReader;
+import com.example.syncro.objects.events.SyncEventLog;
 import com.example.syncro.objects.loadProfiles.LoadProfileReader;
 import com.example.syncro.session.ConnectionConfig;
 import com.example.syncro.session.SessionManager;
@@ -129,10 +138,54 @@ public class EventsActivity extends BaseActivity {
                         }
                     }
 
-                    if(eventosSeleccionados.contains(0)) {
-                        System.out.println("TAMOS DENTRO");
-                        datos.addAll(CommonEventLog.leerCommonEventLog(reader, fechaInicio, fechaFin));
-                        System.out.println(datos.size());
+                    for(Integer event : eventosSeleccionados){
+
+                        switch(event){
+
+                            case 0:
+                                datos.addAll(StandarEventLogReader.readStandardEventLog(this, reader, fechaInicio, fechaFin));
+                                break;
+
+                            case 1:
+                                datos.addAll(FraudEventLog.readFraudEventLog(this, reader, fechaInicio, fechaFin));
+                                break;
+
+                            case 2:
+                                datos.addAll(DisconnectEventLog.readDisconnectEventLog(this, reader, fechaInicio, fechaFin));
+                                break;
+
+                            case 3:
+                                datos.addAll(PowContractEventLog.readImpPowContractEventLog(this, reader, fechaInicio, fechaFin));
+                                break;
+
+                            case 4:
+                                datos.addAll(FirmwareEventLog.leerFirmwareEventLog(this, reader, fechaInicio, fechaFin));
+                                break;
+
+                            case 5:
+                                datos.addAll(PowerQualityEventLog.readPowerQualityEventLog(this, reader, fechaInicio, fechaFin));
+                                break;
+
+                            case 6:
+                                datos.addAll(DemandMgmntEventLog.readDemandMgmntEventLog(this, reader, fechaInicio, fechaFin));
+                                break;
+
+                            case 7:
+                                datos.addAll(CommonEventLog.leerCommonEventLog(this, reader, fechaInicio, fechaFin));
+                                break;
+
+                            case 8:
+                                datos.addAll(SyncEventLog.readSyncEventLog(this, reader, fechaInicio, fechaFin));
+                                break;
+
+                            case 9:
+                                datos.addAll(FinishedPQEventLog.readFinishedPQEventLog(this, reader, fechaInicio, fechaFin));
+                                break;
+
+                            case 10:
+                                datos.addAll(ExpPowContractEventLog.readExpPowContractEventLog(this, reader, fechaInicio, fechaFin));
+                                break;
+                        }
                     }
 
                     conn.close();

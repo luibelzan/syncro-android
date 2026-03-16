@@ -1,15 +1,25 @@
 package com.example.syncro.objects.events;
 
+import android.content.Context;
 import android.util.Log;
 
 import com.example.syncro.client.GXDLMSReader;
+import com.example.syncro.models.EventDescription;
 import com.example.syncro.models.EventFila;
+import com.example.syncro.models.EventInfo;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -21,7 +31,9 @@ import gurux.dlms.objects.GXDLMSObject;
 import gurux.dlms.objects.GXDLMSProfileGeneric;
 
 public class StandarEventLogReader {
-    public static List<EventFila> readStandardEventLog(GXDLMSReader reader, String from, String to) {
+    private static Map<String, EventInfo> eventMap = new HashMap<>();
+
+    public static List<EventFila> readStandardEventLog(Context context, GXDLMSReader reader, String from, String to) {
         List<EventFila> result = new ArrayList<>();
         try {
             String obisLog = "0.0.99.98.0.255";
@@ -89,13 +101,13 @@ public class StandarEventLogReader {
                     Object[] fila = (Object[]) row;
                     String fecha = fila[0].toString();
                     int id = Integer.parseInt(fila[1].toString());
-                    String descripcion = getEventDescription(id);
+                    EventDescription info = getEventDescription(context, id, 1);
 
                     EventFila evento = new EventFila(
                             fecha,
                             id,
-                            descripcion,
-                            contador
+                            info.description,
+                            info.grp
                     );
 
                     result.add(evento);
@@ -115,33 +127,54 @@ public class StandarEventLogReader {
         return result;
     }
 
-    private static String getEventDescription(int code) {
+    private static void loadEvents(Context context) {
 
-        switch (code) {
+        if(!eventMap.isEmpty()) return;
 
-            case 2:
-                return "Power Restore";
+        try {
 
-            case 3:
-                return "Power Fail";
+            InputStream is = context.getAssets().open("events_table.json");
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is));
 
-            case 9:
-                return "Clock Adjusted";
+            StringBuilder json = new StringBuilder();
+            String line;
 
-            case 10:
-                return "Tariff Change";
+            while((line = reader.readLine()) != null){
+                json.append(line);
+            }
 
-            case 21:
-                return "Local Programming";
+            JSONArray array = new JSONArray(json.toString());
 
-            case 22:
-                return "Remote Programming";
+            for(int i=0;i<array.length();i++){
 
-            case 23:
-                return "Firmware Upgrade";
+                JSONObject obj = array.getJSONObject(i);
 
-            default:
-                return "Unknown Event";
+                EventInfo info = new EventInfo();
+                info.grp = obj.getInt("grp");
+                info.cod = obj.getInt("cod");
+                info.desc = obj.getString("desc");
+                String key = info.grp + "-" + info.cod;
+
+                eventMap.put(key, info);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+    }
+
+    private static EventDescription getEventDescription(Context context, int code, int group) {
+
+        loadEvents(context);
+
+        String key = group + "-" + code;
+
+        EventInfo info = eventMap.get(key);
+
+        if(info != null){
+            return new EventDescription(info.grp, info.desc);
+        }
+
+        return new EventDescription(group, "Unknown Event");
     }
 }
