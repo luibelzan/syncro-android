@@ -27,6 +27,7 @@ public class ReadsActivity extends BaseActivity {
         LinearLayout btnCurvas = findViewById(R.id.btnCurvas);
         LinearLayout btnCierres = findViewById(R.id.btnCierres);
         LinearLayout btnEvents = findViewById(R.id.btnEvents);
+        LinearLayout btnIds = findViewById(R.id.btnIds);
 
         btnCurvas.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -48,6 +49,14 @@ public class ReadsActivity extends BaseActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(ReadsActivity.this, EventsActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        btnIds.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(ReadsActivity.this, IdsActivity.class);
                 startActivity(intent);
             }
         });
