@@ -73,6 +73,7 @@
         <item>Exp Pow Contract Event Log</item>
     </string-array>
 
-    <!-- EVENTOS -->
+    <!-- VALORES INSTANTANEOS -->
+    <string name="instantValues">Valores Instantaneos</string>
 
 </resources>

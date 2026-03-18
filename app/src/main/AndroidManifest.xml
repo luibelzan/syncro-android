@@ -27,6 +27,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Syncro">
         <activity
+            android:name=".ValoresInstantaneosActivity"
+            android:exported="false" />
+        <activity
             android:name=".IdsActivity"
             android:exported="false" />
         <activity
