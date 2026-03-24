@@ -24,7 +24,7 @@ import com.example.syncro.session.SessionManager;
 
 import java.util.ArrayList;
 
-public class IdsActivity extends AppCompatActivity {
+public class IdsActivity extends BaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

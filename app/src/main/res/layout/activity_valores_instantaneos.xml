@@ -12,7 +12,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="60dp"
-        android:text="@string/ids"
+        android:text="@string/instantValues"
         android:textSize="30sp"
         android:textStyle="bold"
         android:textColor="@color/gris_texto"
@@ -69,25 +69,122 @@
             android:id="@+id/tvSerial"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Número serial: -" />
-
-        <TextView
-            android:id="@+id/tvEquipo"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Identificador equipo: -" />
+            android:text="@string/serial" />
 
         <TextView
             android:id="@+id/tvTipo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Identificador tipo: -" />
+            android:text="@string/time"
+            android:paddingBottom="15dp"/>
 
         <TextView
-            android:id="@+id/tvFirmware"
+            android:id="@+id/tvDeciVolts"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Versión firmware: -" />
+            android:text="@string/relacion" />
+
+
+        <TextView
+            android:id="@+id/tvVolRelation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/volRelation"
+            android:paddingBottom="15dp"/>
+
+        <TextView
+            android:id="@+id/tvInstantVol"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/instantVol" />
+
+        <TextView
+            android:id="@+id/tvVolFase1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/volFase1" />
+
+        <TextView
+            android:id="@+id/tvVolFase2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/volFase2" />
+
+        <TextView
+            android:id="@+id/tvVolFase3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/volFase3"
+            android:paddingBottom="15dp"/>
+
+        <TextView
+            android:id="@+id/tvDeciAmps"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/relacionA" />
+
+        <TextView
+            android:id="@+id/tvARelation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/aRelation"
+            android:paddingBottom="15dp"/>
+
+        <TextView
+            android:id="@+id/tvInstantA"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/instantA" />
+
+        <TextView
+            android:id="@+id/tvAFase1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/aFase1" />
+
+        <TextView
+            android:id="@+id/tvAFase2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/aFase2" />
+
+        <TextView
+            android:id="@+id/tvAFase3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/aFase3"
+            android:paddingBottom="15dp"/>
+
+        <TextView
+            android:id="@+id/tvPotenciaActivaPlus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/potenciaActivaPlus" />
+
+        <TextView
+            android:id="@+id/tvPotenciaActivaMinus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/potenciaActivaMinus" />
+
+        <TextView
+            android:id="@+id/tvPotenciaReactivaPlus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/potenciaReactivaPlus" />
+
+        <TextView
+            android:id="@+id/tvPotenciaReactivaMinus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/potenciaReactivaMinus" />
+
+        <TextView
+            android:id="@+id/tvFactorPotencia"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/factorPotencia" />
+
 
     </LinearLayout>
 

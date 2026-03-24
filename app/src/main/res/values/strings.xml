@@ -75,5 +75,24 @@
 
     <!-- VALORES INSTANTANEOS -->
     <string name="instantValues">Valores Instantaneos</string>
+    <string name="serial">Numero serial contador:</string>
+    <string name="time">Timestamp</string>
+    <string name="relacion">Relacion de transformacion de tension : [deciVolts]</string>
+    <string name="volRelation">Prim/sec</string>
+    <string name="instantVol">Tension instantanea Primario</string>
+    <string name="volFase1">Fase 1 :</string>
+    <string name="volFase2">Fase 2 :</string>
+    <string name="volFase3">Fase 3 :</string>
+    <string name="relacionA">Relacion de transformacion de corriente : [deciAmps]</string>
+    <string name="aRelation">Prim/sec</string>
+    <string name="instantA">Corriente instantanea Primario</string>
+    <string name="aFase1">Fase 1 :</string>
+    <string name="aFase2">Fase 2 :</string>
+    <string name="aFase3">Fase 3 :</string>
+    <string name="potenciaActivaPlus">Potencia Activa + :</string>
+    <string name="potenciaActivaMinus">Potencia Activa - :</string>
+    <string name="potenciaReactivaPlus">Potencia Reactiva + :</string>
+    <string name="potenciaReactivaMinus">Potencia Reactiva - :</string>
+    <string name="factorPotencia">Factor de Potencia :</string>
 
 </resources>
