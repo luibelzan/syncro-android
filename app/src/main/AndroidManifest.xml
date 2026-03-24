@@ -27,6 +27,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Syncro">
         <activity
+            android:name=".EstadoSondaActivity"
+            android:exported="false" />
+        <activity
             android:name=".ValoresInstantaneosActivity"
             android:exported="false" />
         <activity
