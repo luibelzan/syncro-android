@@ -16,7 +16,6 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Set;
@@ -117,20 +116,19 @@ public class EstadoSondaActivity extends BaseActivity {
 
                 byte[] buffer = new byte[256];
                 int len;
+                StringBuilder sb = new StringBuilder();
+                long startTime = System.currentTimeMillis();
 
-                try {
-                    len = in.read(buffer);
-                } catch (IOException e) {
-                    len = -1; // timeout
+                while (System.currentTimeMillis() - startTime < 3000) { // Espera 3 segundos
+                    if (in.available() > 0) {
+                        len = in.read(buffer);
+                        sb.append(new String(buffer, 0, len));
+                    }
                 }
 
-                if (len > 0) {
-                    String respuesta = new String(buffer, 0, len);
-                    Log.d("SONDA", "Respuesta batería: " + respuesta);
-
-                    runOnUiThread(() ->
-                            tvBateria.setText("Batería: " + respuesta)
-                    );
+                String respuesta = sb.toString().trim();
+                if (!respuesta.isEmpty()) {
+                    runOnUiThread(() -> tvBateria.setText("Batería: " + respuesta));
                 } else {
                     mostrarError("Sin respuesta de batería");
                 }
