@@ -14,34 +14,58 @@
         android:textSize="14sp"/>
 
     <TextView
-        android:id="@+id/tvEnergiaActiva"
+        android:id="@+id/tvBc"
         android:layout_width="0dp"
         android:layout_weight="1"
         android:layout_height="wrap_content"
-        android:text="kWh"
+        android:text="BC"
         android:textSize="14sp"/>
 
     <TextView
-        android:id="@+id/tvEnergiaReactiva"
+        android:id="@+id/tvAi"
         android:layout_width="0dp"
         android:layout_weight="1"
         android:layout_height="wrap_content"
-        android:text="kVArh"
+        android:text="AI"
         android:textSize="14sp"/>
 
     <TextView
-        android:id="@+id/tvPotenciaActiva"
+        android:id="@+id/tvAe"
         android:layout_width="0dp"
         android:layout_weight="1"
         android:layout_height="wrap_content"
-        android:text="kW"
+        android:text="AE"
         android:textSize="14sp"/>
 
     <TextView
-        android:id="@+id/tvPotenciaReactiva"
+        android:id="@+id/tvR1"
         android:layout_width="0dp"
         android:layout_weight="1"
         android:layout_height="wrap_content"
-        android:text="kVAr"
+        android:text="R1"
+        android:textSize="14sp"/>
+
+    <TextView
+        android:id="@+id/tvR2"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:text="R2"
+        android:textSize="14sp"/>
+
+    <TextView
+        android:id="@+id/tvR3"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:text="R3"
+        android:textSize="14sp"/>
+
+    <TextView
+        android:id="@+id/tvR4"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:text="R4"
         android:textSize="14sp"/>
 </LinearLayout>

@@ -75,12 +75,15 @@ public class LoadProfileReader {
                     Object[] cols = (Object[]) row;
 
                     String fechaHora = cols[0].toString();
-                    String energiaActiva = cols.length > 1 ? cols[1].toString() : "-";
-                    String energiaReactiva = cols.length > 2 ? cols[2].toString() : "-";
-                    String potenciaActiva = cols.length > 3 ? cols[3].toString() : "-";
-                    String potenciaReactiva = cols.length > 4 ? cols[4].toString() : "-";
+                    String bc = cols.length > 1 ? cols[1].toString() : "-";
+                    String ai = cols.length > 2 ? cols[2].toString() : "-";
+                    String ae = cols.length > 3 ? cols[3].toString() : "-";
+                    String r1 = cols.length > 4 ? cols[4].toString() : "-";
+                    String r2 = cols.length > 4 ? cols[5].toString() : "-";
+                    String r3 = cols.length > 4 ? cols[6].toString() : "-";
+                    String r4 = cols.length > 4 ? cols[7].toString() : "-";
 
-                    resultados.add(new CurvaFila(fechaHora, energiaActiva, energiaReactiva, potenciaActiva, potenciaReactiva));
+                    resultados.add(new CurvaFila(fechaHora, bc, ai, ae, r1, r2, r3, r4));
                 }
             } else {
                 System.out.println("Buffer vacío.");

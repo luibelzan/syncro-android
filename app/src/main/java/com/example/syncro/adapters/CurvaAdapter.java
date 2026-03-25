@@ -31,10 +31,13 @@ public class CurvaAdapter extends RecyclerView.Adapter<CurvaAdapter.ViewHolder> 
     public void onBindViewHolder(ViewHolder holder, int position) {
         CurvaFila fila = datos.get(position);
         holder.tvFechaHora.setText(fila.fechaHora);
-        holder.tvEnergiaActiva.setText(fila.energiaActiva);
-        holder.tvEnergiaReactiva.setText(fila.energiaReactiva);
-        holder.tvPotenciaActiva.setText(fila.potenciaActiva);
-        holder.tvPotenciaReactiva.setText(fila.potenciaReactiva);
+        holder.tvBc.setText(fila.bc);
+        holder.tvAi.setText(fila.ai);
+        holder.tvAe.setText(fila.ae);
+        holder.tvR1.setText(fila.r1);
+        holder.tvR2.setText(fila.r2);
+        holder.tvR3.setText(fila.r3);
+        holder.tvR4.setText(fila.r4);
     }
 
     @Override
@@ -43,15 +46,18 @@ public class CurvaAdapter extends RecyclerView.Adapter<CurvaAdapter.ViewHolder> 
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvFechaHora, tvEnergiaActiva, tvEnergiaReactiva, tvPotenciaActiva, tvPotenciaReactiva;
+        TextView tvFechaHora, tvBc, tvAi, tvAe, tvR1, tvR2, tvR3, tvR4;
 
         public ViewHolder(View itemView) {
             super(itemView);
             tvFechaHora = itemView.findViewById(R.id.tvFechaHora);
-            tvEnergiaActiva = itemView.findViewById(R.id.tvEnergiaActiva);
-            tvEnergiaReactiva = itemView.findViewById(R.id.tvEnergiaReactiva);
-            tvPotenciaActiva = itemView.findViewById(R.id.tvPotenciaActiva);
-            tvPotenciaReactiva = itemView.findViewById(R.id.tvPotenciaReactiva);
+            tvBc = itemView.findViewById(R.id.tvBc);
+            tvAi = itemView.findViewById(R.id.tvAi);
+            tvAe = itemView.findViewById(R.id.tvAe);
+            tvR1 = itemView.findViewById(R.id.tvR1);
+            tvR2 = itemView.findViewById(R.id.tvR2);
+            tvR3 = itemView.findViewById(R.id.tvR3);
+            tvR4 = itemView.findViewById(R.id.tvR4);
         }
     }
 }
