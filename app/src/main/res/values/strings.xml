@@ -42,6 +42,8 @@
         <item>Load_Profile_2_Absoluto_S03</item>
     </string-array>
     <string name="loading">Cargando...</string>
+    <string name="export">Exportar</string>
+
 
     <!-- CIERRES -->
     <string name="tipoCierre">Tipo de cierre:</string>

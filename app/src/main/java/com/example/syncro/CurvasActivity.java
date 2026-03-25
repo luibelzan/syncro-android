@@ -23,6 +23,7 @@ import com.example.syncro.client.DLMSConnection;
 import com.example.syncro.client.GXDLMSReader;
 import com.example.syncro.models.CurvaFila;
 import com.example.syncro.objects.loadProfiles.LoadProfileReader;
+import com.example.syncro.objects.params.SerialNumberReader;
 import com.example.syncro.session.ConnectionConfig;
 import com.example.syncro.session.SessionManager;
 
@@ -120,6 +121,7 @@ public class CurvasActivity extends BaseActivity {
 
                     // Leer curvas
                     ArrayList<CurvaFila> datos = LoadProfileReader.leerCurvaCarga(reader, fechaInicio, fechaFin);
+                    String cntId = SerialNumberReader.readSerialNumer(reader);
                     conn.close();
 
                     runOnUiThread(() -> {
@@ -127,6 +129,7 @@ public class CurvasActivity extends BaseActivity {
 
                         Intent intent = new Intent(CurvasActivity.this, ResultadosCurvasActivity.class);
                         intent.putParcelableArrayListExtra("datos_curva_tabla", datos);
+                        intent.putExtra("cntId", cntId);
                         startActivity(intent);
 
                     });
