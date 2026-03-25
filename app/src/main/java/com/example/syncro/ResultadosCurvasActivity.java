@@ -1,6 +1,8 @@
 package com.example.syncro;
 
 import android.os.Bundle;
+import android.os.Environment;
+import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -19,6 +21,7 @@ import com.example.syncro.models.CurvaFila;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class ResultadosCurvasActivity extends BaseActivity {
@@ -48,7 +51,7 @@ public class ResultadosCurvasActivity extends BaseActivity {
         return sb.toString();
     }
 
-    private void generarXML(String xmlContenido, String nombreArchivo) {
+    private void guardarXML(String xmlContenido, String nombreArchivo) {
         try {
             File file = new File(getFilesDir(), nombreArchivo);
             FileOutputStream fos = new FileOutputStream(file);
@@ -83,7 +86,19 @@ public class ResultadosCurvasActivity extends BaseActivity {
         btnExport.setOnClickListener(v -> {
             if (datos != null && !datos.isEmpty()) {
                 String xml = generarCurvasXML(datos, cntId);
-                generarXML(xml, "curvas.xml");
+
+                File file = new File(
+                        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+                        "curvas.xml"
+                );
+
+                try (FileOutputStream fos = new FileOutputStream(file)) {
+                    fos.write(xml.getBytes());
+                    fos.flush();
+                    Log.d("FILE_PATH", file.getAbsolutePath());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             } else {
                 Toast.makeText(this, "No hay datos para exportar", Toast.LENGTH_SHORT).show();
             }
