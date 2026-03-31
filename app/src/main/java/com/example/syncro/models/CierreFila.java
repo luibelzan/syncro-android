@@ -6,22 +6,24 @@ import android.os.Parcelable;
 public class CierreFila implements Parcelable {
 
     public String fecha;
+    public int contrato;
     public int periodo;
-    public String activaImport;
-    public String activaExport;
+    public String activeImport;
+    public String activeExport;
     public String r1;
     public String r2;
     public String r3;
     public String r4;
 
-    public CierreFila(String fecha, int periodo,
+    public CierreFila(String fecha, int contrato, int periodo,
                       String activaImport, String activaExport,
                       String r1, String r2, String r3, String r4) {
 
         this.fecha = fecha;
+        this.contrato = contrato;
         this.periodo = periodo;
-        this.activaImport = activaImport;
-        this.activaExport = activaExport;
+        this.activeImport = activaImport;
+        this.activeExport = activaExport;
         this.r1 = r1;
         this.r2 = r2;
         this.r3 = r3;
@@ -31,8 +33,8 @@ public class CierreFila implements Parcelable {
     protected CierreFila(Parcel in) {
         fecha = in.readString();
         periodo = in.readInt();
-        activaImport = in.readString();
-        activaExport = in.readString();
+        activeImport = in.readString();
+        activeExport = in.readString();
         r1 = in.readString();
         r2 = in.readString();
         r3 = in.readString();
@@ -60,8 +62,8 @@ public class CierreFila implements Parcelable {
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(fecha);
         dest.writeInt(periodo);
-        dest.writeString(activaImport);
-        dest.writeString(activaExport);
+        dest.writeString(activeImport);
+        dest.writeString(activeExport);
         dest.writeString(r1);
         dest.writeString(r2);
         dest.writeString(r3);

@@ -14,11 +14,19 @@
         android:textSize="14sp"/>
 
     <TextView
+        android:id="@+id/tvContrato"
+        android:layout_width="0dp"
+        android:layout_weight="1.5"
+        android:layout_height="wrap_content"
+        android:text="Contrato"
+        android:textSize="14sp"/>
+
+    <TextView
         android:id="@+id/tvPeriodo"
         android:layout_width="0dp"
-        android:layout_weight="0.7"
+        android:layout_weight="1.5"
         android:layout_height="wrap_content"
-        android:text="P"
+        android:text="Periodo"
         android:textSize="14sp"/>
 
     <TextView

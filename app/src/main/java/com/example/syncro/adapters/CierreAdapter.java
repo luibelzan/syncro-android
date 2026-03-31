@@ -33,9 +33,10 @@ public class CierreAdapter extends RecyclerView.Adapter<CierreAdapter.ViewHolder
         CierreFila fila = datos.get(position);
 
         holder.tvFecha.setText(fila.fecha);
+        holder.tvContrato.setText(String.valueOf(fila.contrato));
         holder.tvPeriodo.setText(String.valueOf(fila.periodo));
-        holder.tvActivaImport.setText(fila.activaImport);
-        holder.tvActivaExport.setText(fila.activaExport);
+        holder.tvActivaImport.setText(fila.activeImport);
+        holder.tvActivaExport.setText(fila.activeExport);
         holder.tvR1.setText(fila.r1);
         holder.tvR2.setText(fila.r2);
         holder.tvR3.setText(fila.r3);
@@ -49,12 +50,13 @@ public class CierreAdapter extends RecyclerView.Adapter<CierreAdapter.ViewHolder
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
 
-        TextView tvFecha, tvPeriodo, tvActivaImport, tvActivaExport, tvR1, tvR2, tvR3, tvR4;
+        TextView tvFecha, tvContrato, tvPeriodo, tvActivaImport, tvActivaExport, tvR1, tvR2, tvR3, tvR4;
 
         public ViewHolder(View itemView) {
             super(itemView);
 
             tvFecha = itemView.findViewById(R.id.tvFecha);
+            tvContrato = itemView.findViewById(R.id.tvContrato);
             tvPeriodo = itemView.findViewById(R.id.tvPeriodo);
             tvActivaImport = itemView.findViewById(R.id.tvActivaImport);
             tvActivaExport = itemView.findViewById(R.id.tvActivaExport);
