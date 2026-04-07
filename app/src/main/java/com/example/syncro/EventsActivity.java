@@ -38,6 +38,7 @@ import com.example.syncro.objects.events.PowerQualityEventLog;
 import com.example.syncro.objects.events.StandarEventLogReader;
 import com.example.syncro.objects.events.SyncEventLog;
 import com.example.syncro.objects.loadProfiles.LoadProfileReader;
+import com.example.syncro.objects.params.SerialNumberReader;
 import com.example.syncro.session.ConnectionConfig;
 import com.example.syncro.session.SessionManager;
 
@@ -128,6 +129,7 @@ public class EventsActivity extends BaseActivity {
                     }
 
                     ArrayList<EventFila> datos = new ArrayList<>();
+                    String cntId = SerialNumberReader.readSerialNumer(reader);
 
                     SparseBooleanArray checked = listEvents.getCheckedItemPositions();
                     ArrayList<Integer> eventosSeleccionados = new ArrayList<>();
@@ -195,6 +197,7 @@ public class EventsActivity extends BaseActivity {
 
                         Intent intent = new Intent(EventsActivity.this, ResultadosEventsActivity.class);
                         intent.putParcelableArrayListExtra("datos_event_tabla", datos);
+                        intent.putExtra("cntId", cntId);
                         startActivity(intent);
 
                     });
