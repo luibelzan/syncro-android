@@ -7,11 +7,14 @@ import static gurux.dlms.objects.enums.ControlState.READY_FOR_RECONNECTION;
 
 import android.content.Context;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.example.syncro.client.DLMSConnection;
 import com.example.syncro.client.GXDLMSReader;
 import com.example.syncro.client.GXDLMSSecureClient2;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -22,6 +25,7 @@ import java.util.Date;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
+
 
 import gurux.dlms.GXArray;
 import gurux.dlms.GXDLMSAccessItem;
@@ -50,6 +54,19 @@ public class Utils {
             sb.append(String.format("%02X ", b));
         }
         return sb.toString();
+    }
+
+    private void guardarXML(Context context, String xmlContenido, String nombreArchivo) {
+        try {
+            File file = new File(context.getFilesDir(), nombreArchivo);
+            FileOutputStream fos = new FileOutputStream(file);
+            fos.write(xmlContenido.getBytes());
+            fos.close();
+            Toast.makeText(context, "Archivo guardado en: " + file.getAbsolutePath(), Toast.LENGTH_LONG).show();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(context, "Error guardando el archivo: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
     }
 
     public static void readSerialNumer(GXDLMSReader reader) throws Exception {

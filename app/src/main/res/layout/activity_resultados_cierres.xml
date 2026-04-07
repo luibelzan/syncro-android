@@ -95,4 +95,28 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <!-- Botón de eventos abajo -->
+    <LinearLayout
+        android:id="@+id/btnExport"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="12dp"
+        app:layout_constraintBottom_toBottomOf="@+id/rvResultadosCierres">
+
+        <ImageView
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:padding="8dp"
+            android:src="@drawable/reportestg" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/export" />
+    </LinearLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

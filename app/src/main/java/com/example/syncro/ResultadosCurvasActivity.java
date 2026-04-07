@@ -28,7 +28,7 @@ public class ResultadosCurvasActivity extends BaseActivity {
 
     private String generarCurvasXML(ArrayList<CurvaFila> datos, String cntId) {
         StringBuilder sb = new StringBuilder();
-        sb.append("<Report IdRpt=\"S02\" IdPet=\"3130\" Version=\"3.1.c\">\n");
+        sb.append("<Report IdRpt=\"S02\" IdPet=\"0\" Version=\"3.1.c\">\n");
         sb.append("<Cnc Id=\"Syncro\">\n");
         sb.append(" <Cnt Id=\"").append(cntId).append("\" Magn=\"1\">\n");
 
@@ -49,19 +49,6 @@ public class ResultadosCurvasActivity extends BaseActivity {
         sb.append("</Report>");
 
         return sb.toString();
-    }
-
-    private void guardarXML(String xmlContenido, String nombreArchivo) {
-        try {
-            File file = new File(getFilesDir(), nombreArchivo);
-            FileOutputStream fos = new FileOutputStream(file);
-            fos.write(xmlContenido.getBytes());
-            fos.close();
-            Toast.makeText(this, "Archivo guardado en: " + file.getAbsolutePath(), Toast.LENGTH_LONG).show();
-        } catch (Exception e) {
-            e.printStackTrace();
-            Toast.makeText(this, "Error guardando el archivo: " + e.getMessage(), Toast.LENGTH_LONG).show();
-        }
     }
 
     @Override

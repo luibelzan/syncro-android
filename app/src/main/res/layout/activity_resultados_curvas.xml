@@ -91,7 +91,7 @@
         <ImageView
             android:layout_width="64dp"
             android:layout_height="64dp"
-            android:src="@drawable/eventos"
+            android:src="@drawable/reportestg"
             android:padding="8dp"/>
 
         <TextView

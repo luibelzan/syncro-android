@@ -23,6 +23,7 @@ import com.example.syncro.client.GXDLMSReader;
 import com.example.syncro.models.CierreFila;
 import com.example.syncro.models.CurvaFila;
 import com.example.syncro.objects.loadProfiles.LoadProfileReader;
+import com.example.syncro.objects.params.SerialNumberReader;
 import com.example.syncro.objects.pricing.BillingDataReader;
 import com.example.syncro.objects.pricing.DailyBillingS05;
 import com.example.syncro.session.ConnectionConfig;
@@ -141,6 +142,7 @@ public class CierresActivity extends BaseActivity {
                     }
 
                     // Leer curvas
+                    String cntId = SerialNumberReader.readSerialNumer(reader);
                     ArrayList<CierreFila> datos = DailyBillingS05.leerS05(reader, fechaInicio, fechaFin, 1);
                     conn.close();
 
@@ -149,6 +151,7 @@ public class CierresActivity extends BaseActivity {
 
                         Intent intent = new Intent(CierresActivity.this, ResultadosCierresActivity.class);
                         intent.putParcelableArrayListExtra("datos_cierres_tabla", datos);
+                        intent.putExtra("cntId", cntId);
                         startActivity(intent);
 
                     });

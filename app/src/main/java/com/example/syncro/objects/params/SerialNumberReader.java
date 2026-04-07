@@ -34,12 +34,7 @@ public class SerialNumberReader {
         } catch (Exception e) {
             Log.e("DLMS", "Error al leer el Serial Number", e);
             throw e;
-        } finally {
-            if (reader != null) {
-                reader.close();
-            }
         }
-
         return result;
     }
 
