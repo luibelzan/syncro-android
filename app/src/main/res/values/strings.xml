@@ -97,4 +97,11 @@
     <string name="potenciaReactivaMinus">Potencia Reactiva - :</string>
     <string name="factorPotencia">Factor de Potencia :</string>
 
+    <!-- MENU CONFIG -->
+    <string name="ftpStg">FTP STG</string>
+    <string name="ftpFirmware">FTP Firmware</string>
+    <string name="stg">STG</string>
+    <string name="sonda">Sonda</string>
+    <string name="appLog">App Log</string>
+
 </resources>

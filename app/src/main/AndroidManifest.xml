@@ -27,6 +27,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Syncro">
         <activity
+            android:name=".FtpActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ConfigActivity"
+            android:exported="false" />
+        <activity
             android:name=".EstadoSondaActivity"
             android:exported="false" />
         <activity
