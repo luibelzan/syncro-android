@@ -7,4 +7,167 @@
     android:layout_height="match_parent"
     tools:context=".FtpActivity">
 
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="60dp"
+        android:text="@string/ftp"
+        android:textSize="27sp"
+        android:textStyle="bold"
+        android:textColor="@color/gris_texto"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <LinearLayout
+        android:id="@+id/layoutFtp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="36dp"
+        android:layout_marginTop="12dp"
+        android:orientation="vertical"
+        android:visibility="visible"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView">
+
+        <TextView
+            android:id="@+id/textProtocoloFtp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/protocoloFtp"
+            android:textColor="@color/gris_texto"
+            android:textSize="18sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textView" />
+
+        <Spinner
+            android:id="@+id/spinnerProtocolo"
+            android:layout_width="250dp"
+            android:layout_height="44dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/borde_radio_group" />
+
+        <TextView
+            android:id="@+id/textDirFtp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/dirFtp"
+            android:textColor="@color/gris_texto"
+            android:textSize="18sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textView" />
+
+        <EditText
+            android:id="@+id/editDirFtp"
+            android:layout_width="250dp"
+            android:layout_height="44dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="15dp"
+            android:background="@drawable/borde_radio_group"
+            android:focusable="false"
+            android:clickable="true" />
+
+        <TextView
+            android:id="@+id/textPortFtp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/portFtp"
+            android:textColor="@color/gris_texto"
+            android:textSize="18sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textView" />
+
+        <EditText
+            android:id="@+id/editPortFtp"
+            android:layout_width="250dp"
+            android:layout_height="44dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="15dp"
+            android:background="@drawable/borde_radio_group"
+            android:focusable="false"
+            android:clickable="true"
+            android:text="22"/>
+
+        <TextView
+            android:id="@+id/textFolderFtp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/folderFtp"
+            android:textColor="@color/gris_texto"
+            android:textSize="18sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textView" />
+
+        <EditText
+            android:id="@+id/editFolderFtp"
+            android:layout_width="250dp"
+            android:layout_height="44dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="15dp"
+            android:background="@drawable/borde_radio_group"
+            android:focusable="false"
+            android:clickable="true"
+            android:text="/"/>
+
+        <TextView
+            android:id="@+id/textUserFtp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/userFtp"
+            android:textColor="@color/gris_texto"
+            android:textSize="18sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textView" />
+
+        <EditText
+            android:id="@+id/editUserFtp"
+            android:layout_width="250dp"
+            android:layout_height="44dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="15dp"
+            android:background="@drawable/borde_radio_group"
+            android:focusable="false"
+            android:clickable="true" />
+
+        <TextView
+            android:id="@+id/textPassFtp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/passFtp"
+            android:textColor="@color/gris_texto"
+            android:textSize="18sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textView" />
+
+        <EditText
+            android:id="@+id/editPassFtp"
+            android:layout_width="250dp"
+            android:layout_height="44dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="15dp"
+            android:background="@drawable/borde_radio_group"
+            android:focusable="false"
+            android:clickable="true" />
+
+    </LinearLayout>
+
+    <ImageButton
+        android:id="@+id/btnNext"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_marginEnd="160dp"
+        android:background="@drawable/circle_button"
+        android:contentDescription="@string/saveConfig"
+        android:src="@android:drawable/ic_media_next"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.916"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/layoutFtp"
+        app:layout_constraintVertical_bias="0.529"
+        app:tint="@color/gris_texto" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
