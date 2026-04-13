@@ -25,11 +25,20 @@ public class ConfigActivity extends AppCompatActivity {
         });
 
         LinearLayout btnFtpStg = findViewById(R.id.btnFtpStg);
+        LinearLayout btnStg = findViewById(R.id.btnStg);
 
         btnFtpStg.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(ConfigActivity.this, FtpActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        btnStg.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(ConfigActivity.this, StgActivity.class);
                 startActivity(intent);
             }
         });

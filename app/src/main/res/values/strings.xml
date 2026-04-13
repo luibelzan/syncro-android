@@ -103,6 +103,8 @@
     <string name="stg">STG</string>
     <string name="sonda">Sonda</string>
     <string name="appLog">App Log</string>
+
+    <!-- FTP CONFIG -->
     <string name="ftp">Configuracion FTP</string>
     <string name="protocoloFtp">Protocolo FTP</string>
     <string name="dirFtp">Direccion Servidor</string>
@@ -116,5 +118,20 @@
         <item>FTPS</item>
         <item>FTP</item>
     </string-array>
+
+    <!-- STG CONFIG -->
+    <string name="stgConfig">Configuracion STG</string>
+    <string name="cncName">Concentrador Virtual por defecto</string>
+    <string name="afterGenerate">Luego de generar reporte Sxx</string>
+    <string name="afterSend">Luego de enviar un reporte al FTP</string>
+    <string-array name="afterGenerate_array">
+        <item>Guardar e intentar enviar al FTP inmediatamente</item>
+        <item>Opcion 2</item>
+    </string-array>
+    <string-array name="afterSend_array">
+        <item>Mover a la carpeta de backup del dispositivo</item>
+        <item>Opcion 2</item>
+    </string-array>
+    <string name="infoStg">Los reportes se eliminan de la carpeta backup de forma automatica transcurrido 30 dias. En ese periodo puede reenviar cualquier reporte del backup al FTP</string>
 
 </resources>
