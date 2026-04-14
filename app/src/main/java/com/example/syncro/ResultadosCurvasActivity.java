@@ -18,17 +18,20 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 
 public class ResultadosCurvasActivity extends BaseActivity {
 
     // =========================
     // GENERAR XML
     // =========================
-    private String generarCurvasXML(ArrayList<CurvaFila> datos, String cntId) {
+    private String generarCurvasXML(ArrayList<CurvaFila> datos, String cntId, String cncId) {
         StringBuilder sb = new StringBuilder();
         sb.append("<Report IdRpt=\"S02\" IdPet=\"0\" Version=\"3.1.c\">\n");
-        sb.append("<Cnc Id=\"Syncro\">\n");
+        sb.append("  <Cnc Id=\"").append(cncId).append("\">\n");
         sb.append(" <Cnt Id=\"").append(cntId).append("\" Magn=\"1\">\n");
 
         for (CurvaFila fila : datos) {
@@ -73,21 +76,32 @@ public class ResultadosCurvasActivity extends BaseActivity {
 
         btnExport.setOnClickListener(v -> {
             if (datos != null && !datos.isEmpty()) {
+                // 🔹 Obtener configuración guardada
+                SharedPreferences prefs = getSharedPreferences("ftp_config", MODE_PRIVATE);
+                String cncName = prefs.getString("cncName", "Syncro");
 
-                String xml = generarCurvasXML(datos, cntId);
+                String xml = generarCurvasXML(datos, cntId, cncName);
 
+                // 🔹 Limpiar nombre (opcional pero recomendado)
+                cncName = cncName.replaceAll("\\s+", "_");
+
+                // 🔹 Fecha actual
+                String fechaActual = new SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault())
+                        .format(new Date());
+
+                // 🔹 Construir nombre del archivo
+                String nombreFichero = cncName + "_0_S02_" + fechaActual + ".xml";
+
+                // 🔹 Crear archivo con ese nombre
                 File file = new File(
                         Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                        "curvas.xml"
-                );
+                        nombreFichero);
 
                 try (FileOutputStream fos = new FileOutputStream(file)) {
                     fos.write(xml.getBytes());
                     fos.flush();
 
                     Log.d("FILE_PATH", file.getAbsolutePath());
-
-                    SharedPreferences prefs = getSharedPreferences("ftp_config", MODE_PRIVATE);
                     String protocolo = prefs.getString("protocolo", "FTP");
 
                     // 🔥 SELECCIÓN AUTOMÁTICA

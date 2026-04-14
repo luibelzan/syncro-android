@@ -23,15 +23,18 @@ import com.example.syncro.utils.Utils;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 
 public class ResultadosEventsActivity extends BaseActivity {
 
-    private String generarEventsXML(ArrayList<EventFila> datos, String cntId) {
+    private String generarEventsXML(ArrayList<EventFila> datos, String cntId, String cncId) {
         StringBuilder sb = new StringBuilder();
 
         sb.append("<Report IdRpt=\"S09\" IdPet=\"0\" Version=\"3.1.c\">\n");
-        sb.append("  <Cnc Id=\"Syncro\">\n");
+        sb.append("  <Cnc Id=\"").append(cncId).append("\">\n");
         sb.append("    <Cnt Id=\"").append(cntId).append("\">\n");
 
         for (EventFila fila : datos) {
@@ -68,19 +71,32 @@ public class ResultadosEventsActivity extends BaseActivity {
 
         btnExport.setOnClickListener(v -> {
             if (datos != null && !datos.isEmpty()) {
-                String xml = generarEventsXML(datos, cntId);
+                // 🔹 Obtener configuración guardada
+                SharedPreferences prefs = getSharedPreferences("ftp_config", MODE_PRIVATE);
+                String cncName = prefs.getString("cncName", "Syncro");
 
+                String xml = generarEventsXML(datos, cntId, cncName);
+
+                // 🔹 Limpiar nombre (opcional pero recomendado)
+                cncName = cncName.replaceAll("\\s+", "_");
+
+                // 🔹 Fecha actual
+                String fechaActual = new SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault())
+                        .format(new Date());
+
+                // 🔹 Construir nombre del archivo
+                String nombreFichero = cncName + "_0_S09_" + fechaActual + ".xml";
+
+                // 🔹 Crear archivo con ese nombre
                 File file = new File(
                         Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                        "events.xml"
-                );
+                        nombreFichero);
 
                 try (FileOutputStream fos = new FileOutputStream(file)) {
                     fos.write(xml.getBytes());
                     fos.flush();
                     Log.d("FILE_PATH", file.getAbsolutePath());
 
-                    SharedPreferences prefs = getSharedPreferences("ftp_config", MODE_PRIVATE);
                     String protocolo = prefs.getString("protocolo", "FTP");
 
                     // 🔥 SELECCIÓN AUTOMÁTICA
