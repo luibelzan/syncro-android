@@ -27,6 +27,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Syncro">
         <activity
+            android:name=".IcpActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ParametrosActivity"
+            android:exported="false" />
+        <activity
             android:name=".StgActivity"
             android:exported="false" />
         <activity

@@ -90,7 +90,7 @@ public class ResultadosCurvasActivity extends BaseActivity {
                         .format(new Date());
 
                 // 🔹 Construir nombre del archivo
-                String nombreFichero = cncName + "_0_S02_" + fechaActual + ".xml";
+                String nombreFichero = cncName + "_0_S02_0_" + fechaActual + ".xml";
 
                 // 🔹 Crear archivo con ese nombre
                 File file = new File(

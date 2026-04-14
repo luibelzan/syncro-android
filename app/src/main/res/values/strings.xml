@@ -136,4 +136,11 @@
     </string-array>
     <string name="infoStg">Los reportes se eliminan de la carpeta backup de forma automatica transcurrido 30 dias. En ese periodo puede reenviar cualquier reporte del backup al FTP</string>
 
+    <!-- PARAMETROS MENU -->
+    <string name="paramsMenu">Menu de Parametros</string>
+    <string name="icp">ICP</string>
+    <string name="date">Fecha y Hora</string>
+    <string name="screen">Pantalla</string>
+    <string name="transf">Rel. Transf.</string>
+
 </resources>

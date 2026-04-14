@@ -101,7 +101,7 @@ public class ResultadosCierresActivity extends BaseActivity {
                         .format(new Date());
 
                 // 🔹 Construir nombre del archivo
-                String nombreFichero = cncName + "_0_S05_" + fechaActual + ".xml";
+                String nombreFichero = cncName + "_0_S05_0_" + fechaActual + ".xml";
 
                 // 🔹 Crear archivo con ese nombre
                 File file = new File(
