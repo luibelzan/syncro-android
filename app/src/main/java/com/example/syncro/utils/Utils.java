@@ -5,7 +5,9 @@ import static gurux.dlms.objects.enums.ControlState.CONNECTED;
 import static gurux.dlms.objects.enums.ControlState.DISCONNECTED;
 import static gurux.dlms.objects.enums.ControlState.READY_FOR_RECONNECTION;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -14,6 +16,7 @@ import com.example.syncro.client.GXDLMSReader;
 import com.example.syncro.client.GXDLMSSecureClient2;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
@@ -54,6 +57,160 @@ public class Utils {
             sb.append(String.format("%02X ", b));
         }
         return sb.toString();
+    }
+
+    // =========================
+    // SUBIDA SFTP
+    // =========================
+    public static void subirArchivoSFTP(Context context, File file) {
+        new Thread(() -> {
+            try {
+                SharedPreferences prefs = context.getSharedPreferences("ftp_config", Context.MODE_PRIVATE);
+
+                String host = prefs.getString("dir", "");
+                int port = Integer.parseInt(prefs.getString("port", "22"));
+                String user = prefs.getString("user", "");
+                String pass = prefs.getString("pass", "");
+                String folder = prefs.getString("folder", "/");
+
+                com.jcraft.jsch.JSch jsch = new com.jcraft.jsch.JSch();
+                com.jcraft.jsch.Session session = jsch.getSession(user, host, port);
+
+                session.setPassword(pass);
+
+                java.util.Properties config = new java.util.Properties();
+                config.put("StrictHostKeyChecking", "no");
+                session.setConfig(config);
+
+                session.connect(10000);
+
+                com.jcraft.jsch.Channel channel = session.openChannel("sftp");
+                channel.connect();
+
+                com.jcraft.jsch.ChannelSftp sftp = (com.jcraft.jsch.ChannelSftp) channel;
+
+                sftp.cd(folder);
+                sftp.put(file.getAbsolutePath(), file.getName());
+
+                sftp.exit();
+                session.disconnect();
+
+                // UI Thread
+                ((Activity) context).runOnUiThread(() ->
+                        Toast.makeText(context, "Subido por SFTP", Toast.LENGTH_SHORT).show()
+                );
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                ((Activity) context).runOnUiThread(() ->
+                        Toast.makeText(context, "Error SFTP: " + e.getMessage(), Toast.LENGTH_LONG).show()
+                );
+            }
+        }).start();
+    }
+
+    // =========================
+    // SUBIDA FTP
+    // =========================
+    public static void subirArchivoFTP(Context context, File file) {
+        new Thread(() -> {
+            try {
+                SharedPreferences prefs = context.getSharedPreferences("ftp_config", Context.MODE_PRIVATE);
+
+                String host = prefs.getString("dir", "");
+                int port = Integer.parseInt(prefs.getString("port", "21"));
+                String user = prefs.getString("user", "");
+                String pass = prefs.getString("pass", "");
+                String folder = prefs.getString("folder", "/folder");
+
+                org.apache.commons.net.ftp.FTPClient ftp = new org.apache.commons.net.ftp.FTPClient();
+
+                ftp.connect(host, port);
+                ftp.login(user, pass);
+
+                ftp.enterLocalPassiveMode(); // 🔥 CLAVE
+                ftp.setFileType(org.apache.commons.net.ftp.FTP.BINARY_FILE_TYPE);
+
+                ftp.changeWorkingDirectory(folder);
+
+                FileInputStream fis = new FileInputStream(file);
+
+                boolean success = ftp.storeFile(file.getName(), fis);
+
+                fis.close();
+                ftp.logout();
+                ftp.disconnect();
+
+                ((Activity) context).runOnUiThread(() -> {
+                    if (success) {
+                        Toast.makeText(context, "Subido por FTP", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(context, "Error FTP", Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+            } catch (Exception e) {
+                e.printStackTrace();
+
+                ((Activity) context).runOnUiThread(() ->
+                        Toast.makeText(context, "Error FTP: " + e.getMessage(), Toast.LENGTH_LONG).show()
+                );
+            }
+        }).start();
+    }
+
+    // =========================
+    // SUBIDA FTPS
+    // =========================
+    public static void subirArchivoFTPS(Context context, File file) {
+        new Thread(() -> {
+            try {
+                SharedPreferences prefs = context.getSharedPreferences("ftp_config", Context.MODE_PRIVATE);
+
+                String host = prefs.getString("dir", "");
+                int port = Integer.parseInt(prefs.getString("port", "21"));
+                String user = prefs.getString("user", "");
+                String pass = prefs.getString("pass", "");
+                String folder = prefs.getString("folder", "/folder");
+
+                org.apache.commons.net.ftp.FTPSClient ftps =
+                        new org.apache.commons.net.ftp.FTPSClient();
+
+                ftps.connect(host, port);
+                ftps.login(user, pass);
+
+                ftps.enterLocalPassiveMode();
+                ftps.setFileType(org.apache.commons.net.ftp.FTP.BINARY_FILE_TYPE);
+
+                ftps.execPBSZ(0);
+                ftps.execPROT("P");
+
+                ftps.changeWorkingDirectory(folder);
+
+                FileInputStream fis = new FileInputStream(file);
+
+                boolean success = ftps.storeFile(file.getName(), fis);
+
+                fis.close();
+                ftps.logout();
+                ftps.disconnect();
+
+                ((Activity) context).runOnUiThread(() -> {
+                    if (success) {
+                        Toast.makeText(context, "Subido por FTPS", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(context, "Error FTPS", Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+            } catch (Exception e) {
+                e.printStackTrace();
+
+                ((Activity) context).runOnUiThread(() ->
+                        Toast.makeText(context, "Error FTPS: " + e.getMessage(), Toast.LENGTH_LONG).show()
+                );
+            }
+        }).start();
     }
 
     private void guardarXML(Context context, String xmlContenido, String nombreArchivo) {

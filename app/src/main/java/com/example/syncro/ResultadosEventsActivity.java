@@ -1,5 +1,6 @@
 package com.example.syncro;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
@@ -17,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.syncro.adapters.EventAdapter;
 import com.example.syncro.models.CurvaFila;
 import com.example.syncro.models.EventFila;
+import com.example.syncro.utils.Utils;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -77,6 +79,18 @@ public class ResultadosEventsActivity extends BaseActivity {
                     fos.write(xml.getBytes());
                     fos.flush();
                     Log.d("FILE_PATH", file.getAbsolutePath());
+
+                    SharedPreferences prefs = getSharedPreferences("ftp_config", MODE_PRIVATE);
+                    String protocolo = prefs.getString("protocolo", "FTP");
+
+                    // 🔥 SELECCIÓN AUTOMÁTICA
+                    if (protocolo.equalsIgnoreCase("SFTP")) {
+                        Utils.subirArchivoSFTP(this, file);
+                    } else if (protocolo.equalsIgnoreCase("FTPS")) {
+                        Utils.subirArchivoFTPS(this, file);
+                    } else {
+                        Utils.subirArchivoFTP(this, file);
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
