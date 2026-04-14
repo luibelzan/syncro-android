@@ -35,15 +35,16 @@
                 android:focusable="true">
 
                 <ImageView
-                    android:layout_width="100dp"
-                    android:layout_height="100dp"
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
                     android:src="@drawable/configuracion"
                     android:padding="16dp"/>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/config"/>
+                    android:text="@string/config"
+                    android:textSize="20sp"/>
             </LinearLayout>
 
             <!-- ICONO 2 -->
@@ -58,15 +59,16 @@
                 android:focusable="true">
 
                 <ImageView
-                    android:layout_width="100dp"
-                    android:layout_height="100dp"
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
                     android:src="@drawable/lectura"
                     android:padding="16dp"/>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/reads"/>
+                    android:text="@string/reads"
+                    android:textSize="20sp"/>
             </LinearLayout>
 
         </LinearLayout>
@@ -91,15 +93,16 @@
                 android:focusable="true">
 
                 <ImageView
-                    android:layout_width="100dp"
-                    android:layout_height="100dp"
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
                     android:src="@drawable/contratos"
                     android:padding="16dp"/>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/contracts"/>
+                    android:text="@string/contracts"
+                    android:textSize="20sp"/>
             </LinearLayout>
 
             <!-- ICONO 4 -->
@@ -114,15 +117,16 @@
                 android:focusable="true">
 
                 <ImageView
-                    android:layout_width="100dp"
-                    android:layout_height="100dp"
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
                     android:src="@drawable/parametros"
                     android:padding="16dp"/>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/params"/>
+                    android:text="@string/params"
+                    android:textSize="20sp"/>
             </LinearLayout>
 
         </LinearLayout>
@@ -147,15 +151,16 @@
                 android:focusable="true">
 
                 <ImageView
-                    android:layout_width="100dp"
-                    android:layout_height="100dp"
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
                     android:src="@drawable/firmware"
                     android:padding="16dp"/>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/firmware"/>
+                    android:text="@string/firmware"
+                    android:textSize="20sp"/>
             </LinearLayout>
 
             <!-- ICONO 6 -->
@@ -170,15 +175,16 @@
                 android:focusable="true">
 
                 <ImageView
-                    android:layout_width="100dp"
-                    android:layout_height="100dp"
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
                     android:src="@drawable/reportes"
                     android:padding="16dp"/>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/reports"/>
+                    android:text="@string/reports"
+                    android:textSize="20sp"/>
             </LinearLayout>
 
         </LinearLayout>
@@ -203,15 +209,16 @@
                 android:focusable="true">
 
                 <ImageView
-                    android:layout_width="100dp"
-                    android:layout_height="100dp"
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
                     android:src="@drawable/acerca"
                     android:padding="16dp"/>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/about"/>
+                    android:text="@string/about"
+                    android:textSize="20sp"/>
             </LinearLayout>
 
         </LinearLayout>
