@@ -28,8 +28,16 @@ public class IcpActivity extends AppCompatActivity {
         LinearLayout btnIcpMode = findViewById(R.id.btnIcpMode);
 
         btnIcpStatus.setOnClickListener(v -> {
-            Intent intent = new Intent(IcpActivity.this, IcpStatusActivity.class);
+
+        });
+
+        btnIcpExecute.setOnClickListener(v -> {
+            Intent intent = new Intent(IcpActivity.this, IcpExecuteActivity.class);
             startActivity(intent);
+        });
+
+        btnIcpMode.setOnClickListener(v -> {
+
         });
     }
 }

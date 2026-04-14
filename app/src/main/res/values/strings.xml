@@ -148,5 +148,18 @@
     <string name="icpStatus">Ver estado</string>
     <string name="icpExecute">Ejecutar</string>
     <string name="icpMode">Modo</string>
+    <string name="icpStatusTitle">Interruptor Control de Potencia</string>
+    <string name="tipoOperacionIcp">Tipo de operacion:</string>
+    <string name="operacionIcp">Operacion:</string>
+
+    <!-- ICP EJECUCION -->
+    <string-array name="tipo_operaciones_array">
+        <item>Manual</item>
+        <item>Automatico</item>
+    </string-array>
+    <string-array name="operaciones_array">
+        <item>Connect</item>
+        <item>Disconnect</item>
+    </string-array>
 
 </resources>
