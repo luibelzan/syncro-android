@@ -143,4 +143,10 @@
     <string name="screen">Pantalla</string>
     <string name="transf">Rel. Transf.</string>
 
+    <!-- ICP MENU -->
+    <string name="icpMenu">ICP Menu</string>
+    <string name="icpStatus">Ver estado</string>
+    <string name="icpExecute">Ejecutar</string>
+    <string name="icpMode">Modo</string>
+
 </resources>
