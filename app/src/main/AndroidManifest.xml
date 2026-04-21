@@ -27,6 +27,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Syncro">
         <activity
+            android:name=".ResultadosIcpActivity"
+            android:exported="false" />
+        <activity
             android:name=".IcpExecuteActivity"
             android:exported="false" />
         <activity

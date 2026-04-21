@@ -18,6 +18,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.syncro.client.DLMSConnection;
 import com.example.syncro.client.GXDLMSReader;
+import com.example.syncro.models.ControlModeResult;
 import com.example.syncro.models.CurvaFila;
 import com.example.syncro.objects.loadProfiles.LoadProfileReader;
 import com.example.syncro.objects.params.ControlDisconnectMode;
@@ -101,18 +102,25 @@ public class IcpExecuteActivity extends AppCompatActivity {
                         reader = conn.tcpConnect();
                     }
 
+                    ControlModeResult result;
+
                     // Ejecutar operacion
                     if(operacion.equals("Connect")) {
-                        ControlDisconnectMode.setControlDisconnectMode(reader, conn.getClient(), true);
+                         result = ControlDisconnectMode.setControlDisconnectMode(reader, conn.getClient(), true);
                     } else {
-                        ControlDisconnectMode.setControlDisconnectMode(reader, conn.getClient(), false);
+                        result = ControlDisconnectMode.setControlDisconnectMode(reader, conn.getClient(), false);
                     }
                     conn.close();
 
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);
 
-                        Intent intent = new Intent(IcpExecuteActivity.this, ResultadosCurvasActivity.class);
+                        Intent intent = new Intent(IcpExecuteActivity.this, ResultadosIcpActivity.class);
+                        intent.putExtra("success", result.success);
+                        intent.putExtra("estadoInicial", result.estadoInicial);
+                        intent.putExtra("estadoFinal", result.estadoFinal);
+                        intent.putExtra("mensaje", result.mensaje);
+
                         startActivity(intent);
 
                     });
