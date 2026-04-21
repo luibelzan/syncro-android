@@ -13,23 +13,22 @@ import gurux.dlms.objects.GXDLMSClock;
 
 public class DateReader {
 
-    public static void readDate(GXDLMSReader reader) throws Exception {
+    public static String readDate(GXDLMSReader reader) throws Exception {
 
         try {
             System.out.println("Leyendo fecha y hora del equipo");
             GXDLMSClock clock = new GXDLMSClock("0.0.1.0.0.255");
-            Object value = reader.read(clock, 2); // Attribute 2 is the time value
+            Object value = reader.read(clock, 2);
 
-            // Handle the value
             if (value instanceof GXDateTime) {
                 GXDateTime dateTime = (GXDateTime) value;
-                System.out.println("Current meter date/time: " + dateTime.toString());
+                return dateTime.toString(); // 👈 devolvemos la fecha
             } else {
-                System.out.println("Unexpected value format: " + value);
+                return "Formato inesperado: " + value;
             }
         } catch (Exception e) {
             Log.e("DLMS", "Error al leer Fecha y hora del equipo", e);
-            throw e; // Re-lanzar para que el llamador sepa que falló
+            throw e;
         }
     }
 

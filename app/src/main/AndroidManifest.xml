@@ -27,6 +27,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Syncro">
         <activity
+            android:name=".ResultadosDateActivity"
+            android:exported="false" />
+        <activity
+            android:name=".DateActivity"
+            android:exported="false" />
+        <activity
             android:name=".ResultadosIcpActivity"
             android:exported="false" />
         <activity

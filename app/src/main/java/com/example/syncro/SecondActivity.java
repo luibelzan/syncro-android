@@ -38,7 +38,7 @@ public class SecondActivity extends BaseActivity {
         });
 
         btnParams.setOnClickListener(v -> {
-            Intent intent = new Intent(SecondActivity.this, IcpActivity.class);
+            Intent intent = new Intent(SecondActivity.this, ParametrosActivity.class);
             startActivity(intent);
         });
     }

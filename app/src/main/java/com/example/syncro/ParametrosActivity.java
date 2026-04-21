@@ -36,5 +36,13 @@ public class ParametrosActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
+        btnDate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(ParametrosActivity.this, DateActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 }

@@ -162,4 +162,8 @@
         <item>Disconnect</item>
     </string-array>
 
+    <!-- DATE MENU -->
+    <string name="dateMenu">Menu de Fecha y Hora</string>
+    <string name="readDate">Consultar Reloj</string>
+    <string name="syncDate">Sincronizar Reloj</string>
 </resources>
