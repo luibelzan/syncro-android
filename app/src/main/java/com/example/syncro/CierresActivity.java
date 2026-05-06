@@ -158,7 +158,7 @@ public class CierresActivity extends BaseActivity {
 
                         });
                     } else if(tipoCierre.equals("Mensuales_S04")) {
-                        ArrayList<CierreMensualFila> datos = MonthlyBillingS04.leerS042(reader, fechaInicio, fechaFin, 1);
+                        ArrayList<CierreMensualFila> datos = MonthlyBillingS04.leerS04(reader, fechaInicio, fechaFin, 1);
 
                         runOnUiThread(() -> {
                             progressBar.setVisibility(View.GONE);

@@ -87,14 +87,23 @@ public class MonthlyBillingS04 {
                     String fechaFin    = formatearFechaS04(fila[99].toString());
 
                     for (int p = 0; p < 7; p++) {
+                        int idxValMax   = 86 + (p * 2);  // ← era 87, ahora 86
+                        int idxFechaMax = 87 + (p * 2);  // ← era 86, ahora 87
+
+                        Object rawVal = fila[86];
+                        if (rawVal instanceof byte[]) {
+                            byte[] b = (byte[]) rawVal;
+                            System.out.println("VALOR MAX bytes(" + b.length + "): " + GXCommon.toHex(b, true));
+                        }
+
                         // Los índices se mantienen según tu estructura de 100 columnas
                         result.add(new CierreMensualFila(
                                 fechaInicio,
                                 fechaFin,
                                 contract,
                                 p,
-                                parsearMaximetroValor(fila[87 + p * 2]), // Ajuste de índice si aplica
-                                parsearFechaMaximetro(fila[86 + p * 2]),
+                                parsearMaximetroValor(fila[idxValMax]),   // Valor numérico
+                                parsearFechaMaximetro(fila[idxFechaMax]),  // Fecha captura
                                 String.valueOf(fila[2  + p]), // Absolutos
                                 String.valueOf(fila[9  + p]),
                                 String.valueOf(fila[16 + p]), // R1-R4 Abs
@@ -125,13 +134,34 @@ public class MonthlyBillingS04 {
 
     private static String parsearMaximetroValor(Object raw) {
         try {
+            if (raw instanceof GXDateTime) {
+                return String.valueOf(((GXDateTime) raw).getValue().getTime() / 1000L);
+            }
             if (raw instanceof byte[]) {
                 byte[] b = (byte[]) raw;
-                long valor = 0;
-                for (byte x : b) {
-                    valor = (valor << 8) | (x & 0xFF);
+
+                if (b.length == 12) {
+                    // El medidor envía el valor como DLMS DateTime — extraemos los segundos
+                    // desde medianoche como valor de demanda, o usamos epoch como número
+                    Object converted = GXDLMSClient.changeType(b, DataType.DATETIME);
+                    if (converted instanceof GXDateTime) {
+                        GXDateTime dt = (GXDateTime) converted;
+                        java.util.Date fecha = dt.getValue();
+                        Calendar cal = Calendar.getInstance();
+                        cal.setTime(fecha);
+                        // El valor real de la demanda máxima suele estar en los bytes 6-9 (UINT32)
+                        // Intentamos leerlo directamente de los bytes del payload
+                        long val = ((b[6] & 0xFF) << 24) | ((b[7] & 0xFF) << 16)
+                                | ((b[8] & 0xFF) << 8)  |  (b[9] & 0xFF);
+                        return String.valueOf(val);
+                    }
                 }
-                return String.valueOf(valor);
+                if (b.length <= 4) {
+                    return String.valueOf(GXDLMSClient.changeType(b, DataType.UINT32));
+                }
+                if (b.length == 8) {
+                    return String.valueOf(GXDLMSClient.changeType(b, DataType.UINT64));
+                }
             }
             return String.valueOf(raw);
         } catch (Exception e) {
@@ -141,27 +171,47 @@ public class MonthlyBillingS04 {
 
     private static String parsearFechaMaximetro(Object raw) {
         try {
-            if (raw instanceof byte[]) {
-                byte[] b = (byte[]) raw;
-                long segundos = 0;
-                for (byte x : b) {
-                    segundos = (segundos << 8) | (x & 0xFF);
-                }
-                if (segundos == 0) return "N/A";
-                java.util.Date fecha = new java.util.Date(segundos * 1000L);
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss", java.util.Locale.getDefault());
-                return sdf.format(fecha);
-            }
             if (raw instanceof GXDateTime) {
                 GXDateTime dt = (GXDateTime) raw;
                 java.util.Date fecha = dt.getValue();
                 if (fecha == null) return "N/A";
-                // Comprobamos año 1970 via Calendar
                 Calendar cal = Calendar.getInstance();
                 cal.setTime(fecha);
                 if (cal.get(Calendar.YEAR) <= 1970) return "N/A";
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss", java.util.Locale.getDefault());
                 return sdf.format(fecha);
+            }
+            if (raw instanceof byte[]) {
+                byte[] b = (byte[]) raw;
+                // Attr 5 (capture_time) del Extended Register son SIEMPRE 12 bytes DLMS DateTime
+                if (b.length == 12) {
+                    try {
+                        Object converted = GXDLMSClient.changeType(b, DataType.DATETIME);
+                        if (converted instanceof GXDateTime) {
+                            GXDateTime dt = (GXDateTime) converted;
+                            java.util.Date fecha = dt.getValue();
+                            if (fecha == null) return "N/A";
+                            Calendar cal = Calendar.getInstance();
+                            cal.setTime(fecha);
+                            if (cal.get(Calendar.YEAR) <= 1970) return "N/A";
+                            SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss", java.util.Locale.getDefault());
+                            return sdf.format(fecha);
+                        }
+                    } catch (Exception ignored) {}
+                }
+                // Si no son 12 bytes, intentamos como Date (4 bytes = epoch DLMS relativo)
+                if (b.length == 4) {
+                    long segundos = 0;
+                    for (byte x : b) segundos = (segundos << 8) | (x & 0xFF);
+                    if (segundos == 0) return "N/A";
+                    java.util.Date fecha = new java.util.Date(segundos * 1000L);
+                    Calendar cal = Calendar.getInstance();
+                    cal.setTime(fecha);
+                    if (cal.get(Calendar.YEAR) <= 1970) return "N/A";
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss", java.util.Locale.getDefault());
+                    return sdf.format(fecha);
+                }
+                return "N/A";
             }
             return "N/A";
         } catch (Exception e) {
