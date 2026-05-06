@@ -21,11 +21,13 @@ import androidx.core.view.WindowInsetsCompat;
 import com.example.syncro.client.DLMSConnection;
 import com.example.syncro.client.GXDLMSReader;
 import com.example.syncro.models.CierreFila;
+import com.example.syncro.models.CierreMensualFila;
 import com.example.syncro.models.CurvaFila;
 import com.example.syncro.objects.loadProfiles.LoadProfileReader;
 import com.example.syncro.objects.params.SerialNumberReader;
 import com.example.syncro.objects.pricing.BillingDataReader;
 import com.example.syncro.objects.pricing.DailyBillingS05;
+import com.example.syncro.objects.pricing.MonthlyBillingS04;
 import com.example.syncro.session.ConnectionConfig;
 import com.example.syncro.session.SessionManager;
 
@@ -143,18 +145,35 @@ public class CierresActivity extends BaseActivity {
 
                     // Leer curvas
                     String cntId = SerialNumberReader.readSerialNumer(reader);
-                    ArrayList<CierreFila> datos = DailyBillingS05.leerS05(reader, fechaInicio, fechaFin, 1);
+                    if(tipoCierre.equals("Diarios_S05")) {
+                        ArrayList<CierreFila> datos = DailyBillingS05.leerS05(reader, fechaInicio, fechaFin, 1);
+
+                        runOnUiThread(() -> {
+                            progressBar.setVisibility(View.GONE);
+
+                            Intent intent = new Intent(CierresActivity.this, ResultadosCierresActivity.class);
+                            intent.putParcelableArrayListExtra("datos_cierres_tabla", datos);
+                            intent.putExtra("cntId", cntId);
+                            startActivity(intent);
+
+                        });
+                    } else if(tipoCierre.equals("Mensuales_S04")) {
+                        ArrayList<CierreMensualFila> datos = MonthlyBillingS04.leerS042(reader, fechaInicio, fechaFin, 1);
+
+                        runOnUiThread(() -> {
+                            progressBar.setVisibility(View.GONE);
+
+                            Intent intent = new Intent(CierresActivity.this, ResultadosCierresMensualesActivity.class);
+                            intent.putParcelableArrayListExtra("datos_cierres_tabla", datos);
+                            intent.putExtra("cntId", cntId);
+                            startActivity(intent);
+
+                        });
+                    }
+
                     conn.close();
 
-                    runOnUiThread(() -> {
-                        progressBar.setVisibility(View.GONE);
 
-                        Intent intent = new Intent(CierresActivity.this, ResultadosCierresActivity.class);
-                        intent.putParcelableArrayListExtra("datos_cierres_tabla", datos);
-                        intent.putExtra("cntId", cntId);
-                        startActivity(intent);
-
-                    });
 
                 } catch (Exception e) {
                     e.printStackTrace();
