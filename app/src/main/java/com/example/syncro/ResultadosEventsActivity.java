@@ -39,7 +39,7 @@ public class ResultadosEventsActivity extends BaseActivity {
 
         for (EventFila fila : datos) {
             sb.append("      <S09 ")
-                    .append("Fh=\"").append(fila.fh).append("\" ")
+                    .append("Fh=\"").append(Utils.convertirFecha(fila.fh)).append("\" ")
                     .append("Et=\"").append(fila.id).append("\" ")
                     .append("C=\"").append(fila.cod).append("\"/>\n");
         }

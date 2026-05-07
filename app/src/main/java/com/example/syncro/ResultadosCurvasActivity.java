@@ -36,7 +36,7 @@ public class ResultadosCurvasActivity extends BaseActivity {
 
         for (CurvaFila fila : datos) {
             sb.append("      <S02 ")
-                    .append("Fh=\"").append(fila.fechaHora).append("\" ")
+                    .append("Fh=\"").append(Utils.convertirFecha(fila.fechaHora)).append("\" ")
                     .append("Bc=\"").append(fila.bc).append("\" ")
                     .append("AI=\"").append(fila.ai).append("\" ")
                     .append("AE=\"").append(fila.ae).append("\" ")

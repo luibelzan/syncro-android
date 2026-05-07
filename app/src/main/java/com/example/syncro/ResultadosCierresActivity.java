@@ -39,7 +39,7 @@ public class ResultadosCierresActivity extends BaseActivity {
 
         for (CierreFila fila : datos) {
             sb.append("      <S05 ")
-                    .append("Fh=\"").append(fila.fecha).append("\" ")
+                    .append("Fh=\"").append(Utils.convertirFecha(fila.fecha)).append("\" ")
                     .append("Ctr=\"").append(fila.contrato).append("\" ")
                     .append("Pt=\"").append(fila.periodo).append("\">\n");
 

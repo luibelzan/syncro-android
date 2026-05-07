@@ -20,6 +20,9 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -57,6 +60,52 @@ public class Utils {
             sb.append(String.format("%02X ", b));
         }
         return sb.toString();
+    }
+
+    // =========================
+    // PARSEAR FECHAS XML
+    // =========================
+    public static String convertirFecha(String fechaEntrada) {
+
+        if (fechaEntrada == null || fechaEntrada.isEmpty()) {
+            return "";
+        }
+
+        if (fechaEntrada.equals("FFFFFFFFFFFFFFFFFW")) {
+            return fechaEntrada;
+        }
+
+        DateTimeFormatter outputFormatter =
+                DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
+
+        DateTimeFormatter[] formatos = new DateTimeFormatter[] {
+
+                // 2026/01/03 00:00:00.000W
+                DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss.SSS'W'"),
+
+                // 2026/03/11 04:30:00
+                DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"),
+
+                // 4/27/26 12:00:00 AM
+                DateTimeFormatter.ofPattern("M/d/yy h:mm:ss a")
+        };
+
+        for (DateTimeFormatter formatter : formatos) {
+
+            try {
+
+                LocalDateTime fecha =
+                        LocalDateTime.parse(fechaEntrada, formatter);
+
+                return fecha.format(outputFormatter) + "S";
+
+            } catch (DateTimeParseException e) {
+                // probar siguiente formato
+            }
+        }
+
+        throw new IllegalArgumentException(
+                "Formato de fecha no soportado: " + fechaEntrada);
     }
 
     // =========================
