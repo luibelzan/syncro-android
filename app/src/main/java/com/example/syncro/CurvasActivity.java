@@ -62,22 +62,6 @@ public class CurvasActivity extends BaseActivity {
             return insets;
         });
 
-        // Spinner de tipo de curva
-        Spinner spinnerTipoCurva = findViewById(R.id.spinnerTipoCurva);
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
-                this,
-                R.array.curvas_array,
-                android.R.layout.simple_spinner_item
-        );
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerTipoCurva.setAdapter(adapter);
-        spinnerTipoCurva.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {}
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
-        });
-
         EditText editFechaInicio = findViewById(R.id.editFechaInicio);
         EditText editFechaFin = findViewById(R.id.editFechaFin);
         editFechaInicio.setOnClickListener(v -> showDatePicker(editFechaInicio));
