@@ -40,8 +40,8 @@
             android:focusable="true"
             android:gravity="center"
             android:orientation="vertical"
-            android:paddingTop="35sp"
-            android:paddingBottom="20sp">
+            android:paddingTop="25sp"
+            android:paddingBottom="10sp">
 
             <ImageView
                 android:layout_width="100dp"
@@ -56,7 +56,7 @@
                 android:textSize="25sp" />
         </LinearLayout>
 
-        <!-- ICONO 3 -->
+        <!-- ICONO 2 -->
         <LinearLayout
             android:id="@+id/btnStg"
             android:layout_width="match_parent"
@@ -65,7 +65,7 @@
             android:focusable="true"
             android:gravity="center"
             android:orientation="vertical"
-            android:padding="20sp">
+            android:padding="10sp">
 
             <ImageView
                 android:layout_width="100dp"
@@ -82,7 +82,7 @@
         </LinearLayout>
 
 
-        <!-- ICONO 5 -->
+        <!-- ICONO 3 -->
         <LinearLayout
             android:id="@+id/btnAppLog"
             android:layout_width="match_parent"
@@ -91,7 +91,7 @@
             android:focusable="true"
             android:gravity="center"
             android:orientation="vertical"
-            android:padding="20sp">
+            android:padding="10sp">
 
             <ImageView
                 android:layout_width="100dp"
@@ -103,6 +103,31 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/appLog"
+                android:textSize="25sp" />
+
+        </LinearLayout>
+
+        <!-- ICONO 3 -->
+        <LinearLayout
+            android:id="@+id/btnContador"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="10sp">
+
+            <ImageView
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:padding="0dp"
+                android:src="@drawable/passw" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/cnt"
                 android:textSize="25sp" />
 
         </LinearLayout>

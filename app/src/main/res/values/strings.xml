@@ -105,6 +105,7 @@
     <string name="stg">STG</string>
     <string name="sonda">Sonda</string>
     <string name="appLog">App Log</string>
+    <string name="cnt">Contador</string>
 
     <!-- FTP CONFIG -->
     <string name="ftp">Configuracion FTP</string>
