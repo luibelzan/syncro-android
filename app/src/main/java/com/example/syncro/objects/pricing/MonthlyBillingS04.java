@@ -7,6 +7,7 @@ import com.example.syncro.models.CierreMensualFila;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.EnumSet;
 
 import gurux.dlms.GXDLMSClient;
@@ -22,7 +23,7 @@ import gurux.dlms.objects.GXDLMSProfileGeneric;
 
 public class MonthlyBillingS04 {
 
-    public static ArrayList<CierreMensualFila> leerS04(GXDLMSReader reader,
+    public static ArrayList<CierreMensualFila> leerS042(GXDLMSReader reader,
                                                        String from, String to,
                                                        int contract) {
         ArrayList<CierreMensualFila> result = new ArrayList<>();
@@ -66,8 +67,7 @@ public class MonthlyBillingS04 {
             EnumSet<DateTimeSkips> skips = EnumSet.of(
                     DateTimeSkips.MILLISECOND,
                     DateTimeSkips.DEVIATION,
-                    DateTimeSkips.STATUS,
-                    DateTimeSkips.SECOND // A veces ayuda omitir segundos en cierres mensuales
+                    DateTimeSkips.STATUS
             );
             start.setSkip(skips);
             end.setSkip(skips);
@@ -126,6 +126,127 @@ public class MonthlyBillingS04 {
         }
 
         return result;
+    }
+
+    public static ArrayList<CierreMensualFila> leerS04(GXDLMSReader reader,
+                                                       String from, String to,
+                                                       int contract) {
+        ArrayList<CierreMensualFila> result = new ArrayList<>();
+
+        try {
+            System.out.println("Ejecutando lectura de cierres S04 completo...");
+
+            String obisS04 = "0.0.98.1." + contract + ".255";
+            GXDLMSProfileGeneric s04 = new GXDLMSProfileGeneric(obisS04);
+
+            // 1. Leer estructura de columnas (atributo 3)
+            reader.read(s04, 3);
+            System.out.println("Columnas S04: " + s04.getCaptureObjects().size());
+
+            if (s04.getCaptureObjects().size() == 99) {
+                GXDLMSClock dummyClock = new GXDLMSClock("0.0.1.0.0.255");
+                s04.getCaptureObjects().add(
+                        new GXSimpleEntry<>(dummyClock, new GXDLMSCaptureObject(2, 0))
+                );
+            }
+
+            // 2. Leer el buffer COMPLETO sin selector de rango (atributo 2)
+            // Esto evita el "Read-Write denied" que da el medidor con readRowsByRange
+            reader.read(s04, 2);
+            Object[] todasLasFilas = s04.getBuffer();
+
+            if (todasLasFilas == null || todasLasFilas.length == 0) {
+                System.out.println("S04 vacío.");
+                return result;
+            }
+
+            System.out.println("Filas totales en S04: " + todasLasFilas.length);
+
+            // 3. Filtro por fechas en cliente
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd");
+
+            Calendar calStart = Calendar.getInstance();
+            calStart.setTime(formatter.parse(from));
+            calStart.set(Calendar.HOUR_OF_DAY, 0);
+            calStart.set(Calendar.MINUTE, 0);
+            calStart.set(Calendar.SECOND, 0);
+            calStart.set(Calendar.MILLISECOND, 0);
+
+            Calendar calEnd = Calendar.getInstance();
+            calEnd.setTime(formatter.parse(to));
+            calEnd.set(Calendar.HOUR_OF_DAY, 23);
+            calEnd.set(Calendar.MINUTE, 59);
+            calEnd.set(Calendar.SECOND, 59);
+            calEnd.set(Calendar.MILLISECOND, 999);
+
+            Date fechaDesde = calStart.getTime();
+            Date fechaHasta = calEnd.getTime();
+
+            // 4. Procesar filas filtradas
+            for (Object row : todasLasFilas) {
+                Object[] fila = (Object[]) row;
+                if (fila == null || fila.length < 100) continue;
+
+                // Extraer y verificar fecha de la primera columna
+                Date fechaFila = extraerFecha(fila[0]);
+                Date fechaFila2 = extraerFecha(fila[1]);
+                if (fechaFila == null) continue;
+
+                System.out.println("Fila S04 fecha: " + fechaFila
+                        + " | en rango: " + (!fechaFila.before(fechaDesde) && !fechaFila.after(fechaHasta)));
+
+                if (fechaFila2.before(fechaDesde) || fechaFila2.after(fechaHasta)) continue;
+
+                String fechaInicio = formatearFechaS04(fila[0].toString());
+                String fechaFin    = formatearFechaS04(fila[99].toString());
+
+                for (int p = 0; p < 7; p++) {
+                    int idxValMax   = 86 + (p * 2);
+                    int idxFechaMax = 87 + (p * 2);
+
+                    result.add(new CierreMensualFila(
+                            fechaInicio, fechaFin, contract, p,
+                            parsearMaximetroValor(fila[idxValMax]),
+                            parsearFechaMaximetro(fila[idxFechaMax]),
+                            String.valueOf(fila[2  + p]),
+                            String.valueOf(fila[9  + p]),
+                            String.valueOf(fila[16 + p]),
+                            String.valueOf(fila[23 + p]),
+                            String.valueOf(fila[30 + p]),
+                            String.valueOf(fila[37 + p]),
+                            String.valueOf(fila[44 + p]),
+                            String.valueOf(fila[51 + p]),
+                            String.valueOf(fila[58 + p]),
+                            String.valueOf(fila[65 + p]),
+                            String.valueOf(fila[72 + p]),
+                            String.valueOf(fila[79 + p])
+                    ));
+                }
+            }
+
+            System.out.println("Filas S04 en rango: " + result.size() / 7);
+
+        } catch (Exception e) {
+            System.err.println("Error en lectura S04: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return result;
+    }
+
+    private static Date extraerFecha(Object raw) {
+        try {
+            if (raw instanceof GXDateTime) {
+                return ((GXDateTime) raw).getValue();
+            }
+            if (raw instanceof byte[] && ((byte[]) raw).length == 12) {
+                Object converted = GXDLMSClient.changeType((byte[]) raw, DataType.DATETIME);
+                if (converted instanceof GXDateTime) {
+                    return ((GXDateTime) converted).getValue();
+                }
+            }
+        } catch (Exception ignored) {}
+        return null;
     }
 
 // -------------------------------------------------------

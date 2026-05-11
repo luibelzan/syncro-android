@@ -103,9 +103,9 @@ public class CurvasActivity extends BaseActivity {
                         reader = conn.tcpConnect();
                     }
 
+                    String cntId = SerialNumberReader.readSerialNumer(reader);
                     // Leer curvas
                     ArrayList<CurvaFila> datos = LoadProfileReader.leerCurvaCarga(reader, fechaInicio, fechaFin);
-                    String cntId = SerialNumberReader.readSerialNumer(reader);
                     conn.close();
 
                     runOnUiThread(() -> {

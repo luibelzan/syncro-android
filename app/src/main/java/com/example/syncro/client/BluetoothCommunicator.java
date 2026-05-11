@@ -148,72 +148,88 @@ public class BluetoothCommunicator implements IGXMedia {
         if (!isOpen() || params == null) return false;
 
         try {
-            GXByteBuffer buffer = new GXByteBuffer();
             long startTime = System.currentTimeMillis();
-            byte eopByte = -1;
+            int timeoutMs = (params.getWaitTime() > 0) ? params.getWaitTime() : waitTime;
 
-            // Determinar EOP
-            if (params.getEop() instanceof Byte) {
-                eopByte = (Byte) params.getEop();
-            } else if (params.getEop() instanceof byte[]) {
-                byte[] eopArr = (byte[]) params.getEop();
-                if (eopArr.length > 0) eopByte = eopArr[0];
+            // --- PASO 1: Esperar el byte de inicio 0x7E ---
+            while (true) {
+                if ((System.currentTimeMillis() - startTime) > timeoutMs) {
+                    Log.w("BT", "Timeout esperando inicio de frame 0x7E");
+                    return false;
+                }
+                if (in.available() > 0) {
+                    int b = in.read();
+                    if (b == 0x7E) break;
+                } else {
+                    Thread.sleep(5);
+                }
             }
 
-            // Si no hay EOP, no sabemos cuándo termina → error
-            if (eopByte == -1 && params.getEop() != null) {
+            // --- PASO 2: Leer bytes 1 y 2 (longitud del frame HDLC) ---
+            // En HDLC: byte[1] bit[7:5] = "101", bit[4:0]+byte[2] = longitud
+            byte[] header = readExact(2, startTime, timeoutMs);
+            if (header == null) return false;
+
+            // La longitud HDLC está en los 11 bits bajos de los 2 primeros bytes
+            int frameLength = ((header[0] & 0x07) << 8) | (header[1] & 0xFF);
+
+            if (frameLength < 5 || frameLength > 2048) {
+                Log.e("BT", "Longitud HDLC inválida: " + frameLength);
                 return false;
             }
 
-            int minFrameSize = 8; // HDLC mínimo
+            // --- PASO 3: Leer el resto del frame (frameLength - 2 ya leídos + 0x7E final) ---
+            // Frame completo = 0x7E + 2 bytes header + (frameLength-2) bytes restantes + 0x7E
+            int remaining = frameLength - 2 + 1; // -2 ya leídos, +1 para el 0x7E final
+            byte[] rest = readExact(remaining, startTime, timeoutMs);
+            if (rest == null) return false;
 
-            while (true) {
-                // Timeout
-                if (params.getWaitTime() > 0 && (System.currentTimeMillis() - startTime) > params.getWaitTime()) {
-                    Log.d("BT", "Timeout en receive()");
-                    return false;
-                }
-
-                // Leer byte por byte
-                if (in.available() > 0) {
-                    int b = in.read();
-                    if (b == -1) return false;
-
-                    buffer.setUInt8((byte) b);
-                    bytesReceived++;
-
-                    // Si tenemos EOP y suficiente tamaño
-                    if (eopByte != -1 && b == eopByte && buffer.size() >= minFrameSize) {
-                        // Verificar que también empieza con 0x7E
-                        if (buffer.getUInt8(0) == 0x7E) {
-                            // ¡Frame completo!
-                            byte[] replyData = buffer.array();
-
-                            // Asignar al parámetro de salida
-                            if (params.getReply() == null) {
-                                params.setReply((T) replyData);
-                            } else if (params.getReply() instanceof byte[]) {
-                                byte[] target = (byte[]) params.getReply();
-                                if (target.length >= replyData.length) {
-                                    System.arraycopy(replyData, 0, target, 0, replyData.length);
-                                } else {
-                                    // Si el buffer es pequeño, crear uno nuevo
-                                    params.setReply((T) replyData);
-                                }
-                            }
-
-                            Log.d("BT", "Frame HDLC recibido: " + bytesToHex(replyData));
-                            return true;
-                        }
-                    }
-                } else {
-                    Thread.sleep(5); // Evitar busy-wait
-                }
+            // Verificar que termina en 0x7E
+            if (rest[rest.length - 1] != 0x7E) {
+                Log.e("BT", "Frame no termina en 0x7E");
+                return false;
             }
+
+            // --- PASO 4: Ensamblar frame completo ---
+            byte[] fullFrame = new byte[1 + 2 + remaining];
+            fullFrame[0] = 0x7E;
+            fullFrame[1] = header[0];
+            fullFrame[2] = header[1];
+            System.arraycopy(rest, 0, fullFrame, 3, remaining);
+
+            bytesReceived += fullFrame.length;
+            Log.d("BT", "Frame HDLC recibido (" + fullFrame.length + " bytes): " + bytesToHex(fullFrame));
+
+            params.setReply((T) fullFrame);
+            return true;
+
         } catch (Exception e) {
             Log.e("DLMS", "Error en receive()", e);
             return false;
         }
+    }
+
+    /**
+     * Lee exactamente 'count' bytes del stream con control de timeout.
+     */
+    private byte[] readExact(int count, long startTime, int timeoutMs) throws Exception {
+        byte[] buf = new byte[count];
+        int read = 0;
+        while (read < count) {
+            if ((System.currentTimeMillis() - startTime) > timeoutMs) {
+                Log.e("BT", "Timeout leyendo " + count + " bytes (leídos: " + read + ")");
+                return null;
+            }
+            if (in.available() > 0) {
+                int b = in.read();
+                if (b == -1) return null;
+                buf[read++] = (byte) b;
+                bytesReceived++;
+            } else {
+                Thread.sleep(5);
+            }
+        }
+        return buf;
     }
 
 

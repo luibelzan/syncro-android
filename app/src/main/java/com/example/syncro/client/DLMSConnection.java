@@ -74,6 +74,7 @@ public class DLMSConnection {
         configurarClienteDlms();
 
         reader = new GXDLMSReader(client, serial, TraceLevel.VERBOSE, null);
+        //reader.wait(30000);
         initializeConnection2(context, device);
 
         System.out.println("Handshake IEC completado. Cambiando a DLMS.");
