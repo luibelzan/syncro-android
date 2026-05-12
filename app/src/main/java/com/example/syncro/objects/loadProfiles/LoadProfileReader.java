@@ -19,7 +19,7 @@ public class LoadProfileReader {
         try {
             GXDLMSProfileGeneric lp1 = new GXDLMSProfileGeneric("1.0.99.1.0.255");
 
-            System.out.println("Leyendo estructura de LP1...");
+            //System.out.println("Leyendo estructura de LP1...");
             reader.read(lp1, 3); // Intentamos leer la estructura real
 
             // Solo si el medidor (como ZIV) no nos da la estructura, la forzamos
@@ -43,13 +43,15 @@ public class LoadProfileReader {
             // Creamos Calendar para asegurar que los segundos sean 0
             Calendar calStart = Calendar.getInstance();
             calStart.setTime(formatter.parse(fechaInicio));
+            calStart.set(Calendar.HOUR_OF_DAY, 0);
+            calStart.set(Calendar.MINUTE, 0);
             calStart.set(Calendar.SECOND, 0);
             calStart.set(Calendar.MILLISECOND, 0);
 
             Calendar calEnd = Calendar.getInstance();
             calEnd.setTime(formatter.parse(fechaFin));
-            calEnd.set(Calendar.HOUR_OF_DAY, 23);
-            calEnd.set(Calendar.MINUTE, 45); // Sagemcom a veces prefiere el inicio del último bloque
+            calEnd.set(Calendar.HOUR_OF_DAY, 0);
+            calEnd.set(Calendar.MINUTE, 0); // Sagemcom a veces prefiere el inicio del último bloque
             calEnd.set(Calendar.SECOND, 0);
             calEnd.set(Calendar.MILLISECOND, 0);
 

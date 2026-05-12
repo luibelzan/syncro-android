@@ -23,7 +23,7 @@ import gurux.dlms.objects.GXDLMSProfileGeneric;
 
 public class MonthlyBillingS04 {
 
-    public static ArrayList<CierreMensualFila> leerS042(GXDLMSReader reader,
+    public static ArrayList<CierreMensualFila> leerS04(GXDLMSReader reader,
                                                        String from, String to,
                                                        int contract) {
         ArrayList<CierreMensualFila> result = new ArrayList<>();
@@ -128,7 +128,7 @@ public class MonthlyBillingS04 {
         return result;
     }
 
-    public static ArrayList<CierreMensualFila> leerS04(GXDLMSReader reader,
+    public static ArrayList<CierreMensualFila> leerS042(GXDLMSReader reader,
                                                        String from, String to,
                                                        int contract) {
         ArrayList<CierreMensualFila> result = new ArrayList<>();

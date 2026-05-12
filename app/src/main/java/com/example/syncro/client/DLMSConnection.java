@@ -106,7 +106,7 @@ public class DLMSConnection {
         // Para obtener la trama 00 02 00 21:
         // El primer '1' es el Management Logical Device.
         // El '16' es el Physical Device ID (común en Sagemcom/Landis).
-        client.setServerAddress(GXDLMSClient.getServerAddress(1, 16, 4));
+        client.setServerAddress(GXDLMSClient.getServerAddress(1, 16, 1));
 
         // Si lo anterior falla, intenta forzar el ServerAddressSize a 1
         // como tenías al principio, pero usa el ClientAddress 0x1 (decimal 1)
@@ -130,14 +130,14 @@ public class DLMSConnection {
             throw new SecurityException("Permiso BLUETOOTH_CONNECT no concedido");
         }
 
-        String targetName = "TesPro V4_7706";
+        String targetName = "TesPro";
         BluetoothDevice targetDevice = null;
         Set<BluetoothDevice> pairedDevices = adapter.getBondedDevices();
 
         if (pairedDevices != null) {
             for (BluetoothDevice device : pairedDevices) {
                 Log.d("DLMS", "Emparejado: " + device.getName() + " (" + device.getAddress() + ")");
-                if (device.getName() != null && device.getName().equals(targetName)) {
+                if (device.getName() != null && device.getName().contains(targetName)) {
                     targetDevice = device;
                     break;
                 }
@@ -155,7 +155,7 @@ public class DLMSConnection {
 
         try {
             // 2. CONECTAR EL SOCKET ANTES DE USAR STREAMS
-            Log.d("DLMS", "Conectando a TesPro V4_7706...");
+            Log.d("DLMS", "Conectando a TesPro...");
             socket.connect();
             Log.d("DLMS", "Conexión Bluetooth SPP establecida.");
 
