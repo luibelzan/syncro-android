@@ -167,4 +167,14 @@
     <string name="dateMenu">Menu de Fecha y Hora</string>
     <string name="readDate">Consultar Reloj</string>
     <string name="syncDate">Sincronizar Reloj</string>
+
+    <!-- CONTRATOS MENU -->
+    <string name="contractsMenu">Menu de Contratos</string>
+    <string name="actualContract">Ver Actual</string>
+    <string name="programContract">Programar</string>
+
+    <!-- PROGRAMAR CONTRATOS MENU -->
+    <string name="tarifContract">Contrato de tarifacion</string>
+
+
 </resources>
