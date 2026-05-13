@@ -30,6 +30,278 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"/>
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="25sp"
+            android:textColor="@color/gris_texto"
+            android:text="@string/tarif"
+            android:paddingTop="25sp"
+            android:paddingBottom="15sp"/>
+
+        <!-- Misma fila -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <CheckBox
+                android:id="@+id/checkBoxTarif"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=""/>
+
+            <Spinner
+                android:id="@+id/spinnerTarif"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="25sp"
+            android:textColor="@color/gris_texto"
+            android:text="@string/powerLimit"
+            android:paddingTop="25sp"
+            android:paddingBottom="15sp"/>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingBottom="20dp">
+
+            <CheckBox
+                android:id="@+id/checkBoxPowerLimit"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=""/>
+
+            <TextView
+                android:id="@+id/LimitT1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:gravity="center"
+                android:paddingStart="0dp"
+                android:paddingEnd="20dp"
+                android:textSize="20sp"
+                android:text="@string/t1"/>
+
+            <EditText
+                android:id="@+id/editPowerLimitT1"
+                android:layout_width="80dp"
+                android:layout_height="44dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:background="@drawable/borde_radio_group"
+                android:clickable="true"
+                android:focusable="false"
+                android:hint="@string/powerInput" />
+
+            <TextView
+                android:id="@+id/LimitT4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:gravity="center"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
+                android:textSize="20sp"
+                android:text="@string/t4"/>
+
+            <EditText
+                android:id="@+id/editPowerLimitT4"
+                android:layout_width="80dp"
+                android:layout_height="44dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:background="@drawable/borde_radio_group"
+                android:focusable="false"
+                android:clickable="true"
+                android:hint="@string/powerInput" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="50dp"
+            android:paddingBottom="20dp">
+
+            <TextView
+                android:id="@+id/LimitT2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:gravity="center"
+                android:paddingStart="0dp"
+                android:paddingEnd="20dp"
+                android:textSize="20sp"
+                android:text="@string/t2"/>
+
+            <EditText
+                android:id="@+id/editPowerLimitT2"
+                android:layout_width="80dp"
+                android:layout_height="44dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:background="@drawable/borde_radio_group"
+                android:clickable="true"
+                android:focusable="false"
+                android:hint="@string/powerInput" />
+
+            <TextView
+                android:id="@+id/LimitT5"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:gravity="center"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
+                android:textSize="20sp"
+                android:text="@string/t5"/>
+
+            <EditText
+                android:id="@+id/editPowerLimitT4"
+                android:layout_width="80dp"
+                android:layout_height="44dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:background="@drawable/borde_radio_group"
+                android:focusable="false"
+                android:clickable="true"
+                android:hint="@string/powerInput" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="50dp"
+            android:paddingBottom="20dp">
+
+            <TextView
+                android:id="@+id/LimitT3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:gravity="center"
+                android:paddingStart="0dp"
+                android:paddingEnd="20dp"
+                android:textSize="20sp"
+                android:text="@string/t3"/>
+
+            <EditText
+                android:id="@+id/editPowerLimitT3"
+                android:layout_width="80dp"
+                android:layout_height="44dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:background="@drawable/borde_radio_group"
+                android:clickable="true"
+                android:focusable="false"
+                android:hint="@string/powerInput" />
+
+            <TextView
+                android:id="@+id/LimitT6"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:gravity="center"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
+                android:textSize="20sp"
+                android:text="@string/t6"/>
+
+            <EditText
+                android:id="@+id/editPowerLimitT6"
+                android:layout_width="80dp"
+                android:layout_height="44dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:background="@drawable/borde_radio_group"
+                android:focusable="false"
+                android:clickable="true"
+                android:hint="@string/powerInput" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/textFechaAct"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/fechaAct"
+            android:textColor="@color/gris_texto"
+            android:textSize="18sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textView" />
+
+        <!-- Misma fila -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <CheckBox
+                android:id="@+id/checkBoxFechaAct"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=""/>
+
+            <EditText
+                android:id="@+id/editFechaAct"
+                android:layout_width="250dp"
+                android:layout_height="44dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/borde_radio_group"
+                android:focusable="false"
+                android:clickable="true"
+                android:hint="@string/dateInput" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/textFechaFact"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/fechaAct"
+            android:textColor="@color/gris_texto"
+            android:textSize="18sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textView" />
+
+        <!-- Misma fila -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <CheckBox
+                android:id="@+id/checkBoxFechaFact"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=""/>
+
+            <EditText
+                android:id="@+id/editFechaFact"
+                android:layout_width="250dp"
+                android:layout_height="44dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/borde_radio_group"
+                android:focusable="false"
+                android:clickable="true"
+                android:hint="@string/dateInput" />
+        </LinearLayout>
+
+
+
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

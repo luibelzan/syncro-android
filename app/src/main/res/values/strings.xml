@@ -175,6 +175,15 @@
 
     <!-- PROGRAMAR CONTRATOS MENU -->
     <string name="tarifContract">Contrato de tarifacion</string>
-
+    <string name="tarif">Seleccione la tarifa a programar</string>
+    <string name="powerLimit">Limite de Potencia</string>
+    <string name="t1">T1</string>
+    <string name="t2">T2</string>
+    <string name="t3">T3</string>
+    <string name="t4">T4</string>
+    <string name="t5">T5</string>
+    <string name="t6">T6</string>
+    <string name="powerInput">5000</string>
+    <string name="fechaAct">Fecha de activacion:</string>
 
 </resources>
