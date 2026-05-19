@@ -283,7 +283,8 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
             <CheckBox
                 android:id="@+id/checkBoxFechaFact"
@@ -291,16 +292,57 @@
                 android:layout_height="wrap_content"
                 android:text=""/>
 
+            <!-- Año: siempre FFFF, no editable -->
             <EditText
-                android:id="@+id/editFechaFact"
-                android:layout_width="250dp"
+                android:id="@+id/editFechaFactYear"
+                android:layout_width="70dp"
                 android:layout_height="44dp"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="16dp"
+                android:background="@drawable/borde_radio_group"
+                android:focusable="false"
+                android:clickable="false"
+                android:enabled="false"
+                android:text="FFFF"
+                android:gravity="center"
+                android:inputType="none"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="/"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"/>
+
+            <!-- Mes -->
+            <EditText
+                android:id="@+id/editFechaFactMonth"
+                android:layout_width="55dp"
+                android:layout_height="44dp"
                 android:background="@drawable/borde_radio_group"
                 android:focusable="false"
                 android:clickable="true"
-                android:hint="@string/dateInput" />
+                android:hint="MM"
+                android:gravity="center"
+                android:inputType="none"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="/"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"/>
+
+            <!-- Día -->
+            <EditText
+                android:id="@+id/editFechaFactDay"
+                android:layout_width="55dp"
+                android:layout_height="44dp"
+                android:background="@drawable/borde_radio_group"
+                android:focusable="false"
+                android:clickable="true"
+                android:hint="DD"
+                android:gravity="center"
+                android:inputType="none"/>
+
         </LinearLayout>
 
         <ImageButton

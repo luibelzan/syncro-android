@@ -57,7 +57,8 @@ public class ProgramarContratoActivity extends AppCompatActivity {
     private EditText editHourAct;
 
     // Fecha facturación
-    private EditText editFechaFact;
+    private EditText editFechaFactMonth;
+    private EditText editFechaFactDay;
 
     private void configurarPickers() {
 
@@ -124,35 +125,25 @@ public class ProgramarContratoActivity extends AppCompatActivity {
         });
 
         // Cierre facturación
-        editFechaFact.setOnClickListener(v -> {
+        // Mes de facturación
+        editFechaFactMonth.setOnClickListener(v -> {
+            String[] meses = {"01","02","03","04","05","06","07","08","09","10","11","12"};
+            new android.app.AlertDialog.Builder(this)
+                    .setTitle("Selecciona mes")
+                    .setItems(meses, (dialog, which) ->
+                            editFechaFactMonth.setText(meses[which]))
+                    .show();
+        });
 
-            Calendar calendar = Calendar.getInstance();
-
-            int year = calendar.get(Calendar.YEAR);
-            int month = calendar.get(Calendar.MONTH);
-            int day = calendar.get(Calendar.DAY_OF_MONTH);
-
-            DatePickerDialog datePickerDialog = new DatePickerDialog(
-                    this,
-                    (view, selectedYear, selectedMonth, selectedDay) -> {
-
-                        String fecha = String.format(
-                                Locale.getDefault(),
-                                "%04d/%02d/%02d",
-                                selectedYear,
-                                selectedMonth + 1,
-                                selectedDay
-                        );
-
-                        editFechaFact.setText(fecha);
-
-                    },
-                    year,
-                    month,
-                    day
-            );
-
-            datePickerDialog.show();
+        // Día de facturación
+        editFechaFactDay.setOnClickListener(v -> {
+            String[] dias = new String[31];
+            for (int i = 0; i < 31; i++) dias[i] = String.format(Locale.getDefault(), "%02d", i + 1);
+            new android.app.AlertDialog.Builder(this)
+                    .setTitle("Selecciona día")
+                    .setItems(dias, (dialog, which) ->
+                            editFechaFactDay.setText(dias[which]))
+                    .show();
         });
     }
 
@@ -271,18 +262,15 @@ public class ProgramarContratoActivity extends AppCompatActivity {
             // ── Cierre de facturación ───────────────────────────────────────────
             String cierreMes = null;
             if (checkBoxFechaFact.isChecked()) {
-                cierreMes = editFechaFact.getText().toString().trim();
+                String month = editFechaFactMonth.getText().toString().trim();
+                String day   = editFechaFactDay.getText().toString().trim();
 
-                if (TextUtils.isEmpty(cierreMes)) {
-                    Toast.makeText(this, "Introduce fecha de facturación", Toast.LENGTH_SHORT).show();
+                if (TextUtils.isEmpty(month) || TextUtils.isEmpty(day)) {
+                    Toast.makeText(this, "Selecciona mes y día de facturación", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
-                // Validar formato YYYY/MM/DD o FFFF/MM/DD
-                if (!cierreMes.matches("(\\d{4}|FFFF)/\\d{2}/\\d{2}")) {
-                    Toast.makeText(this, "Formato de cierre inválido. Usa YYYY/MM/DD o FFFF/MM/DD", Toast.LENGTH_SHORT).show();
-                    return;
-                }
+                cierreMes = "FFFF/" + month + "/" + day;
             }
 
             // ── Validar que hay algo que escribir ───────────────────────────────
@@ -366,7 +354,9 @@ public class ProgramarContratoActivity extends AppCompatActivity {
         // Fechas
         editFechaAct = findViewById(R.id.editFechaAct);
         editHourAct = findViewById(R.id.editHourAct);
-        editFechaFact = findViewById(R.id.editFechaFact);
+        // Fechas facturación
+        editFechaFactMonth = findViewById(R.id.editFechaFactMonth);
+        editFechaFactDay   = findViewById(R.id.editFechaFactDay);
     }
 
 

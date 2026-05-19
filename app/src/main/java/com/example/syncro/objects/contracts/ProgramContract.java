@@ -24,7 +24,7 @@ public class ProgramContract {
     private static final String OBIS_SPECIAL_DAYS      = "0.0.11.0.0.255";
 
     /** Cierre de facturación del contrato N → 0.0.94.34.<contract>.255 */
-    private static final String OBIS_END_OF_BILLING    = "0.0.94.34.%d.255";
+    private static final String OBIS_END_OF_BILLING = "0.0.94.34.41.255";
 
     /** Límites de potencia (demand limiter) del contrato N → 0.0.17.0.<contract>.255 */
     private static final String OBIS_THRESHOLD         = "0.0.17.0.%d.255";
@@ -237,29 +237,33 @@ public class ProgramContract {
     ) throws Exception {
         System.out.println("Writing passive end of billing " + contract);
 
-        String obis = String.format(OBIS_END_OF_BILLING, contract);
-        GXDLMSData endOfBilling = new GXDLMSData(obis);
+        // OBIS fijo: 0.0.94.34.41.255
+        GXDLMSData endOfBilling = new GXDLMSData(OBIS_END_OF_BILLING);
 
-        // Construir GXDateTime respetando wildcards (FFFF para el año)
         String[] parts = cierreMes.split("/");
         int year  = parts[0].equalsIgnoreCase("FFFF") ? 0xFFFF : Integer.parseInt(parts[0]);
         int month = Integer.parseInt(parts[1]);
         int day   = Integer.parseInt(parts[2]);
 
-        Calendar cal = Calendar.getInstance();
-        cal.set(year == 0xFFFF ? 2000 : year, month - 1, day, 0, 0, 0);
-        GXDateTime dt = new GXDateTime(cal.getTime());
+        byte[] dt = new byte[12];
+        dt[0]  = (byte) ((year >> 8) & 0xFF);
+        dt[1]  = (byte) (year & 0xFF);
+        dt[2]  = (byte) month;
+        dt[3]  = (byte) day;
+        dt[4]  = (byte) 0xFF;
+        dt[5]  = (byte) 0x00;
+        dt[6]  = (byte) 0x00;
+        dt[7]  = (byte) 0x00;
+        dt[8]  = (byte) 0x00;
+        dt[9]  = (byte) 0x80;
+        dt[10] = (byte) 0x00;
+        dt[11] = (byte) 0xFF;
 
-        // Aplicar skip de año si es FFFF
-        if (year == 0xFFFF) {
-            Set<DateTimeSkips> skips = dt.getSkip();
-            skips.add(DateTimeSkips.YEAR);
-            dt.setSkip(EnumSet.copyOf(skips));
-        }
-
-        // El valor es un octet-string de 12 bytes (formato DLMS DateTime)
+        endOfBilling.setDataType(2, DataType.OCTET_STRING);
         endOfBilling.setValue(dt);
-        reader.writeObject(endOfBilling, 2); // attribute 2 = Value
+        reader.writeObject(endOfBilling, 2);
+
+        System.out.println("End of billing updated");
     }
 
     // ─── Paso 4: Umbrales de potencia ────────────────────────────────────────
