@@ -106,7 +106,7 @@ public class DLMSConnection {
         // Para obtener la trama 00 02 00 21:
         // El primer '1' es el Management Logical Device.
         // El '16' es el Physical Device ID (común en Sagemcom/Landis).
-        client.setServerAddress(GXDLMSClient.getServerAddress(1, 16, 1));
+        client.setServerAddress(GXDLMSClient.getServerAddress(1, 16, 4));
 
         // Si lo anterior falla, intenta forzar el ServerAddressSize a 1
         // como tenías al principio, pero usa el ClientAddress 0x1 (decimal 1)

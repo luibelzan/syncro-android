@@ -69,6 +69,7 @@ import gurux.dlms.objects.GXXmlWriterSettings;
 import gurux.dlms.objects.IGXDLMSBase;
 import gurux.dlms.objects.enums.CertificateEntity;
 import gurux.dlms.objects.enums.CertificateType;
+import gurux.dlms.secure.GXDLMSSecureClient;
 import gurux.io.BaudRate;
 import gurux.io.Parity;
 import gurux.io.StopBits;
@@ -1481,5 +1482,10 @@ public class GXDLMSReader {
             }
             dlms.parseAccessResponse(list, reply.getData());
         }
+    }
+
+    // En GXDLMSReader.java
+    public GXDLMSSecureClient getClient() {
+        return dlms;
     }
 }

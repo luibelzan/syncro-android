@@ -100,8 +100,6 @@
                 android:layout_marginStart="4dp"
                 android:layout_marginEnd="4dp"
                 android:background="@drawable/borde_radio_group"
-                android:clickable="true"
-                android:focusable="false"
                 android:hint="@string/powerInput" />
 
             <TextView
@@ -122,8 +120,6 @@
                 android:layout_marginStart="4dp"
                 android:layout_marginEnd="4dp"
                 android:background="@drawable/borde_radio_group"
-                android:focusable="false"
-                android:clickable="true"
                 android:hint="@string/powerInput" />
         </LinearLayout>
 
@@ -133,6 +129,7 @@
             android:orientation="horizontal"
             android:gravity="center_vertical"
             android:paddingStart="50dp"
+            android:paddingEnd="0dp"
             android:paddingBottom="20dp">
 
             <TextView
@@ -153,8 +150,6 @@
                 android:layout_marginStart="4dp"
                 android:layout_marginEnd="4dp"
                 android:background="@drawable/borde_radio_group"
-                android:clickable="true"
-                android:focusable="false"
                 android:hint="@string/powerInput" />
 
             <TextView
@@ -175,8 +170,6 @@
                 android:layout_marginStart="4dp"
                 android:layout_marginEnd="4dp"
                 android:background="@drawable/borde_radio_group"
-                android:focusable="false"
-                android:clickable="true"
                 android:hint="@string/powerInput" />
         </LinearLayout>
 
@@ -206,8 +199,6 @@
                 android:layout_marginStart="4dp"
                 android:layout_marginEnd="4dp"
                 android:background="@drawable/borde_radio_group"
-                android:clickable="true"
-                android:focusable="false"
                 android:hint="@string/powerInput" />
 
             <TextView
@@ -228,8 +219,6 @@
                 android:layout_marginStart="4dp"
                 android:layout_marginEnd="4dp"
                 android:background="@drawable/borde_radio_group"
-                android:focusable="false"
-                android:clickable="true"
                 android:hint="@string/powerInput" />
         </LinearLayout>
 
