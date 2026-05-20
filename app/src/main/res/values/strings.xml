@@ -195,5 +195,7 @@
         <item>2.0 TD</item>
         <item>3.0 TD</item>
     </string-array>
+    <string name="verContract">Leer Actual</string>
+
 
 </resources>

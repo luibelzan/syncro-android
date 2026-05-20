@@ -4,6 +4,7 @@ import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -22,6 +23,7 @@ import androidx.core.view.WindowInsetsCompat;
 import com.example.syncro.client.DLMSConnection;
 import com.example.syncro.client.GXDLMSReader;
 import com.example.syncro.objects.contracts.ProgramContract;
+import com.example.syncro.objects.contracts.ViewContract;
 import com.example.syncro.objects.params.SerialNumberReader;
 import com.example.syncro.session.ConnectionConfig;
 import com.example.syncro.session.SessionManager;
@@ -302,6 +304,7 @@ public class ProgramarContratoActivity extends AppCompatActivity {
                     }
                     //String cntId = SerialNumberReader.readSerialNumer(reader);
 
+                    /*
                     ProgramContract.programarContrato(
                             reader,
                             contractFinal,
@@ -310,6 +313,9 @@ public class ProgramarContratoActivity extends AppCompatActivity {
                             activacionFinal,
                             cierreFinal
                     );
+                     */
+                    String res = ViewContract.leerContrato(reader, contract);
+                    Log.d("CONTRATO", res);
 
                     conn.close();
 

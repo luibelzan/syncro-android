@@ -30,7 +30,7 @@ public class ContratosActivity extends AppCompatActivity {
         btnVerContracto.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(ContratosActivity.this, FtpActivity.class);
+                Intent intent = new Intent(ContratosActivity.this, VerContratoActivity.class);
                 startActivity(intent);
             }
         });
