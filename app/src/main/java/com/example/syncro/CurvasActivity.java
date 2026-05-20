@@ -100,7 +100,7 @@ public class CurvasActivity extends BaseActivity {
                         reader = conn.bluetoothConnnect(CurvasActivity.this);
                     } else {
                         conn = new DLMSConnection(config.getIp(), config.getPort());
-                        reader = conn.tcpConnect();
+                        reader = conn.tcpConnect(this);
                     }
 
                     String cntId = SerialNumberReader.readSerialNumer(reader);

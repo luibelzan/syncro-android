@@ -71,7 +71,7 @@ public class ValoresInstantaneosActivity extends BaseActivity {
                     reader = conn.bluetoothConnnect(ValoresInstantaneosActivity.this);
                 } else {
                     conn = new DLMSConnection(config.getIp(), config.getPort());
-                    reader = conn.tcpConnect();
+                    reader = conn.tcpConnect(this);
                 }
 
                 // Leer Identificadores

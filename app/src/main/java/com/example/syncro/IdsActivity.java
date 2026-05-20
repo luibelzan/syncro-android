@@ -59,7 +59,7 @@ public class IdsActivity extends BaseActivity {
                     reader = conn.bluetoothConnnect(IdsActivity.this);
                 } else {
                     conn = new DLMSConnection(config.getIp(), config.getPort());
-                    reader = conn.tcpConnect();
+                    reader = conn.tcpConnect(this);
                 }
 
                 // Leer Identificadores

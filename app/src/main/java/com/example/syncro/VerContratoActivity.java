@@ -83,7 +83,7 @@ public class VerContratoActivity extends AppCompatActivity {
                         reader = conn.bluetoothConnnect(VerContratoActivity.this);
                     } else {
                         conn = new DLMSConnection(config.getIp(), config.getPort());
-                        reader = conn.tcpConnect();
+                        reader = conn.tcpConnect(this);
                     }
 
                     String datos = ViewContract.leerContrato(reader, contract);

@@ -140,7 +140,7 @@ public class CierresActivity extends BaseActivity {
                         reader = conn.bluetoothConnnect(CierresActivity.this);
                     } else {
                         conn = new DLMSConnection(config.getIp(), config.getPort());
-                        reader = conn.tcpConnect();
+                        reader = conn.tcpConnect(this);
                     }
 
                     // Leer curvas

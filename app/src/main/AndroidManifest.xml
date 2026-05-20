@@ -27,6 +27,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Syncro">
         <activity
+            android:name=".ConfigContadorActivity"
+            android:exported="false" />
+        <activity
             android:name=".ResultadosVerContratoActivity"
             android:exported="false" />
         <activity

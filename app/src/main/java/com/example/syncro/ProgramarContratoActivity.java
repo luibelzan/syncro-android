@@ -300,11 +300,10 @@ public class ProgramarContratoActivity extends AppCompatActivity {
                         reader = conn.bluetoothConnnect(ProgramarContratoActivity.this);
                     } else {
                         conn = new DLMSConnection(config.getIp(), config.getPort());
-                        reader = conn.tcpConnect();
+                        reader = conn.tcpConnect(this);
                     }
                     //String cntId = SerialNumberReader.readSerialNumer(reader);
 
-                    /*
                     ProgramContract.programarContrato(
                             reader,
                             contractFinal,
@@ -313,9 +312,6 @@ public class ProgramarContratoActivity extends AppCompatActivity {
                             activacionFinal,
                             cierreFinal
                     );
-                     */
-                    String res = ViewContract.leerContrato(reader, contract);
-                    Log.d("CONTRATO", res);
 
                     conn.close();
 

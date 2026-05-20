@@ -125,7 +125,7 @@ public class EventsActivity extends BaseActivity {
                         reader = conn.bluetoothConnnect(EventsActivity.this);
                     } else {
                         conn = new DLMSConnection(config.getIp(), config.getPort());
-                        reader = conn.tcpConnect();
+                        reader = conn.tcpConnect(this);
                     }
 
                     ArrayList<EventFila> datos = new ArrayList<>();

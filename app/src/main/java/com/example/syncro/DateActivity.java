@@ -47,7 +47,7 @@ public class DateActivity extends AppCompatActivity {
                         reader = conn.bluetoothConnnect(DateActivity.this);
                     } else {
                         conn = new DLMSConnection(config.getIp(), config.getPort());
-                        reader = conn.tcpConnect();
+                        reader = conn.tcpConnect(this);
                     }
 
                     String date = DateReader.readDate(reader);

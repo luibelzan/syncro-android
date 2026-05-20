@@ -50,7 +50,7 @@ public class IcpActivity extends AppCompatActivity {
                         reader = conn.bluetoothConnnect(IcpActivity.this);
                     } else {
                         conn = new DLMSConnection(config.getIp(), config.getPort());
-                        reader = conn.tcpConnect();
+                        reader = conn.tcpConnect(this);
                     }
 
                     ControlModeResult result = ControlDisconnectMode.readControlDisconnectMode(reader, conn.getClient());

@@ -17,6 +17,8 @@ import java.util.Set;
 import java.util.UUID;
 
 import gurux.common.enums.TraceLevel;
+
+import com.example.syncro.ConfigContadorActivity;
 import com.example.syncro.client.GXDLMSSecureClient2;
 
 import gurux.dlms.GXByteBuffer;
@@ -71,7 +73,7 @@ public class DLMSConnection {
 
     public GXDLMSReader bluetoothConnnect(Context context) throws Exception {
         //configurarSerial();
-        configurarClienteDlms();
+        configurarClienteDlms(context);
 
         reader = new GXDLMSReader(client, serial, TraceLevel.VERBOSE, null);
         //reader.wait(30000);
@@ -81,14 +83,14 @@ public class DLMSConnection {
         return reader;
     }
 
-    public GXDLMSReader tcpConnect() throws Exception {
+    public GXDLMSReader tcpConnect(Context context) throws Exception {
         net = new GXNet(NetworkType.TCP, ip, port);
         net.setTrace(TraceLevel.VERBOSE);
         net.open();
 
         System.out.println("Conectado por TCP/IP a " + ip + ":" + port);
 
-        configurarClienteDlms();
+        configurarClienteDlms(context);
 
         reader = new GXDLMSReader(client, net, TraceLevel.VERBOSE, null);
         reader.initializeConnection();
@@ -96,26 +98,26 @@ public class DLMSConnection {
         return reader;
     }
 
-    private static void configurarClienteDlms() {
-        client = new GXDLMSSecureClient2(true);
+    private static void configurarClienteDlms(Context context) {
+        ConfigContadorActivity.DLMSConfigValues cfg = ConfigContadorActivity.loadConfig(context);
 
+        client = new GXDLMSSecureClient2(true);
         // 1. IMPORTANTE: En puerto serie suele ser HDLC, en TCP suele ser WRAPPER
         client.setInterfaceType(InterfaceType.HDLC);
-
         // 2. CONFIGURACIÓN DE DIRECCIÓN (Aquí está el truco)
         // Para obtener la trama 00 02 00 21:
         // El primer '1' es el Management Logical Device.
         // El '16' es el Physical Device ID (común en Sagemcom/Landis).
-        client.setServerAddress(GXDLMSClient.getServerAddress(1, 16, 4));
+        client.setServerAddress(GXDLMSClient.getServerAddress(
+                cfg.logicalDevice, cfg.physicalDevice, cfg.addressSize));
 
         // Si lo anterior falla, intenta forzar el ServerAddressSize a 1
         // como tenías al principio, pero usa el ClientAddress 0x1 (decimal 1)
         // client.setServerAddress(0x03); // A veces el ID físico es simplemente 0x03
-
-        client.setClientAddress(1);
+        client.setClientAddress(cfg.clientAddress);
         client.setUseLogicalNameReferencing(true);
-        client.setAuthentication(Authentication.LOW);
-        client.setPassword("00000002".getBytes());
+        client.setAuthentication(cfg.authentication);
+        client.setPassword(cfg.password.getBytes());
         // Limitar el tamaño de PDU para evitar que el Gateway TCP se sature
         client.setMaxReceivePDUSize(236);
     }
@@ -163,7 +165,7 @@ public class DLMSConnection {
             serial = new BluetoothCommunicator(socket);
 
             // Configurar cliente DLMS
-            configurarClienteDlms();
+            configurarClienteDlms(context);
 
             // Crear lector DLMS
             reader = new GXDLMSReader(client, serial, TraceLevel.VERBOSE, null);
