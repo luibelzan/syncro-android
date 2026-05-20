@@ -87,7 +87,11 @@ public class Utils {
                 DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"),
 
                 // 4/27/26 12:00:00 AM
-                DateTimeFormatter.ofPattern("M/d/yy h:mm:ss a")
+                DateTimeFormatter.ofPattern("M/d/yy h:mm:ss a"),
+
+                // 18/5/26 0:00:00
+                DateTimeFormatter.ofPattern("d/M/yy H:mm:ss")
+
         };
 
         for (DateTimeFormatter formatter : formatos) {

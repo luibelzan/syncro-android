@@ -43,7 +43,7 @@ public class ResultadosCurvasActivity extends BaseActivity {
                     .append("R1=\"").append(fila.r1).append("\" ")
                     .append("R2=\"").append(fila.r2).append("\" ")
                     .append("R3=\"").append(fila.r3).append("\" ")
-                    .append("R4=\"").append(fila.r3).append("\"/>\n");
+                    .append("R4=\"").append(fila.r4).append("\"/>\n");
         }
 
         sb.append("    </Cnt>\n");
