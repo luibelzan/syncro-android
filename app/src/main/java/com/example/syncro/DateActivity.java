@@ -2,6 +2,7 @@ package com.example.syncro;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
@@ -34,6 +35,14 @@ public class DateActivity extends AppCompatActivity {
 
         LinearLayout btnReadDate = findViewById(R.id.btnReadDate);
         LinearLayout btnSyncDate = findViewById(R.id.btnSyncDate);
+
+        btnSyncDate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(DateActivity.this, SyncDateActivity.class);
+                startActivity(intent);
+            }
+        });
 
         btnReadDate.setOnClickListener(v -> {
             ConnectionConfig config = SessionManager.getInstance().getConnectionConfig();
@@ -72,8 +81,5 @@ public class DateActivity extends AppCompatActivity {
             }).start();
         });
 
-        btnSyncDate.setOnClickListener(v -> {
-
-        });
     }
 }

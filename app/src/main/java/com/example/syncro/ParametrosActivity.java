@@ -26,8 +26,6 @@ public class ParametrosActivity extends AppCompatActivity {
 
         LinearLayout btnIcp = findViewById(R.id.btnIcp);
         LinearLayout btnDate = findViewById(R.id.btnDate);
-        LinearLayout btnScreen = findViewById(R.id.btnScreen);
-        LinearLayout btnTransf = findViewById(R.id.btnTransf);
 
         btnIcp.setOnClickListener(new View.OnClickListener() {
             @Override

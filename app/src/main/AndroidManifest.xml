@@ -27,6 +27,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Syncro">
         <activity
+            android:name=".SyncDateActivity"
+            android:exported="false" />
+        <activity
             android:name=".ConfigContadorActivity"
             android:exported="false" />
         <activity
@@ -85,9 +88,6 @@
             android:exported="false" />
         <activity
             android:name=".EventsActivity"
-            android:exported="false" />
-        <activity
-            android:name=".EventsView"
             android:exported="false" />
         <activity
             android:name=".ResultadosCierresActivity"
