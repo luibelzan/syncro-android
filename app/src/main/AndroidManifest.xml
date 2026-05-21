@@ -27,6 +27,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Syncro">
         <activity
+            android:name=".ReportesActivity"
+            android:exported="false" />
+        <activity
             android:name=".InfoActivity"
             android:exported="false" />
         <activity

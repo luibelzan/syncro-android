@@ -90,7 +90,10 @@ public class Utils {
                 DateTimeFormatter.ofPattern("M/d/yy h:mm:ss a"),
 
                 // 18/5/26 0:00:00
-                DateTimeFormatter.ofPattern("d/M/yy H:mm:ss")
+                DateTimeFormatter.ofPattern("d/M/yy H:mm:ss"),
+
+                // 2026/18/05 00:00:00.000W
+                DateTimeFormatter.ofPattern("yyyy/dd/MM HH:mm:ss.SSS'W'")
 
         };
 

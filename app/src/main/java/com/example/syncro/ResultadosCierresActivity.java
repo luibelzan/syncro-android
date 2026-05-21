@@ -103,10 +103,21 @@ public class ResultadosCierresActivity extends BaseActivity {
                 // 🔹 Construir nombre del archivo
                 String nombreFichero = cncName + "_0_S05_0_" + fechaActual + ".xml";
 
-                // 🔹 Crear archivo con ese nombre
-                File file = new File(
-                        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                        nombreFichero);
+                // 🔹 Carpeta Downloads
+                File downloadsFolder =
+                        Environment.getExternalStoragePublicDirectory(
+                                Environment.DIRECTORY_DOWNLOADS);
+
+                // 🔹 Carpeta específica app
+                File syncroFolder = new File(downloadsFolder, "Syncro/Reports");
+
+                // 🔹 Crear carpetas si no existen
+                if (!syncroFolder.exists()) {
+                    syncroFolder.mkdirs();
+                }
+
+                // 🔹 Archivo final
+                File file = new File(syncroFolder, nombreFichero);
 
                 try (FileOutputStream fos = new FileOutputStream(file)) {
                     fos.write(xml.getBytes());
