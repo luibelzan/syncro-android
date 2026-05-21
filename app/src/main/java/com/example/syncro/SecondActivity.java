@@ -28,6 +28,7 @@ public class SecondActivity extends BaseActivity {
         LinearLayout btnParams = findViewById(R.id.btnParams);
         LinearLayout btnContracts = findViewById(R.id.btnContracts);
         LinearLayout btnAbout = findViewById(R.id.btnAbout);
+        LinearLayout btnReports = findViewById(R.id.btnReports);
 
         btnReads.setOnClickListener(v -> {
             Intent intent = new Intent(SecondActivity.this, ReadsActivity.class);
@@ -51,6 +52,11 @@ public class SecondActivity extends BaseActivity {
 
         btnAbout.setOnClickListener(v -> {
             Intent intent = new Intent(SecondActivity.this, InfoActivity.class);
+            startActivity(intent);
+        });
+
+        btnReports.setOnClickListener(v -> {
+            Intent intent = new Intent(SecondActivity.this, ReportesActivity.class);
             startActivity(intent);
         });
     }
