@@ -1,6 +1,7 @@
 package com.example.syncro;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -75,9 +76,10 @@ public class ValoresInstantaneosActivity extends BaseActivity {
                 }
 
                 // Leer Identificadores
-                InstantaneousValues datos = InstantaneousValuesReader.leerValores(reader);
+                String datos = InstantaneousValuesReader.leerValores(reader);
                 conn.close();
-
+                Log.d("VALORES", datos);
+/*
                 runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);
                     layoutResultados.setVisibility(View.VISIBLE);
@@ -124,6 +126,7 @@ public class ValoresInstantaneosActivity extends BaseActivity {
                     // =========================
                     tvFactorPotencia.setText("Factor de potencia: " + datos.factorPotencia);
                 });
+                */
 
             } catch (Exception e) {
                 e.printStackTrace();
