@@ -1,191 +1,70 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ValoresInstantaneosActivity">
+    android:orientation="vertical"
+    android:background="@color/white">
 
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="60dp"
-        android:text="@string/instantValues"
-        android:textSize="30sp"
-        android:textStyle="bold"
-        android:textColor="@color/gris_texto"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <!-- Contenedor para ProgressBar y texto -->
+    <!-- Barra de progreso (visible mientras carga) -->
     <LinearLayout
         android:id="@+id/progressContainer"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:gravity="center"
         android:orientation="vertical"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView"
-        app:layout_constraintVertical_bias="0.5">
+        android:visibility="gone">
 
         <ProgressBar
-            android:id="@+id/progressBar"
-            style="?android:attr/progressBarStyleLarge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:indeterminate="true" />
+            android:layout_width="64dp"
+            android:layout_height="64dp" />
 
         <TextView
-            android:id="@+id/textCargando"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:text="@string/loading"
-            android:textColor="@color/gris_texto"
-            android:textSize="18sp" />
+            android:text="Leyendo contador…"
+            android:textSize="14sp"
+            android:textColor="@color/black" />
     </LinearLayout>
 
+    <!-- Contenedor de resultados (visible tras leer) -->
     <LinearLayout
         android:id="@+id/layoutResultados"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:orientation="vertical"
-        android:padding="16dp"
-        android:visibility="visible"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView"
-        app:layout_constraintVertical_bias="0.1">
+        android:visibility="gone">
 
         <TextView
-            android:id="@+id/tvSerial"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/serial" />
+            android:padding="12dp"
+            android:text="Valores Instantáneos"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/black" />
 
-        <TextView
-            android:id="@+id/tvTipo"
+        <!-- ScrollView para que el texto largo sea desplazable -->
+        <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/time"
-            android:paddingBottom="15dp"/>
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:padding="8dp">
 
-        <TextView
-            android:id="@+id/tvDeciVolts"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/relacion" />
+            <TextView
+                android:id="@+id/tvResultado"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="monospace"
+                android:textSize="13sp"
+                android:textColor="@color/black"
+                android:padding="8dp"
+                android:lineSpacingMultiplier="1.3"
+                android:text="" />
 
-
-        <TextView
-            android:id="@+id/tvVolRelation"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/volRelation"
-            android:paddingBottom="15dp"/>
-
-        <TextView
-            android:id="@+id/tvInstantVol"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/instantVol" />
-
-        <TextView
-            android:id="@+id/tvVolFase1"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/volFase1" />
-
-        <TextView
-            android:id="@+id/tvVolFase2"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/volFase2" />
-
-        <TextView
-            android:id="@+id/tvVolFase3"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/volFase3"
-            android:paddingBottom="15dp"/>
-
-        <TextView
-            android:id="@+id/tvDeciAmps"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/relacionA" />
-
-        <TextView
-            android:id="@+id/tvARelation"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/aRelation"
-            android:paddingBottom="15dp"/>
-
-        <TextView
-            android:id="@+id/tvInstantA"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/instantA" />
-
-        <TextView
-            android:id="@+id/tvAFase1"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/aFase1" />
-
-        <TextView
-            android:id="@+id/tvAFase2"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/aFase2" />
-
-        <TextView
-            android:id="@+id/tvAFase3"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/aFase3"
-            android:paddingBottom="15dp"/>
-
-        <TextView
-            android:id="@+id/tvPotenciaActivaPlus"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/potenciaActivaPlus" />
-
-        <TextView
-            android:id="@+id/tvPotenciaActivaMinus"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/potenciaActivaMinus" />
-
-        <TextView
-            android:id="@+id/tvPotenciaReactivaPlus"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/potenciaReactivaPlus" />
-
-        <TextView
-            android:id="@+id/tvPotenciaReactivaMinus"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/potenciaReactivaMinus" />
-
-        <TextView
-            android:id="@+id/tvFactorPotencia"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/factorPotencia" />
-
-
+        </ScrollView>
     </LinearLayout>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>
