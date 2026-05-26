@@ -9,49 +9,52 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * LicenseManager
+ * LicenseManager — versión corregida
  *
- * Flujo:
- *  1. El usuario introduce un código de licencia en LicenseCheckActivity.
- *  2. Se consulta Firestore: licenses/{licenseCode}
- *  3. Si el documento existe, valid=true, y la MAC del campo "mac" coincide
- *     con la MAC de la sonda conectada → licencia activada.
- *  4. Se guarda en SharedPreferences para no consultar Firestore en cada arranque
- *     (caché de 24 horas).
+ * Política de caché:
+ *   - La caché local es válida máximo CACHE_TTL_MS (24h).
+ *   - Pasadas 24h, SIEMPRE se revalida contra Firebase.
+ *   - Si Firebase no es accesible (sin red), se bloquea el acceso.
+ *     Cambia BLOCK_ON_NETWORK_ERROR a false si prefieres política permisiva.
  *
- * Estructura Firestore:
- *   Collection: licenses
- *   Document ID: el código de licencia (ej: "SYNC-XXXX-YYYY-ZZZZ")
- *   Campos:
- *     - mac         (String)  "AA:BB:CC:DD:EE:FF"   ← MAC de la sonda autorizada
- *     - valid       (boolean) true/false
- *     - customer    (String)  "Empresa X"
- *     - expires     (String)  "2027-12-31"           ← fecha límite (YYYY-MM-DD)
- *     - activatedAt (String)  "2026-05-22"           ← se rellena al activar
+ * Flujo verify():
+ *   1. Sin licencia en caché                          → INVALID_CODE
+ *   2. MAC no coincide con la sonda conectada         → INVALID_MAC
+ *   3. Fecha expirada en caché local                  → EXPIRED
+ *   4. Caché fresca (< 24h) y código en caché válido  → VALID (sin Firebase)
+ *   5. Caché antigua (> 24h)                          → consulta Firebase:
+ *        · Documento no existe (código cambiado)      → INVALID_CODE
+ *        · valid=false                                → DISABLED
+ *        · MAC no coincide                            → INVALID_MAC
+ *        · Expirado en Firebase                       → EXPIRED
+ *        · Todo OK → actualiza caché y timestamp      → VALID
+ *        · Sin red                                    → NETWORK_ERROR (bloquea)
  */
 public class LicenseManager {
 
-    private static final String PREFS_NAME      = "syncro_license";
-    private static final String KEY_CODE        = "license_code";
-    private static final String KEY_MAC         = "license_mac";
-    private static final String KEY_EXPIRES     = "license_expires";
-    private static final String KEY_CUSTOMER    = "license_customer";
-    private static final String KEY_LAST_CHECK  = "license_last_check";
+    private static final String PREFS_NAME     = "syncro_license";
+    private static final String KEY_CODE       = "license_code";
+    private static final String KEY_MAC        = "license_mac";
+    private static final String KEY_EXPIRES    = "license_expires";
+    private static final String KEY_CUSTOMER   = "license_customer";
+    private static final String KEY_LAST_CHECK = "license_last_check";
 
-    // Caché válida 24 horas (en milisegundos)
+    // Caché válida 24 horas
     private static final long CACHE_TTL_MS = 24 * 60 * 60 * 1000L;
 
+    // true  → sin red después de 24h bloquea el acceso
+    // false → sin red después de 24h deja pasar (permisivo)
+    private static final boolean BLOCK_ON_NETWORK_ERROR = true;
+
     public enum LicenseStatus {
-        VALID,           // Licencia válida para esta MAC
-        INVALID_CODE,    // Código no existe en Firestore
-        INVALID_MAC,     // Código existe pero la MAC no coincide
-        EXPIRED,         // Licencia caducada
-        DISABLED,        // valid=false (revocada manualmente)
-        NETWORK_ERROR    // No se pudo contactar con Firebase
+        VALID,
+        INVALID_CODE,   // Código no existe en Firestore (puede haber sido cambiado)
+        INVALID_MAC,    // Código existe pero la MAC no coincide
+        EXPIRED,        // Licencia caducada
+        DISABLED,       // valid=false (revocada manualmente)
+        NETWORK_ERROR   // No se pudo contactar con Firebase
     }
 
     public interface LicenseCallback {
@@ -59,18 +62,9 @@ public class LicenseManager {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Activación — llamar cuando el usuario introduce el código por primera vez
+    // Activación — primera vez que el usuario introduce el código
     // ─────────────────────────────────────────────────────────────────────────
 
-    /**
-     * Valida el código contra Firestore y comprueba que la MAC coincide.
-     * Si todo es correcto, guarda la licencia en caché local.
-     *
-     * @param context     contexto Android
-     * @param licenseCode código introducido por el usuario (ej: "SYNC-XXXX-YYYY")
-     * @param deviceMac   MAC de la sonda Bluetooth conectada (ej: "AA:BB:CC:DD:EE:FF")
-     * @param callback    resultado en el hilo que llama (puede ser background)
-     */
     public static void activate(Context context,
                                 String licenseCode,
                                 String deviceMac,
@@ -85,110 +79,152 @@ public class LicenseManager {
                     LicenseStatus status = evaluateDocument(doc, deviceMac);
 
                     if (status == LicenseStatus.VALID) {
-                        // Guardar en caché local
-                        saveToPrefs(context, licenseCode, deviceMac,
+                        saveToPrefs(context,
+                                licenseCode,
+                                deviceMac,
                                 doc.getString("expires"),
                                 doc.getString("customer"));
 
-                        // Marcar activatedAt en Firestore si aún no tiene valor
-                        if (doc.getString("activatedAt") == null ||
-                                doc.getString("activatedAt").isEmpty()) {
-                            String today = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-                                    .format(new Date());
+                        // Rellenar activatedAt si está vacío o no existe el campo.
+                        // Usamos set() con merge=true en lugar de update() para que
+                        // funcione tanto si el campo existe como si no fue creado.
+                        if (isEmpty(doc.getString("activatedAt"))) {
+                            String today = todayString();
+                            java.util.Map<String, Object> patch = new java.util.HashMap<>();
+                            patch.put("activatedAt", today);
                             db.collection("licenses")
                                     .document(licenseCode.trim().toUpperCase())
-                                    .update("activatedAt", today);
+                                    .set(patch, com.google.firebase.firestore.SetOptions.merge())
+                                    .addOnSuccessListener(aVoid ->
+                                            android.util.Log.d("LicenseManager",
+                                                    "activatedAt actualizado: " + today))
+                                    .addOnFailureListener(e ->
+                                            android.util.Log.e("LicenseManager",
+                                                    "Error al actualizar activatedAt: " + e.getMessage()));
                         }
                     }
 
                     callback.onResult(status, doc.getString("customer"));
                 })
-                .addOnFailureListener(e -> callback.onResult(LicenseStatus.NETWORK_ERROR, null));
+                .addOnFailureListener(e ->
+                        callback.onResult(LicenseStatus.NETWORK_ERROR, null));
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Verificación — llamar al arrancar la app o al conectar la sonda
+    // Verificación — llamar cada vez que se abre la app o se conecta la sonda
     // ─────────────────────────────────────────────────────────────────────────
 
-    /**
-     * Verifica la licencia guardada en caché contra la MAC de la sonda.
-     * Si la caché tiene menos de 24h, no consulta Firestore.
-     * Si la caché ha expirado, revalida online.
-     *
-     * Diseñado para llamarse desde un hilo de background (usa CountDownLatch).
-     *
-     * @param context   contexto Android
-     * @param deviceMac MAC de la sonda Bluetooth actualmente conectada
-     * @param callback  resultado
-     */
     public static void verify(Context context,
                               String deviceMac,
                               LicenseCallback callback) {
 
-        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        String cachedCode    = prefs.getString(KEY_CODE, null);
-        String cachedMac     = prefs.getString(KEY_MAC, null);
-        String cachedExpires = prefs.getString(KEY_EXPIRES, null);
-        String cachedCustomer = prefs.getString(KEY_CUSTOMER, null);
-        long   lastCheck     = prefs.getLong(KEY_LAST_CHECK, 0);
+        SharedPreferences prefs    = prefs(context);
+        String cachedCode          = prefs.getString(KEY_CODE, null);
+        String cachedMac           = prefs.getString(KEY_MAC, null);
+        String cachedExpires       = prefs.getString(KEY_EXPIRES, null);
+        String cachedCustomer      = prefs.getString(KEY_CUSTOMER, null);
+        long   lastCheck           = prefs.getLong(KEY_LAST_CHECK, 0);
 
-        // Sin licencia guardada → pedir activación
+        // 1. Sin licencia guardada
         if (cachedCode == null || cachedMac == null) {
             callback.onResult(LicenseStatus.INVALID_CODE, null);
             return;
         }
 
-        // La MAC de la sonda no coincide con la licenciada
+        // 2. La sonda no coincide con la licenciada
         if (!cachedMac.equalsIgnoreCase(deviceMac)) {
             callback.onResult(LicenseStatus.INVALID_MAC, null);
             return;
         }
 
-        // Comprobar expiración local
+        // 3. Expiración local
         if (isExpired(cachedExpires)) {
             callback.onResult(LicenseStatus.EXPIRED, cachedCustomer);
             return;
         }
 
-        // Caché fresca → válida sin consultar Firestore
         long now = System.currentTimeMillis();
-        if ((now - lastCheck) < CACHE_TTL_MS) {
+        boolean cacheIsFresh = (now - lastCheck) < CACHE_TTL_MS;
+
+        // 4. Caché fresca → válida sin consultar Firebase
+        if (cacheIsFresh) {
             callback.onResult(LicenseStatus.VALID, cachedCustomer);
             return;
         }
 
-        // Caché antigua → revalidar online
-        activate(context, cachedCode, deviceMac, (status, customer) -> {
-            if (status == LicenseStatus.NETWORK_ERROR) {
-                // Sin red pero caché no muy antigua → dejar pasar (política permisiva)
-                // Cambia esto a NETWORK_ERROR si prefieres bloquear sin red
-                callback.onResult(LicenseStatus.VALID, cachedCustomer);
-            } else {
-                callback.onResult(status, customer);
-            }
-        });
+        // 5. Caché antigua → revalidar SIEMPRE contra Firebase
+        revalidateOnline(context, cachedCode, deviceMac, cachedCustomer, callback);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Utilidades
+    // Revalidación online — se llama cuando la caché tiene más de 24h
     // ─────────────────────────────────────────────────────────────────────────
 
-    /** Elimina la licencia guardada (para pruebas o soporte). */
+    private static void revalidateOnline(Context context,
+                                         String cachedCode,
+                                         String deviceMac,
+                                         String cachedCustomer,
+                                         LicenseCallback callback) {
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        db.collection("licenses")
+                .document(cachedCode)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    LicenseStatus status = evaluateDocument(doc, deviceMac);
+
+                    if (status == LicenseStatus.VALID) {
+                        // Actualizar caché con datos frescos de Firebase y resetear timestamp
+                        saveToPrefs(context,
+                                cachedCode,
+                                deviceMac,
+                                doc.getString("expires"),
+                                doc.getString("customer"));
+                    } else {
+                        // Licencia ya no válida → borrar caché para forzar pantalla de activación
+                        clearLicense(context);
+                    }
+
+                    callback.onResult(status,
+                            status == LicenseStatus.VALID
+                                    ? doc.getString("customer")
+                                    : cachedCustomer);
+                })
+                .addOnFailureListener(e -> {
+                    if (BLOCK_ON_NETWORK_ERROR) {
+                        // Sin red → bloquear
+                        callback.onResult(LicenseStatus.NETWORK_ERROR, cachedCustomer);
+                    } else {
+                        // Sin red → dejar pasar pero NO actualizar el timestamp
+                        // (así volverá a intentar en el próximo arranque)
+                        callback.onResult(LicenseStatus.VALID, cachedCustomer);
+                    }
+                });
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Utilidades públicas
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /** Elimina la licencia guardada (para tests o soporte). */
     public static void clearLicense(Context context) {
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                .edit().clear().apply();
+        prefs(context).edit().clear().apply();
     }
 
-    /** Devuelve la MAC licenciada guardada en caché, o null si no hay licencia. */
+    /** MAC licenciada en caché, o null si no hay licencia. */
     public static String getCachedMac(Context context) {
-        return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                .getString(KEY_MAC, null);
+        return prefs(context).getString(KEY_MAC, null);
     }
 
-    /** Devuelve true si ya hay una licencia activada en caché. */
+    /** true si hay alguna licencia guardada en caché. */
     public static boolean hasLicense(Context context) {
-        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        return prefs.getString(KEY_CODE, null) != null;
+        return prefs(context).getString(KEY_CODE, null) != null;
+    }
+
+    /** Fuerza revalidación en el próximo verify() poniendo lastCheck a 0. */
+    public static void invalidateCache(Context context) {
+        prefs(context).edit().putLong(KEY_LAST_CHECK, 0).apply();
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -196,42 +232,51 @@ public class LicenseManager {
     // ─────────────────────────────────────────────────────────────────────────
 
     private static LicenseStatus evaluateDocument(DocumentSnapshot doc, String deviceMac) {
-        if (!doc.exists()) return LicenseStatus.INVALID_CODE;
+        if (!doc.exists())                          return LicenseStatus.INVALID_CODE;
 
         Boolean valid = doc.getBoolean("valid");
-        if (valid == null || !valid) return LicenseStatus.DISABLED;
+        if (valid == null || !valid)                return LicenseStatus.DISABLED;
 
         String licensedMac = doc.getString("mac");
-        if (licensedMac == null || !licensedMac.equalsIgnoreCase(deviceMac)) {
-            return LicenseStatus.INVALID_MAC;
-        }
+        if (isEmpty(licensedMac) ||
+                !licensedMac.equalsIgnoreCase(deviceMac)) return LicenseStatus.INVALID_MAC;
 
-        String expires = doc.getString("expires");
-        if (isExpired(expires)) return LicenseStatus.EXPIRED;
+        if (isExpired(doc.getString("expires")))    return LicenseStatus.EXPIRED;
 
         return LicenseStatus.VALID;
     }
 
+    private static void saveToPrefs(Context context, String code, String mac,
+                                    String expires, String customer) {
+        prefs(context).edit()
+                .putString(KEY_CODE,      code.trim().toUpperCase())
+                .putString(KEY_MAC,       mac)
+                .putString(KEY_EXPIRES,   expires  != null ? expires  : "")
+                .putString(KEY_CUSTOMER,  customer != null ? customer : "")
+                .putLong  (KEY_LAST_CHECK, System.currentTimeMillis())  // ← resetea el reloj
+                .apply();
+    }
+
     private static boolean isExpired(String expiresStr) {
-        if (expiresStr == null || expiresStr.isEmpty()) return false;
+        if (isEmpty(expiresStr)) return false;
         try {
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-            Date expDate = sdf.parse(expiresStr);
+            Date expDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                    .parse(expiresStr);
             return expDate != null && expDate.before(new Date());
         } catch (Exception e) {
             return false;
         }
     }
 
-    private static void saveToPrefs(Context context, String code, String mac,
-                                    String expires, String customer) {
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                .edit()
-                .putString(KEY_CODE, code.trim().toUpperCase())
-                .putString(KEY_MAC, mac)
-                .putString(KEY_EXPIRES, expires != null ? expires : "")
-                .putString(KEY_CUSTOMER, customer != null ? customer : "")
-                .putLong(KEY_LAST_CHECK, System.currentTimeMillis())
-                .apply();
+    private static boolean isEmpty(String s) {
+        return s == null || s.trim().isEmpty();
+    }
+
+    private static String todayString() {
+        return new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+    }
+
+    private static SharedPreferences prefs(Context context) {
+        return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
     }
 }
