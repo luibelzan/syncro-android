@@ -1,6 +1,7 @@
 package com.example.syncro;
 
 import android.os.Bundle;
+import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -8,7 +9,9 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-public class InfoActivity extends AppCompatActivity {
+import com.example.syncro.licenses.LicenseManager;
+
+public class InfoActivity extends BaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,5 +23,26 @@ public class InfoActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        fillLicenseInfo();
+    }
+
+    private void fillLicenseInfo() {
+        TextView tvLicenseCode = findViewById(R.id.tvLicenseCode);
+        TextView tvExpires     = findViewById(R.id.tvExpires);
+        TextView tvCustomer    = findViewById(R.id.tvCustomer);
+
+        String code     = LicenseManager.getCachedCode(this);
+        String expires  = LicenseManager.getCachedExpires(this);
+        String customer = LicenseManager.getCachedCustomer(this);
+
+        tvLicenseCode.setText("Código de licencia: " +
+                (code != null ? code : "Sin licencia"));
+
+        tvExpires.setText("Licencia válida hasta: " +
+                (expires != null && !expires.isEmpty() ? expires : "—"));
+
+        tvCustomer.setText("Usuario actual: " +
+                (customer != null && !customer.isEmpty() ? customer : "—"));
     }
 }

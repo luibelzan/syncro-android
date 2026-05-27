@@ -117,24 +117,48 @@ public class BluetoothScanActivity extends AppCompatActivity {
     }
 
     private void onDeviceSelected(String mac) {
-        // Guardar MAC en SessionManager para la conexión posterior
-        // SessionManager.getInstance().setSelectedMac(mac);  ← adapta a tu SessionManager
+        progressContainer.setVisibility(View.VISIBLE);
+        btnScan.setEnabled(false);
+        lvDevices.setEnabled(true);
 
-        if (LicenseManager.hasLicense(this)) {
-            // Ya hay una licencia en caché → verificar que es para esta MAC
-            String cachedMac = LicenseManager.getCachedMac(this);
-            if (cachedMac != null && cachedMac.equalsIgnoreCase(mac)) {
-                // Todo OK → ir a MainActivity
-                startActivity(new Intent(this, MainActivity.class));
-                finish();
-            } else {
-                // La sonda no coincide con la licenciada → pedir activación
-                goToLicenseCheck(mac);
-            }
-        } else {
-            // Sin licencia → pedir activación
-            goToLicenseCheck(mac);
-        }
+        LicenseManager.verifyAlways(this, mac, (status, customer) -> {
+            runOnUiThread(() -> {
+                progressContainer.setVisibility(View.GONE);
+                btnScan.setEnabled(true);
+                lvDevices.setEnabled(true);
+
+                switch (status) {
+                    case VALID:
+                        startActivity(new Intent(this, MainActivity.class));
+                        finish();
+                        break;
+
+                    case EXPIRED:
+                        Toast.makeText(this,
+                                "La licencia ha caducado. Contacta con el soporte.",
+                                Toast.LENGTH_LONG).show();
+                        break;
+
+                    case DISABLED:
+                        Toast.makeText(this,
+                                "La licencia ha sido desactivada. Contacta con el soporte.",
+                                Toast.LENGTH_LONG).show();
+                        break;
+
+                    case NETWORK_ERROR:
+                        Toast.makeText(this,
+                                "Sin conexión a Internet. Verifica la red e inténtalo de nuevo.",
+                                Toast.LENGTH_LONG).show();
+                        break;
+
+                    case INVALID_MAC:
+                    case INVALID_CODE:
+                    default:
+                        goToLicenseCheck(mac);
+                        break;
+                }
+            });
+        });
     }
 
     private void goToLicenseCheck(String mac) {

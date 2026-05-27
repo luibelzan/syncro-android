@@ -120,7 +120,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="¿Necesitas un código? Contacta con soporte@tuempresa.com"
+            android:text="¿Necesitas un código? Contacta con soporte"
             android:textSize="12sp"
             android:textColor="#999999"
             android:gravity="center"

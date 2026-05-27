@@ -203,6 +203,63 @@ public class LicenseManager {
                 });
     }
 
+    // En LicenseManager.java — nuevo método
+    public static void verifyAlways(Context context,
+                                    String deviceMac,
+                                    LicenseCallback callback) {
+
+        SharedPreferences prefs   = prefs(context);
+        String cachedCode         = prefs.getString(KEY_CODE, null);
+        String cachedMac          = prefs.getString(KEY_MAC, null);
+        String cachedExpires      = prefs.getString(KEY_EXPIRES, null);
+        String cachedCustomer     = prefs.getString(KEY_CUSTOMER, null);
+
+        // ── Paso 1: validación local inmediata ──────────────────────────────
+        if (cachedCode == null || cachedMac == null) {
+            callback.onResult(LicenseStatus.INVALID_CODE, null);
+            return; // Sin caché no tiene sentido ir a Firebase todavía
+        }
+        if (!cachedMac.equalsIgnoreCase(deviceMac)) {
+            callback.onResult(LicenseStatus.INVALID_MAC, null);
+            return;
+        }
+        if (isExpired(cachedExpires)) {
+            callback.onResult(LicenseStatus.EXPIRED, cachedCustomer);
+            // Aun así consultamos Firebase por si la fecha fue renovada
+        } else {
+            callback.onResult(LicenseStatus.VALID, cachedCustomer); // resultado provisional
+        }
+
+        // ── Paso 2: revalidación online SIEMPRE ─────────────────────────────
+        FirebaseFirestore.getInstance()
+                .collection("licenses")
+                .document(cachedCode)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    LicenseStatus onlineStatus = evaluateDocument(doc, deviceMac);
+
+                    if (onlineStatus == LicenseStatus.VALID) {
+                        saveToPrefs(context,
+                                cachedCode,
+                                deviceMac,
+                                doc.getString("expires"),
+                                doc.getString("customer"));
+                    } else {
+                        clearLicense(context);
+                    }
+
+                    // Segunda llamada al callback con el resultado definitivo de Firebase
+                    callback.onResult(onlineStatus, doc.getString("customer"));
+                })
+                .addOnFailureListener(e -> {
+                    if (BLOCK_ON_NETWORK_ERROR) {
+                        callback.onResult(LicenseStatus.NETWORK_ERROR, cachedCustomer);
+                    }
+                    // Si BLOCK_ON_NETWORK_ERROR=false no llamamos de nuevo:
+                    // el resultado provisional de la caché ya fue entregado
+                });
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     // Utilidades públicas
     // ─────────────────────────────────────────────────────────────────────────
@@ -225,6 +282,20 @@ public class LicenseManager {
     /** Fuerza revalidación en el próximo verify() poniendo lastCheck a 0. */
     public static void invalidateCache(Context context) {
         prefs(context).edit().putLong(KEY_LAST_CHECK, 0).apply();
+    }
+
+    // LicenseManager.java — añade estos tres métodos públicos
+
+    public static String getCachedCode(Context context) {
+        return prefs(context).getString(KEY_CODE, null);
+    }
+
+    public static String getCachedExpires(Context context) {
+        return prefs(context).getString(KEY_EXPIRES, null);
+    }
+
+    public static String getCachedCustomer(Context context) {
+        return prefs(context).getString(KEY_CUSTOMER, null);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
