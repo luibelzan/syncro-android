@@ -85,22 +85,33 @@ public class LicenseManager {
                                 doc.getString("expires"),
                                 doc.getString("customer"));
 
-                        // Rellenar activatedAt si está vacío o no existe el campo.
-                        // Usamos set() con merge=true en lugar de update() para que
-                        // funcione tanto si el campo existe como si no fue creado.
+                        // Campos a actualizar en Firestore
+                        java.util.Map<String, Object> patch = new java.util.HashMap<>();
+
+                        String licensedMac = doc.getString("mac");
+                        boolean macIsEmpty = isEmpty(licensedMac);
+
+                        if (macIsEmpty) {
+                            // Primera activación: fijar la MAC de esta sonda
+                            patch.put("mac", deviceMac);
+                            android.util.Log.d("LicenseManager",
+                                    "Primera activación. MAC asignada: " + deviceMac);
+                        }
+
                         if (isEmpty(doc.getString("activatedAt"))) {
-                            String today = todayString();
-                            java.util.Map<String, Object> patch = new java.util.HashMap<>();
-                            patch.put("activatedAt", today);
+                            patch.put("activatedAt", todayString());
+                        }
+
+                        if (!patch.isEmpty()) {
                             db.collection("licenses")
                                     .document(licenseCode.trim().toUpperCase())
                                     .set(patch, com.google.firebase.firestore.SetOptions.merge())
                                     .addOnSuccessListener(aVoid ->
                                             android.util.Log.d("LicenseManager",
-                                                    "activatedAt actualizado: " + today))
+                                                    "Licencia actualizada en Firestore: " + patch))
                                     .addOnFailureListener(e ->
                                             android.util.Log.e("LicenseManager",
-                                                    "Error al actualizar activatedAt: " + e.getMessage()));
+                                                    "Error actualizando licencia: " + e.getMessage()));
                         }
                     }
 
@@ -303,16 +314,20 @@ public class LicenseManager {
     // ─────────────────────────────────────────────────────────────────────────
 
     private static LicenseStatus evaluateDocument(DocumentSnapshot doc, String deviceMac) {
-        if (!doc.exists())                          return LicenseStatus.INVALID_CODE;
+        if (!doc.exists()) return LicenseStatus.INVALID_CODE;
 
         Boolean valid = doc.getBoolean("valid");
-        if (valid == null || !valid)                return LicenseStatus.DISABLED;
+        if (valid == null || !valid) return LicenseStatus.DISABLED;
 
         String licensedMac = doc.getString("mac");
-        if (isEmpty(licensedMac) ||
-                !licensedMac.equalsIgnoreCase(deviceMac)) return LicenseStatus.INVALID_MAC;
 
-        if (isExpired(doc.getString("expires")))    return LicenseStatus.EXPIRED;
+        // MAC vacía = licencia sin asignar todavía → se asignará en activate()
+        boolean macIsEmpty = isEmpty(licensedMac);
+        if (!macIsEmpty && !licensedMac.equalsIgnoreCase(deviceMac)) {
+            return LicenseStatus.INVALID_MAC;
+        }
+
+        if (isExpired(doc.getString("expires"))) return LicenseStatus.EXPIRED;
 
         return LicenseStatus.VALID;
     }
