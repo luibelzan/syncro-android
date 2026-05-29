@@ -57,6 +57,8 @@
     <string-array name="contratos_array">
         <item>Contrato 1</item>
         <item>Contrato 2</item>
+        <item>Contrato 3</item>
+        <item>Todos los contratos</item>
     </string-array>
 
 

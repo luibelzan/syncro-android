@@ -20,6 +20,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.syncro.client.DLMSConnection;
 import com.example.syncro.client.GXDLMSReader;
+import com.example.syncro.models.CierreEnCursoFila;
 import com.example.syncro.models.CierreFila;
 import com.example.syncro.models.CierreMensualFila;
 import com.example.syncro.models.CurvaFila;
@@ -79,7 +80,16 @@ public class CierresActivity extends BaseActivity {
         spinnerTipoCierre.setAdapter(adapter);
         spinnerTipoCierre.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {}
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String tipo = parent.getItemAtPosition(position).toString();
+                boolean esEnCurso = tipo.equals("EnCurso_S27");
+
+                findViewById(R.id.textFechaInicio).setVisibility(esEnCurso ? View.GONE : View.VISIBLE);
+                findViewById(R.id.editFechaInicio).setVisibility(esEnCurso ? View.GONE : View.VISIBLE);
+                findViewById(R.id.textFechaFin).setVisibility(esEnCurso ? View.GONE : View.VISIBLE);
+                findViewById(R.id.editFechaFin).setVisibility(esEnCurso ? View.GONE : View.VISIBLE);
+            }
+
             @Override
             public void onNothingSelected(AdapterView<?> parent) {}
         });
@@ -171,7 +181,17 @@ public class CierresActivity extends BaseActivity {
 
                         });
                     } else if(tipoCierre.equals("EnCurso_S27")) {
-                        CurrentBillingReader.readCurrentBilling(reader);
+                        ArrayList<CierreEnCursoFila> datos = CurrentBillingReader.readCurrentBilling(reader);
+
+                        runOnUiThread(() -> {
+                            progressBar.setVisibility(View.GONE);
+
+                            Intent intent = new Intent(CierresActivity.this, ResultadosCierresEnCursoActivity.class);
+                            intent.putParcelableArrayListExtra("datos_cierres_tabla", datos);
+                            intent.putExtra("cntId", cntId);
+                            startActivity(intent);
+
+                        });
                     }
 
                     conn.close();
