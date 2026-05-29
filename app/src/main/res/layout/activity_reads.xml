@@ -178,39 +178,6 @@
                         android:textSize="19sp"/>
                 </LinearLayout>
 
-                <!-- ICONO 6 -->
-                <LinearLayout
-                    android:id="@+id/btnParams"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:orientation="vertical"
-                    android:clickable="true"
-                    android:focusable="true">
-
-                    <ImageView
-                        android:layout_width="120dp"
-                        android:layout_height="120dp"
-                        android:src="@drawable/params"
-                        android:padding="16dp"/>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/params2"
-                        android:textSize="20sp"/>
-                </LinearLayout>
-            </LinearLayout>
-
-            <!-- FILA 4 -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="24dp"
-                android:weightSum="2">
-
                 <!-- ICONO 5 -->
                 <LinearLayout
                     android:id="@+id/btnSondaStatus"
@@ -235,6 +202,7 @@
                         android:textSize="20sp"/>
                 </LinearLayout>
             </LinearLayout>
+
 
         </LinearLayout>
 </ScrollView>
