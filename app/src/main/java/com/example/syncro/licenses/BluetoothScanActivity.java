@@ -119,33 +119,47 @@ public class BluetoothScanActivity extends AppCompatActivity {
     private void onDeviceSelected(String mac) {
         progressContainer.setVisibility(View.VISIBLE);
         btnScan.setEnabled(false);
-        lvDevices.setEnabled(true);
+        lvDevices.setEnabled(false);  // también deshabilitar la lista
+
+        final boolean[] finished = {false};  // ← flag para evitar doble navegación
 
         LicenseManager.verifyAlways(this, mac, (status, customer) -> {
             runOnUiThread(() -> {
-                progressContainer.setVisibility(View.GONE);
-                btnScan.setEnabled(true);
-                lvDevices.setEnabled(true);
+
+                if (finished[0]) return;  // ← segunda llamada ignorada si ya navegamos
 
                 switch (status) {
                     case VALID:
+                        finished[0] = true;  // ← marcar antes de navegar
+                        progressContainer.setVisibility(View.GONE);
+                        btnScan.setEnabled(true);
+                        lvDevices.setEnabled(true);
                         startActivity(new Intent(this, MainActivity.class));
                         finish();
                         break;
 
                     case EXPIRED:
+                        progressContainer.setVisibility(View.GONE);
+                        btnScan.setEnabled(true);
+                        lvDevices.setEnabled(true);
                         Toast.makeText(this,
                                 "La licencia ha caducado. Contacta con el soporte.",
                                 Toast.LENGTH_LONG).show();
                         break;
 
                     case DISABLED:
+                        progressContainer.setVisibility(View.GONE);
+                        btnScan.setEnabled(true);
+                        lvDevices.setEnabled(true);
                         Toast.makeText(this,
                                 "La licencia ha sido desactivada. Contacta con el soporte.",
                                 Toast.LENGTH_LONG).show();
                         break;
 
                     case NETWORK_ERROR:
+                        progressContainer.setVisibility(View.GONE);
+                        btnScan.setEnabled(true);
+                        lvDevices.setEnabled(true);
                         Toast.makeText(this,
                                 "Sin conexión a Internet. Verifica la red e inténtalo de nuevo.",
                                 Toast.LENGTH_LONG).show();
@@ -154,6 +168,9 @@ public class BluetoothScanActivity extends AppCompatActivity {
                     case INVALID_MAC:
                     case INVALID_CODE:
                     default:
+                        progressContainer.setVisibility(View.GONE);
+                        btnScan.setEnabled(true);
+                        lvDevices.setEnabled(true);
                         goToLicenseCheck(mac);
                         break;
                 }
