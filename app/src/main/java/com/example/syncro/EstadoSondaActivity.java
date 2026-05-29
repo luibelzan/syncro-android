@@ -23,13 +23,13 @@ import java.util.UUID;
 
 public class EstadoSondaActivity extends BaseActivity {
 
-    private TextView tvNombre, tvMac, tvBateria;
+    private TextView tvNombre, tvMac, tvBateria, tvFirmware;
     private Button btnActualizar;
 
     private BluetoothSocket socket;
     private BluetoothDevice targetDevice;
 
-    private final String TARGET_NAME = "TesPro V4_7706";
+    private final String TARGET_NAME = "TesPro";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,10 +37,9 @@ public class EstadoSondaActivity extends BaseActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_estado_sonda);
 
-        // ✅ Inicializar vistas
-        tvNombre = findViewById(R.id.tvNombre);
-        tvMac = findViewById(R.id.tvMac);
-        tvBateria = findViewById(R.id.tvBateria);
+        tvNombre    = findViewById(R.id.tvNombre);
+        tvMac       = findViewById(R.id.tvMac);
+        tvBateria   = findViewById(R.id.tvBateria);
         btnActualizar = findViewById(R.id.btnActualizar);
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -49,14 +48,14 @@ public class EstadoSondaActivity extends BaseActivity {
             return insets;
         });
 
-        // ✅ Acción del botón
         btnActualizar.setOnClickListener(v -> conectarYLeerEstado());
     }
 
     private void conectarYLeerEstado() {
-
-        // Mostrar estado inicial
-        runOnUiThread(() -> tvBateria.setText("Conectando..."));
+        runOnUiThread(() -> {
+            tvBateria.setText("Conectando...");
+            btnActualizar.setEnabled(false);
+        });
 
         new Thread(() -> {
             try {
@@ -73,13 +72,11 @@ public class EstadoSondaActivity extends BaseActivity {
                     return;
                 }
 
-                // 🔍 Buscar dispositivo emparejado
+                // Buscar dispositivo emparejado
                 Set<BluetoothDevice> pairedDevices = adapter.getBondedDevices();
-
                 targetDevice = null;
-
                 for (BluetoothDevice device : pairedDevices) {
-                    if (device.getName() != null && device.getName().equals(TARGET_NAME)) {
+                    if (device.getName() != null && device.getName().contains(TARGET_NAME)) {
                         targetDevice = device;
                         break;
                     }
@@ -90,58 +87,125 @@ public class EstadoSondaActivity extends BaseActivity {
                     return;
                 }
 
-                // 📱 Mostrar info básica
                 runOnUiThread(() -> {
                     tvNombre.setText("Nombre: " + targetDevice.getName());
                     tvMac.setText("MAC: " + targetDevice.getAddress());
                 });
 
-                // 🔗 Crear conexión SPP
+                // Conectar socket SPP
                 UUID SPP = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
-
                 socket = targetDevice.createRfcommSocketToServiceRecord(SPP);
-
-                Log.d("SONDA", "Conectando...");
                 socket.connect();
                 Log.d("SONDA", "Conectado");
 
                 OutputStream out = socket.getOutputStream();
-                InputStream in = socket.getInputStream();
+                InputStream  in  = socket.getInputStream();
 
-                // 🔋 Comando batería (⚠️ puede variar según fabricante)
-                String comando = "AT+BATT?\r\n";
-                out.write(comando.getBytes());
+                // ── PASO 1: Activar modo comandos ──────────────────────────
+                runOnUiThread(() -> tvBateria.setText("Activando modo comandos..."));
 
-                Thread.sleep(500);
+                String respuestaOpen = enviarComando(out, in, "at\r\n", 3000);
+                Log.d("SONDA", "Respuesta at+open=1: '" + respuestaOpen + "'");
 
-                byte[] buffer = new byte[256];
-                int len;
-                StringBuilder sb = new StringBuilder();
-                long startTime = System.currentTimeMillis();
-
-                while (System.currentTimeMillis() - startTime < 3000) { // Espera 3 segundos
-                    if (in.available() > 0) {
-                        len = in.read(buffer);
-                        sb.append(new String(buffer, 0, len));
-                    }
+                if (!respuestaOpen.toLowerCase().contains("ok")) {
+                    respuestaOpen = enviarComando(out, in, "AT\r\n", 3000);
+                    Log.d("SONDA", "Respuesta AT+OPEN=1: '" + respuestaOpen + "'");
                 }
 
-                String respuesta = sb.toString().trim();
-                if (!respuesta.isEmpty()) {
-                    runOnUiThread(() -> tvBateria.setText("Batería: " + respuesta));
-                } else {
-                    mostrarError("Sin respuesta de batería");
+                if (!respuestaOpen.toLowerCase().contains("ok")) {
+                    respuestaOpen = enviarComando(out, in, "AT+EN1\r\n", 3000);
+                    Log.d("SONDA", "Respuesta AT+EN1: '" + respuestaOpen + "'");
                 }
+
+                boolean modoComandosActivo = respuestaOpen.toLowerCase().contains("ok");
+                Log.d("SONDA", "Modo comandos activo: " + modoComandosActivo);
+
+                // ── PASO 2: Leer batería ───────────────────────────────────
+                runOnUiThread(() -> tvBateria.setText("Leyendo batería..."));
+
+                String respuestaBatt = enviarComando(out, in, "AT+BATT?\r\n", 2000);
+                Log.d("SONDA", "Respuesta AT+BATT?: '" + respuestaBatt + "'");
+
+                if (respuestaBatt.isEmpty()) {
+                    respuestaBatt = enviarComando(out, in, "AT+CBC?\r\n", 2000);
+                    Log.d("SONDA", "Respuesta AT+CBC?: '" + respuestaBatt + "'");
+                }
+
+                // ── PASO 3: Leer firmware ──────────────────────────────────
+                String respuestaVer = enviarComando(out, in, "AT+VER\r\n", 2000);
+                Log.d("SONDA", "Respuesta AT+VER: '" + respuestaVer + "'");
+
+                // ── PASO 4: Leer MAC de la sonda ───────────────────────────
+                String respuestaMac = enviarComando(out, in, "AT+ADDR\r\n", 2000);
+                Log.d("SONDA", "Respuesta AT+ADDR: '" + respuestaMac + "'");
+
+                // ── Actualizar UI ──────────────────────────────────────────
+                final String batt = respuestaBatt.isEmpty() ? "Sin respuesta" : respuestaBatt;
+                final String ver  = respuestaVer.isEmpty()  ? "Sin respuesta" : respuestaVer;
+                final String mac  = respuestaMac.isEmpty()  ? targetDevice.getAddress() : respuestaMac;
+
+                runOnUiThread(() -> {
+                    tvBateria.setText("Batería: " + batt);
+                    tvMac.setText("MAC: " + mac);
+                    btnActualizar.setEnabled(true);
+                });
 
             } catch (Exception e) {
-                e.printStackTrace();
+                Log.e("SONDA", "Error", e);
                 mostrarError("Error: " + e.getMessage());
+            } finally {
+                cerrarConexion();
             }
         }).start();
     }
 
+    /**
+     * Envía un comando AT y espera la respuesta con lectura activa.
+     */
+    private String enviarComando(OutputStream out, InputStream in,
+                                 String comando, int maxWaitMs) {
+        try {
+            // Limpiar buffer antes de enviar
+            while (in.available() > 0) in.read();
+
+            Log.d("SONDA_CMD", "Enviando: " + comando.trim());
+            out.write(comando.getBytes());
+            out.flush();
+
+            StringBuilder sb    = new StringBuilder();
+            long          start = System.currentTimeMillis();
+
+            while (System.currentTimeMillis() - start < maxWaitMs) {
+                if (in.available() > 0) {
+                    byte[] buffer = new byte[256];
+                    int len = in.read(buffer);
+                    sb.append(new String(buffer, 0, len));
+
+                    // Salir en cuanto tengamos una línea completa
+                    String partial = sb.toString().trim();
+                    if (partial.toLowerCase().contains("ok") || partial.endsWith("\n")) {
+                        break;
+                    }
+                } else {
+                    Thread.sleep(50);
+                }
+            }
+
+            String respuesta = sb.toString().trim();
+            Log.d("SONDA_CMD", "Respuesta (" + (System.currentTimeMillis() - start) + "ms): '" + respuesta + "'");
+            return respuesta;
+
+        } catch (Exception e) {
+            Log.e("SONDA", "Error enviando comando: " + comando.trim(), e);
+            return "";
+        }
+    }
+
     private void mostrarError(String msg) {
-        runOnUiThread(() -> tvBateria.setText(msg));
+        runOnUiThread(() -> {
+            tvBateria.setText(msg);
+            btnActualizar.setEnabled(true);
+        });
     }
 
     @Override
