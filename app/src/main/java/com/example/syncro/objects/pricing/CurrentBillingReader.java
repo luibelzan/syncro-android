@@ -67,6 +67,7 @@ public class CurrentBillingReader {
                 }
 
                 System.out.println("------------------------------");
+
             }
         } catch (Exception e) {
             Log.e("DLMS", "Error al conectar/desconectar", e);
@@ -84,65 +85,54 @@ public class CurrentBillingReader {
             int contract, GXDLMSReader communicator) throws Exception {
 
         Object[] row = (Object[]) rowObj;
-        if (row.length == 0)
-            return;
+        if (row.length == 0) return;
 
         // Timestamp (primera columna)
         GXDateTime clock = (GXDateTime) row[0];
         String timestamp = formatTimestamp(clock);
         System.out.println("Timestamp " + timestamp + "W");
 
-        // Valores
         long[] aPlus = new long[7], aMinus = new long[7];
         long[] qi = new long[7], qii = new long[7], qiii = new long[7], qiv = new long[7];
         long[] maxDemand = new long[7];
         String[] maxDates = new String[7];
         Arrays.fill(maxDates, "FFFFFFFFFFFFFFFF");
 
-        Map<String, Integer> scalers = readScalers(communicator, contract);
-
-        // Procesar cada columna
         for (int col = 1; col < row.length && col < captureObjectsList.size(); col++) {
             Map.Entry<GXDLMSObject, GXDLMSCaptureObject> entry = captureObjectsList.get(col);
-            GXDLMSObject dlmsObject = entry.getKey(); // ← OBIS aquí
-            GXDLMSCaptureObject captureObj = entry.getValue(); // ← attributeIndex aquí
+            GXDLMSObject dlmsObject = entry.getKey();
+            GXDLMSCaptureObject captureObj = entry.getValue();
 
-            String obisCode = dlmsObject.getLogicalName(); // ← ¡OBIS CORRECTO!
+            String obisCode = dlmsObject.getLogicalName();
             int attributeIndex = captureObj.getAttributeIndex();
             Object value = row[col];
 
-            if (value == null)
-                continue;
+            if (value == null) continue;
 
             int periodIndex = getTariffIndex(obisCode, contract);
-            if (periodIndex < 0)
-                continue;
+            if (periodIndex < 0) continue;
 
-            int scaler = scalers.getOrDefault(obisCode, 0);
-
-            if (attributeIndex == 2) { // Valor
-                if (obisCode.startsWith("1-0:1.8.")) {
-                    aPlus[periodIndex] = scaleValue(value, scaler);
-                } else if (obisCode.startsWith("1-0:2.8.")) {
-                    aMinus[periodIndex] = scaleValue(value, scaler);
-                } else if (obisCode.startsWith("1-0:5.8.")) {
-                    qi[periodIndex] = scaleValue(value, scaler);
-                } else if (obisCode.startsWith("1-0:6.8.")) {
-                    qii[periodIndex] = scaleValue(value, scaler);
-                } else if (obisCode.startsWith("1-0:7.8.")) {
-                    qiii[periodIndex] = scaleValue(value, scaler);
-                } else if (obisCode.startsWith("1-0:8.8.")) {
-                    qiv[periodIndex] = scaleValue(value, scaler);
-                } else if (obisCode.startsWith("1-0:1.6.") || obisCode.startsWith("1-0:2.6.")) {
-                    maxDemand[periodIndex] = scaleValue(value, scaler);
+            if (attributeIndex == 2) {
+                if (obisCode.startsWith("1.0.1.8.")) {
+                    aPlus[periodIndex] = scaleValue(value, obisCode);
+                } else if (obisCode.startsWith("1.0.2.8.")) {
+                    aMinus[periodIndex] = scaleValue(value, obisCode);
+                } else if (obisCode.startsWith("1.0.5.8.")) {
+                    qi[periodIndex] = scaleValue(value, obisCode);
+                } else if (obisCode.startsWith("1.0.6.8.")) {
+                    qii[periodIndex] = scaleValue(value, obisCode);
+                } else if (obisCode.startsWith("1.0.7.8.")) {
+                    qiii[periodIndex] = scaleValue(value, obisCode);
+                } else if (obisCode.startsWith("1.0.8.8.")) {
+                    qiv[periodIndex] = scaleValue(value, obisCode);
+                } else if (obisCode.startsWith("1.0.1.6.") || obisCode.startsWith("1.0.2.6.")) {
+                    maxDemand[periodIndex] = scaleValue(value, obisCode);
                 }
             } else if (attributeIndex == 5 && value instanceof GXDateTime) {
-                GXDateTime dt = (GXDateTime) value;
-                maxDates[periodIndex] = formatTimestamp(dt) + "W";
+                maxDates[periodIndex] = formatTimestamp((GXDateTime) value) + "W";
             }
         }
 
-        // Imprimir
         printEnergySection("Tarifa activa Importada", aPlus, "[kWh]");
         printEnergySection("Tarifa activa Exportada", aMinus, "[kWh]");
         printEnergySection("Tarifa reactiva QI", qi, "[kvarh]");
@@ -160,7 +150,7 @@ public class CurrentBillingReader {
 
     private static Map<String, Integer> readScalers(GXDLMSReader communicator, int contract) {
         Map<String, Integer> scalers = new HashMap<>();
-        String[] bases = { "1-0:1.8", "1-0:2.8", "1-0:5.8", "1-0:6.8", "1-0:7.8", "1-0:8.8", "1-0:1.6", "1-0:2.6" };
+        String[] bases = { "1.0.1.8", "1.0.2.8", "1.0.5.8", "1.0.6.8", "1.0.7.8", "1.0.8.8", "1.0.1.6", "1.0.2.6" };
 
         for (String base : bases) {
             for (int n = 0; n <= 6; n++) {
@@ -174,8 +164,9 @@ public class CurrentBillingReader {
                     int scaler = (int) Math.round(scalerValue); // ← Convertir a int
 
                     scalers.put(obis, scaler);
-                } catch (Exception ignored) {
+                } catch (Exception e) {
                     // scaler = 0 por defecto
+                    Log.w("SCALER", "Failed reading scaler for " + obis + ": " + e.getMessage());
                 }
             }
         }
@@ -184,17 +175,25 @@ public class CurrentBillingReader {
 
     private static int getTariffIndex(String obisCode, int contract) {
         try {
-            String[] parts = obisCode.split("\\.");
-            if (parts.length < 4)
-                return -1;
-            String cn = parts[3]; // "10", "11", etc.
-            if (cn.length() != 2)
-                return -1;
-            int c = cn.charAt(0) - '0';
-            int n = cn.charAt(1) - '0';
-            if (c != contract)
-                return -1;
-            return (n == 0) ? 6 : n - 1;
+            // OBIS formato: "1-0:X.Y.E.255"
+            // Necesitamos el campo E (5º elemento si separamos por '.' y '-' y ':')
+            // Gurux devuelve como "1-0:1.8.10.255" → split por '.' da ["1-0:1","8","10","255"]
+            // El campo E es parts[2]
+            String[] parts = obisCode.split("[.:]");
+            // "1-0:1.8.10.255" → split por '.' → ["1-0:1","8","10","255"]
+            // Mejor normalizar primero
+            String normalized = obisCode.replace("-", ".").replace(":", ".");
+            // "1.0.1.8.10.255"
+            String[] p = normalized.split("\\.");
+            if (p.length < 6) return -1;
+
+            int e = Integer.parseInt(p[4]); // campo E: 10,11..16 para C1, 20..26 para C2...
+            int c = e / 10;  // número de contrato
+            int n = e % 10;  // número de tarifa (0=total, 1-6=periodos)
+
+            if (c != contract) return -1;
+            return (n == 0) ? 6 : n - 1;  // índice 0-5 para periodos, 6 para total
+
         } catch (Exception e) {
             return -1;
         }
@@ -227,6 +226,21 @@ public class CurrentBillingReader {
         } catch (Exception e) {
             return "FFFFFFFFFFFFFFFF";
         }
+    }
+
+    private static long scaleValue(Object value, String obisCode) {
+        if (!(value instanceof Number)) return 0;
+        long raw = ((Number) value).longValue();
+
+        // Energía (X.8.) → raw en Wh, convertir a kWh dividiendo /1000
+        if (obisCode.contains(".8.")) {
+            return raw / 1000;
+        }
+        // Potencia/maxímetro (X.6.) → raw en W, sin conversión
+        if (obisCode.contains(".6.")) {
+            return raw;
+        }
+        return raw;
     }
 
 }

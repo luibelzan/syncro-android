@@ -26,6 +26,7 @@ import com.example.syncro.models.CurvaFila;
 import com.example.syncro.objects.loadProfiles.LoadProfileReader;
 import com.example.syncro.objects.params.SerialNumberReader;
 import com.example.syncro.objects.pricing.BillingDataReader;
+import com.example.syncro.objects.pricing.CurrentBillingReader;
 import com.example.syncro.objects.pricing.DailyBillingS05;
 import com.example.syncro.objects.pricing.MonthlyBillingS04;
 import com.example.syncro.session.ConnectionConfig;
@@ -169,6 +170,8 @@ public class CierresActivity extends BaseActivity {
                             startActivity(intent);
 
                         });
+                    } else if(tipoCierre.equals("EnCurso_S27")) {
+                        CurrentBillingReader.readCurrentBilling(reader);
                     }
 
                     conn.close();
