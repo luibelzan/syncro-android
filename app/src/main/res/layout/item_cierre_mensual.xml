@@ -19,6 +19,14 @@
             android:textSize="14sp" />
 
         <TextView
+            android:id="@+id/tvFechaFin"
+            android:layout_width="110dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:text="Fecha Fin"
+            android:textSize="14sp" />
+
+        <TextView
             android:id="@+id/tvContrato"
             android:layout_width="90dp"
             android:layout_height="wrap_content"

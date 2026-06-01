@@ -50,9 +50,9 @@
     <string name="tipoCierre">Tipo de cierre:</string>
     <string name="contrato">Contrato a leer:</string>
     <string-array name="cierres_array">
-        <item>Diarios_S05</item>
-        <item>Mensuales_S04</item>
-        <item>EnCurso_S27</item>
+        <item>Diarios (S05)</item>
+        <item>Mensuales (S04)</item>
+        <item>Actuales (S27)</item>
     </string-array>
     <string-array name="contratos_array">
         <item>Contrato 1</item>

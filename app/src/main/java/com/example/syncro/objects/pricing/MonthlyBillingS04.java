@@ -1,5 +1,7 @@
 package com.example.syncro.objects.pricing;
 
+import android.util.Log;
+
 import com.example.syncro.client.GXDLMSReader;
 import com.example.syncro.models.CierreFila;
 import com.example.syncro.models.CierreMensualFila;
@@ -9,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.EnumSet;
+import java.util.Locale;
 
 import gurux.dlms.GXDLMSClient;
 import gurux.dlms.GXDateTime;
@@ -82,9 +85,25 @@ public class MonthlyBillingS04 {
                     Object[] fila = (Object[]) row;
                     if (fila.length < 100) continue;
 
-                    // Extraer fechas de la fila
-                    String fechaInicio = formatearFechaS04(fila[0].toString());
-                    String fechaFin    = formatearFechaS04(fila[99].toString());
+                    // ── Saltar filas con fecha de inicio wildcard (FF FF...) ──────────
+                    if (fila[0] instanceof byte[]) {
+                        byte[] b = (byte[]) fila[0];
+                        if (b.length == 12 && (b[0] & 0xFF) == 0xFF && (b[1] & 0xFF) == 0xFF) {
+                            continue; // fila sin fecha de inicio → ignorar
+                        }
+                    }
+                    // Si es GXDateTime con año <= 1970 también saltar
+                    if (fila[0] instanceof GXDateTime) {
+                        java.util.Date f = ((GXDateTime) fila[0]).getValue();
+                        if (f == null) continue;
+                        Calendar c = Calendar.getInstance();
+                        c.setTime(f);
+                        if (c.get(Calendar.YEAR) <= 1970) continue;
+                    }
+                    // ─────────────────────────────────────────────────────────────────
+
+                    String fechaInicio = formatearFechaS04(fila[0]);
+                    String fechaFin    = formatearFechaS04(fila[1]);
 
                     for (int p = 0; p < 7; p++) {
                         int idxValMax   = 86 + (p * 2);  // ← era 87, ahora 86
@@ -197,8 +216,8 @@ public class MonthlyBillingS04 {
 
                 if (fechaFila2.before(fechaDesde) || fechaFila2.after(fechaHasta)) continue;
 
-                String fechaInicio = formatearFechaS04(fila[0].toString());
-                String fechaFin    = formatearFechaS04(fila[99].toString());
+                String fechaInicio = formatearFechaS04(fila[0]);
+                String fechaFin    = formatearFechaS04(fila[99]);
 
                 for (int p = 0; p < 7; p++) {
                     int idxValMax   = 86 + (p * 2);
@@ -340,16 +359,61 @@ public class MonthlyBillingS04 {
         }
     }
 
-    private static String formatearFechaS04(String fecha) {
-        try {
-            String[] partes = fecha.split(" ");
-            String[] dmy = partes[0].split("/");
-            return String.format("20%s/%02d/%02d 00:00:00.000W",
-                    dmy[2],
-                    Integer.parseInt(dmy[1]),
-                    Integer.parseInt(dmy[0]));
-        } catch (Exception e) {
-            return fecha + ".000W";
+    private static String formatearFechaS04(Object raw) {
+        if (raw == null) return "N/A";
+
+        // Caso 1: ya es GXDateTime
+        if (raw instanceof GXDateTime) {
+            GXDateTime dt = (GXDateTime) raw;
+            java.util.Date fecha = dt.getValue();
+            if (fecha == null) return "N/A";
+            try {
+                Calendar cal = Calendar.getInstance();
+                cal.setTime(fecha);
+                if (cal.get(Calendar.YEAR) <= 1970) return "N/A";
+                return new SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.getDefault()).format(fecha);
+            } catch (Exception e) {
+                return "N/A";
+            }
         }
+
+        // Caso 2: byte[] de 12 bytes (DLMS DateTime)
+        if (raw instanceof byte[]) {
+            byte[] b = (byte[]) raw;
+            if (b.length == 12) {
+                // Detectar wildcard DLMS: si los bytes de año (0-1) son FF FF → sin fecha
+                if ((b[0] & 0xFF) == 0xFF && (b[1] & 0xFF) == 0xFF) {
+                    return "N/A";
+                }
+                try {
+                    Object converted = GXDLMSClient.changeType(b, DataType.DATETIME);
+                    if (converted instanceof GXDateTime) {
+                        java.util.Date fecha = ((GXDateTime) converted).getValue();
+                        if (fecha == null) return "N/A";
+                        Calendar cal = Calendar.getInstance();
+                        cal.setTime(fecha);
+                        if (cal.get(Calendar.YEAR) <= 1970) return "N/A";
+                        return new SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.getDefault()).format(fecha);
+                    }
+                } catch (Exception e) {
+                    return "N/A";
+                }
+            }
+            return "N/A";
+        }
+
+        // Caso 3: String
+        if (raw instanceof String) {
+            String s = (String) raw;
+            if (s.matches("\\d{4}/\\d{2}/\\d{2}.*")) return s;
+            try {
+                SimpleDateFormat sdfIn  = new SimpleDateFormat("dd/MM/yy HH:mm:ss", Locale.getDefault());
+                SimpleDateFormat sdfOut = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.getDefault());
+                return sdfOut.format(sdfIn.parse(s));
+            } catch (Exception ignored) {}
+            return s;
+        }
+
+        return "N/A";
     }
 }

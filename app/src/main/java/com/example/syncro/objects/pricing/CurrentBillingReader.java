@@ -54,6 +54,39 @@ public class CurrentBillingReader {
         return resultado;
     }
 
+    // Leer un contrato específico
+    public static ArrayList<CierreEnCursoFila> readCurrentBilling(GXDLMSReader reader, int contract)
+            throws Exception {
+
+        ArrayList<CierreEnCursoFila> resultado = new ArrayList<>();
+
+        String[] obisCodes = {"", "0.0.21.0.11.255", "0.0.21.0.12.255", "0.0.21.0.13.255"};
+
+        if (contract < 1 || contract > 3) return resultado;
+
+        GXDLMSProfileGeneric pg = new GXDLMSProfileGeneric(obisCodes[contract]);
+        try {
+            reader.read(pg, 7);
+            if (pg.getEntriesInUse() == 0) return resultado;
+
+            reader.read(pg, 3);
+            List<Map.Entry<GXDLMSObject, GXDLMSCaptureObject>> captureObjects =
+                    pg.getCaptureObjects();
+
+            reader.read(pg, 2);
+            Object[] buffer = pg.getBuffer();
+            if (buffer == null || buffer.length == 0) return resultado;
+
+            CierreEnCursoFila fila = parseBillingRow(buffer[0], captureObjects, contract);
+            if (fila != null) resultado.add(fila);
+
+        } catch (Exception e) {
+            Log.e("CurrentBilling", "Error contrato " + contract + ": " + e.getMessage());
+        }
+
+        return resultado;
+    }
+
     // ── Parser ───────────────────────────────────────────────────────────────
 
     private static CierreEnCursoFila parseBillingRow(

@@ -125,7 +125,7 @@ public class CierresActivity extends BaseActivity {
             String fechaInicio = editFechaInicio.getText().toString();
             String fechaFin = editFechaFin.getText().toString();
             String tipoCierre = spinnerTipoCierre.getSelectedItem().toString();
-            String contrato = spinnerContrato.getSelectedItem().toString();
+            int contrato = spinnerContrato.getSelectedItemPosition() + 1;
             ConnectionConfig config = SessionManager.getInstance().getConnectionConfig();
 
             // Mostrar valores en Toast de depuración
@@ -156,8 +156,8 @@ public class CierresActivity extends BaseActivity {
 
                     // Leer curvas
                     String cntId = SerialNumberReader.readSerialNumer(reader);
-                    if(tipoCierre.equals("Diarios_S05")) {
-                        ArrayList<CierreFila> datos = DailyBillingS05.leerS05(reader, fechaInicio, fechaFin, 1);
+                    if(tipoCierre.equals("Diarios (S05)")) {
+                        ArrayList<CierreFila> datos = DailyBillingS05.leerS05(reader, fechaInicio, fechaFin, contrato);
 
                         runOnUiThread(() -> {
                             progressBar.setVisibility(View.GONE);
@@ -168,8 +168,8 @@ public class CierresActivity extends BaseActivity {
                             startActivity(intent);
 
                         });
-                    } else if(tipoCierre.equals("Mensuales_S04")) {
-                        ArrayList<CierreMensualFila> datos = MonthlyBillingS04.leerS04(reader, fechaInicio, fechaFin, 1);
+                    } else if(tipoCierre.equals("Mensuales (S04)")) {
+                        ArrayList<CierreMensualFila> datos = MonthlyBillingS04.leerS04(reader, fechaInicio, fechaFin, contrato);
 
                         runOnUiThread(() -> {
                             progressBar.setVisibility(View.GONE);
@@ -180,8 +180,17 @@ public class CierresActivity extends BaseActivity {
                             startActivity(intent);
 
                         });
-                    } else if(tipoCierre.equals("EnCurso_S27")) {
-                        ArrayList<CierreEnCursoFila> datos = CurrentBillingReader.readCurrentBilling(reader);
+                    } else if(tipoCierre.equals("Actuales (S27)")) {
+                        int posicion = spinnerContrato.getSelectedItemPosition();
+                        ArrayList<CierreEnCursoFila> datos;
+
+                        if (posicion == 3) {
+                            // Leer los 3 contratos
+                            datos = CurrentBillingReader.readCurrentBilling(reader);
+                        } else {
+                            // Leer solo el contrato seleccionado
+                            datos = CurrentBillingReader.readCurrentBilling(reader, contrato);
+                        }
 
                         runOnUiThread(() -> {
                             progressBar.setVisibility(View.GONE);

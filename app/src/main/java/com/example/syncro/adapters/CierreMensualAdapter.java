@@ -33,6 +33,7 @@ public class CierreMensualAdapter extends RecyclerView.Adapter<CierreMensualAdap
         CierreMensualFila fila = datos.get(position);
 
         holder.tvFecha.setText(fila.fechaInicio);
+        holder.tvFechaFin.setText(fila.fechaFin);
         holder.tvContrato.setText(String.valueOf(fila.contrato));
         holder.tvPeriodo.setText(String.valueOf(fila.periodo));
 
@@ -63,7 +64,7 @@ public class CierreMensualAdapter extends RecyclerView.Adapter<CierreMensualAdap
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
 
-        TextView tvFecha, tvContrato, tvPeriodo,
+        TextView tvFecha, tvFechaFin, tvContrato, tvPeriodo,
                 tvMaxAIi, tvFechaMaxAIi,
                 tvActImpAbs, tvActExpAbs,
                 tvR1Abs, tvR2Abs, tvR3Abs, tvR4Abs,
@@ -74,6 +75,7 @@ public class CierreMensualAdapter extends RecyclerView.Adapter<CierreMensualAdap
             super(itemView);
 
             tvFecha = itemView.findViewById(R.id.tvFecha);
+            tvFechaFin = itemView.findViewById(R.id.tvFechaFin);
             tvContrato = itemView.findViewById(R.id.tvContrato);
             tvPeriodo = itemView.findViewById(R.id.tvPeriodo);
 
