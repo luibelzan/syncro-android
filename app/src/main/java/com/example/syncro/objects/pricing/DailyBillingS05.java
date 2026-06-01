@@ -2,6 +2,7 @@ package com.example.syncro.objects.pricing;
 
 import com.example.syncro.client.GXDLMSReader;
 import com.example.syncro.models.CierreFila;
+import com.example.syncro.utils.AppLogger;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -18,7 +19,8 @@ public class DailyBillingS05 {
         ArrayList<CierreFila> result = new ArrayList<>();
 
         try {
-            System.out.println("Leyendo S05 del contrato " + contract + "...");
+            //System.out.println("Leyendo S05 del contrato " + contract + "...");
+            AppLogger.i("Syncro", "Leyendo S05 del contrato " + contract + "...");
 
             String obisS05 = "0.0.98.2." + contract + ".255";
 
@@ -56,7 +58,8 @@ public class DailyBillingS05 {
             start.setSkip(skips);
             end.setSkip(skips);
 
-            System.out.println("Leyendo S05 desde " + from + " hasta " + to);
+            //System.out.println("Leyendo S05 desde " + from + " hasta " + to);
+            AppLogger.i("Syncro", "Leyendo S05 desde " + from + " hasta " + to);
 
             // 4️⃣ Leer filas
             Object[] rows = reader.readRowsByRange(s05, start, end);
@@ -99,8 +102,9 @@ public class DailyBillingS05 {
             }
 
         } catch (Exception e) {
-            System.err.println("Error durante la lectura de S05: " + e.getMessage());
-            e.printStackTrace();
+            //System.err.println("Error durante la lectura de S05: " + e.getMessage());
+            AppLogger.e("DailyBilling", "Fallo en la petición: " + e.getMessage());
+            //e.printStackTrace();
         }
 
         return result;

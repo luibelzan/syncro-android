@@ -5,6 +5,7 @@ import android.util.Log;
 import com.example.syncro.client.GXDLMSReader;
 import com.example.syncro.models.CierreFila;
 import com.example.syncro.models.CierreMensualFila;
+import com.example.syncro.utils.AppLogger;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -32,7 +33,8 @@ public class MonthlyBillingS04 {
         ArrayList<CierreMensualFila> result = new ArrayList<>();
 
         try {
-            System.out.println("Ejecutando lectura de cierres S04 por rango...");
+            //System.out.println("Ejecutando lectura de cierres S04 por rango...");
+            AppLogger.i("Syncro", "Ejecutando lectura de cierres S04 por rango...");
 
             String obisS04 = "0.0.98.1." + contract + ".255";
             GXDLMSProfileGeneric s04 = new GXDLMSProfileGeneric(obisS04);
@@ -75,7 +77,8 @@ public class MonthlyBillingS04 {
             start.setSkip(skips);
             end.setSkip(skips);
 
-            System.out.println("Solicitando S04: " + from + " al " + to);
+            //System.out.println("Solicitando S04: " + from + " al " + to);
+            AppLogger.i("Syncro", "Solicitando S04: " + from + " al " + to);
 
             // 4. Lectura por rango
             Object[] rows = reader.readRowsByRange(s04, start, end);
@@ -141,7 +144,8 @@ public class MonthlyBillingS04 {
             }
 
         } catch (Exception e) {
-            System.err.println("Error en lectura por rango S04: " + e.getMessage());
+            //System.err.println("Error en lectura por rango S04: " + e.getMessage());
+            AppLogger.e("MonthlyBilling", "Error en lectura por rango S04: " + e.getMessage());
         }
 
         return result;

@@ -31,6 +31,7 @@ import com.example.syncro.objects.params.DateReader;
 import com.example.syncro.session.ConnectionConfig;
 import com.example.syncro.session.SessionManager;
 import com.example.syncro.utils.MeterData;
+import com.example.syncro.utils.PasswordHelper;
 
 
 public class MainActivity extends BaseActivity {
@@ -50,6 +51,8 @@ public class MainActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
+        // En MainActivity.onCreate() o en tu clase Application:
+        PasswordHelper.initDefaultPasswordIfNeeded(this);
 
         // 🔹 Verificar permisos Bluetooth
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT)

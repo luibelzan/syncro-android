@@ -27,6 +27,7 @@ public class ConfigActivity extends AppCompatActivity {
         LinearLayout btnFtpStg = findViewById(R.id.btnFtpStg);
         LinearLayout btnStg = findViewById(R.id.btnStg);
         LinearLayout btnContador = findViewById(R.id.btnContador);
+        LinearLayout btnAppLog = findViewById(R.id.btnAppLog);
 
         btnFtpStg.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -48,6 +49,14 @@ public class ConfigActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(ConfigActivity.this, ConfigContadorActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        btnAppLog.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(ConfigActivity.this, AppLogActivity.class);
                 startActivity(intent);
             }
         });

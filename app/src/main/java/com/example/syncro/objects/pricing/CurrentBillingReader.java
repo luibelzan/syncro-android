@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.example.syncro.client.GXDLMSReader;
 import com.example.syncro.models.CierreEnCursoFila;
+import com.example.syncro.utils.AppLogger;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -21,6 +22,8 @@ public class CurrentBillingReader {
 
     public static ArrayList<CierreEnCursoFila> readCurrentBilling(GXDLMSReader reader)
             throws Exception {
+
+        AppLogger.i("Syncro", "Leyendo Cierres en Curso");
 
         ArrayList<CierreEnCursoFila> resultado = new ArrayList<>();
 
@@ -47,7 +50,8 @@ public class CurrentBillingReader {
                 if (fila != null) resultado.add(fila);
 
             } catch (Exception e) {
-                Log.e("CurrentBilling", "Error contrato " + contract + ": " + e.getMessage());
+                //Log.e("CurrentBilling", "Error contrato " + contract + ": " + e.getMessage());
+                AppLogger.e("CurrentBilling", "Error contrato " + contract + ": " + e.getMessage());
             }
         }
 
@@ -57,6 +61,8 @@ public class CurrentBillingReader {
     // Leer un contrato específico
     public static ArrayList<CierreEnCursoFila> readCurrentBilling(GXDLMSReader reader, int contract)
             throws Exception {
+
+        AppLogger.i("Syncro", "Leyendo Cierres en Curso");
 
         ArrayList<CierreEnCursoFila> resultado = new ArrayList<>();
 
@@ -81,7 +87,7 @@ public class CurrentBillingReader {
             if (fila != null) resultado.add(fila);
 
         } catch (Exception e) {
-            Log.e("CurrentBilling", "Error contrato " + contract + ": " + e.getMessage());
+            AppLogger.e("CurrentBilling", "Error contrato " + contract + ": " + e.getMessage());
         }
 
         return resultado;
