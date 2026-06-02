@@ -33,8 +33,10 @@ import com.example.syncro.objects.pricing.MonthlyBillingS04;
 import com.example.syncro.session.ConnectionConfig;
 import com.example.syncro.session.SessionManager;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -82,7 +84,7 @@ public class CierresActivity extends BaseActivity {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 String tipo = parent.getItemAtPosition(position).toString();
-                boolean esEnCurso = tipo.equals("EnCurso_S27");
+                boolean esEnCurso = tipo.equals("Actuales (S27)"); 
 
                 findViewById(R.id.textFechaInicio).setVisibility(esEnCurso ? View.GONE : View.VISIBLE);
                 findViewById(R.id.editFechaInicio).setVisibility(esEnCurso ? View.GONE : View.VISIBLE);
@@ -122,9 +124,19 @@ public class CierresActivity extends BaseActivity {
 
         btnNext.setOnClickListener(v -> {
 
+            String tipoCierre =
+                    spinnerTipoCierre.getSelectedItem().toString();
+
+            if (!validarFechasCierre(
+                    tipoCierre,
+                    editFechaInicio,
+                    editFechaFin)) {
+
+                return;
+            }
+
             String fechaInicio = editFechaInicio.getText().toString();
             String fechaFin = editFechaFin.getText().toString();
-            String tipoCierre = spinnerTipoCierre.getSelectedItem().toString();
             int contrato = spinnerContrato.getSelectedItemPosition() + 1;
             ConnectionConfig config = SessionManager.getInstance().getConnectionConfig();
 
@@ -222,5 +234,70 @@ public class CierresActivity extends BaseActivity {
         });
 
 
+    }
+
+    private boolean validarFechasCierre(String tipoCierre,
+                                        EditText editFechaInicio,
+                                        EditText editFechaFin) {
+
+        // S27 no necesita fechas
+        if (tipoCierre.equals("Actuales (S27)")) {
+            return true;
+        }
+
+        String fechaInicio = editFechaInicio.getText().toString().trim();
+        String fechaFin = editFechaFin.getText().toString().trim();
+
+        if (fechaInicio.isEmpty()) {
+            Toast.makeText(
+                    this,
+                    "Debe seleccionar una fecha de inicio",
+                    Toast.LENGTH_SHORT
+            ).show();
+            return false;
+        }
+
+        if (fechaFin.isEmpty()) {
+            Toast.makeText(
+                    this,
+                    "Debe seleccionar una fecha de fin",
+                    Toast.LENGTH_SHORT
+            ).show();
+            return false;
+        }
+
+        try {
+
+            SimpleDateFormat sdf =
+                    new SimpleDateFormat("yyyy/MM/dd", Locale.US);
+
+            sdf.setLenient(false);
+
+            Date inicio = sdf.parse(fechaInicio);
+            Date fin = sdf.parse(fechaFin);
+
+            if (inicio.after(fin)) {
+
+                Toast.makeText(
+                        this,
+                        "La fecha inicio no puede ser posterior a la fecha fin",
+                        Toast.LENGTH_LONG
+                ).show();
+
+                return false;
+            }
+
+        } catch (Exception e) {
+
+            Toast.makeText(
+                    this,
+                    "Formato de fecha inválido",
+                    Toast.LENGTH_SHORT
+            ).show();
+
+            return false;
+        }
+
+        return true;
     }
 }
