@@ -42,8 +42,10 @@ import com.example.syncro.objects.params.SerialNumberReader;
 import com.example.syncro.session.ConnectionConfig;
 import com.example.syncro.session.SessionManager;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Locale;
 
 public class EventsActivity extends BaseActivity {
@@ -97,6 +99,13 @@ public class EventsActivity extends BaseActivity {
         ImageButton btnNext = findViewById(R.id.btnNext);
 
         btnNext.setOnClickListener(v -> {
+
+            if (!validarFormulario(
+                    editFechaInicio,
+                    editFechaFin,
+                    listEvents)) {
+                return;
+            }
 
             String fechaInicio = editFechaInicio.getText().toString();
             String fechaFin = editFechaFin.getText().toString();
@@ -215,5 +224,89 @@ public class EventsActivity extends BaseActivity {
             }).start();
 
         });
+    }
+
+    private boolean validarFormulario(EditText editFechaInicio,
+                                      EditText editFechaFin,
+                                      ListView listEvents) {
+
+        String fechaInicio = editFechaInicio.getText().toString().trim();
+        String fechaFin = editFechaFin.getText().toString().trim();
+
+        if (fechaInicio.isEmpty()) {
+            Toast.makeText(
+                    this,
+                    "Debe seleccionar una fecha de inicio",
+                    Toast.LENGTH_SHORT
+            ).show();
+            return false;
+        }
+
+        if (fechaFin.isEmpty()) {
+            Toast.makeText(
+                    this,
+                    "Debe seleccionar una fecha de fin",
+                    Toast.LENGTH_SHORT
+            ).show();
+            return false;
+        }
+
+        try {
+
+            SimpleDateFormat sdf =
+                    new SimpleDateFormat("yyyy/MM/dd", Locale.US);
+
+            sdf.setLenient(false);
+
+            Date inicio = sdf.parse(fechaInicio);
+            Date fin = sdf.parse(fechaFin);
+
+            if (inicio.after(fin)) {
+
+                Toast.makeText(
+                        this,
+                        "La fecha inicio no puede ser posterior a la fecha fin",
+                        Toast.LENGTH_LONG
+                ).show();
+
+                return false;
+            }
+
+        } catch (Exception e) {
+
+            Toast.makeText(
+                    this,
+                    "Formato de fecha inválido",
+                    Toast.LENGTH_SHORT
+            ).show();
+
+            return false;
+        }
+
+        // Validar eventos seleccionados
+        SparseBooleanArray checked =
+                listEvents.getCheckedItemPositions();
+
+        boolean algunoSeleccionado = false;
+
+        for (int i = 0; i < listEvents.getCount(); i++) {
+            if (checked.get(i)) {
+                algunoSeleccionado = true;
+                break;
+            }
+        }
+
+        if (!algunoSeleccionado) {
+
+            Toast.makeText(
+                    this,
+                    "Seleccione al menos un tipo de evento",
+                    Toast.LENGTH_LONG
+            ).show();
+
+            return false;
+        }
+
+        return true;
     }
 }

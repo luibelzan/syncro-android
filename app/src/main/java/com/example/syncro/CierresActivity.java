@@ -84,7 +84,7 @@ public class CierresActivity extends BaseActivity {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 String tipo = parent.getItemAtPosition(position).toString();
-                boolean esEnCurso = tipo.equals("Actuales (S27)"); 
+                boolean esEnCurso = tipo.equals("Actuales (S27)");
 
                 findViewById(R.id.textFechaInicio).setVisibility(esEnCurso ? View.GONE : View.VISIBLE);
                 findViewById(R.id.editFechaInicio).setVisibility(esEnCurso ? View.GONE : View.VISIBLE);
