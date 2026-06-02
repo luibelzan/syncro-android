@@ -50,7 +50,6 @@
             android:layout_marginTop="8dp"
             android:layout_marginBottom="16dp"
             android:background="@drawable/borde_radio_group"
-            android:focusable="false"
             android:clickable="true"
             android:hint="@string/dateInput" />
 
@@ -71,7 +70,6 @@
             android:layout_marginTop="8dp"
             android:layout_marginBottom="16dp"
             android:background="@drawable/borde_radio_group"
-            android:focusable="false"
             android:clickable="true"
             android:hint="@string/dateInput" />
     </LinearLayout>
