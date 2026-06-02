@@ -75,61 +75,153 @@ public class ResultadosCurvasActivity extends BaseActivity {
         }
 
         btnExport.setOnClickListener(v -> {
-            if (datos != null && !datos.isEmpty()) {
-                // 🔹 Obtener configuración guardada
-                SharedPreferences prefs = getSharedPreferences("ftp_config", MODE_PRIVATE);
-                String cncName = prefs.getString("cncName", "Syncro");
 
-                String xml = generarCurvasXML(datos, cntId, cncName);
+            if (datos == null || datos.isEmpty()) {
+                Toast.makeText(this, "No hay datos para exportar", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
-                // 🔹 Limpiar nombre (opcional pero recomendado)
-                cncName = cncName.replaceAll("\\s+", "_");
+            SharedPreferences prefs = getSharedPreferences("ftp_config", MODE_PRIVATE);
+            String cncName = prefs.getString("cncName", "Syncro");
 
-                // 🔹 Fecha actual
-                String fechaActual = new SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault())
-                        .format(new Date());
+            String xml = generarCurvasXML(datos, cntId, cncName);
 
-                // 🔹 Construir nombre del archivo
-                String nombreFichero = cncName + "_0_S02_0_" + fechaActual + ".xml";
+            cncName = cncName.replaceAll("\\s+", "_");
 
-                // 🔹 Carpeta Downloads
-                File downloadsFolder =
-                        Environment.getExternalStoragePublicDirectory(
-                                Environment.DIRECTORY_DOWNLOADS);
+            String fechaActual = new SimpleDateFormat(
+                    "yyyyMMddHHmmss",
+                    Locale.getDefault()
+            ).format(new Date());
 
-                // 🔹 Carpeta específica app
-                File syncroFolder = new File(downloadsFolder, "Syncro/Reports");
+            String nombreFichero =
+                    cncName + "_0_S02_0_" + fechaActual + ".xml";
 
-                // 🔹 Crear carpetas si no existen
-                if (!syncroFolder.exists()) {
-                    syncroFolder.mkdirs();
+            File downloadsFolder =
+                    Environment.getExternalStoragePublicDirectory(
+                            Environment.DIRECTORY_DOWNLOADS);
+
+            File syncroFolder =
+                    new File(downloadsFolder, "Syncro/Reports");
+
+            if (!syncroFolder.exists()) {
+                syncroFolder.mkdirs();
+            }
+
+            File file = new File(syncroFolder, nombreFichero);
+
+            try (FileOutputStream fos = new FileOutputStream(file)) {
+
+                fos.write(xml.getBytes());
+                fos.flush();
+
+                String afterGenerate = prefs.getString(
+                        "afterGenerate",
+                        "Guardar e intentar enviar al FTP inmediatamente"
+                );
+
+                String afterSend = prefs.getString(
+                        "afterSend",
+                        "Mover a la carpeta de backup del dispositivo"
+                );
+
+                // ==========================
+                // SOLO GUARDAR
+                // ==========================
+                if (afterGenerate.equals(
+                        "Solo guardar para enviar al FTP mas tarde")) {
+
+                    Toast.makeText(
+                            this,
+                            "Archivo guardado para envío posterior",
+                            Toast.LENGTH_LONG
+                    ).show();
+
+                    return;
                 }
 
-                // 🔹 Archivo final
-                File file = new File(syncroFolder, nombreFichero);
+                // ==========================
+                // SUBIR EN SEGUNDO PLANO
+                // ==========================
+                new Thread(() -> {
 
-                try (FileOutputStream fos = new FileOutputStream(file)) {
-                    fos.write(xml.getBytes());
-                    fos.flush();
+                    boolean subidaCorrecta = false;
 
-                    Log.d("FILE_PATH", file.getAbsolutePath());
-                    String protocolo = prefs.getString("protocolo", "FTP");
+                    try {
 
-                    // 🔥 SELECCIÓN AUTOMÁTICA
-                    if (protocolo.equalsIgnoreCase("SFTP")) {
-                        Utils.subirArchivoSFTP(this, file);
-                    } else if (protocolo.equalsIgnoreCase("FTPS")) {
-                        Utils.subirArchivoFTPS(this, file);
-                    } else {
-                        Utils.subirArchivoFTP(this, file);
+                        String protocolo =
+                                prefs.getString("protocolo", "FTP");
+
+                        if ("SFTP".equalsIgnoreCase(protocolo)) {
+
+                            subidaCorrecta =
+                                    Utils.subirArchivoSFTP(
+                                            ResultadosCurvasActivity.this,
+                                            file
+                                    );
+
+                        } else if ("FTPS".equalsIgnoreCase(protocolo)) {
+
+                            subidaCorrecta =
+                                    Utils.subirArchivoFTPS(
+                                            ResultadosCurvasActivity.this,
+                                            file
+                                    );
+
+                        } else {
+
+                            subidaCorrecta =
+                                    Utils.subirArchivoFTP(
+                                            ResultadosCurvasActivity.this,
+                                            file
+                                    );
+                        }
+
+                        if (subidaCorrecta) {
+
+                            Utils.gestionarArchivoTrasEnvio(
+                                    file,
+                                    afterSend,
+                                    ResultadosCurvasActivity.this
+                            );
+                        }
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
 
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                    boolean resultadoFinal = subidaCorrecta;
 
-            } else {
-                Toast.makeText(this, "No hay datos para exportar", Toast.LENGTH_SHORT).show();
+                    runOnUiThread(() -> {
+
+                        if (resultadoFinal) {
+
+                            Toast.makeText(
+                                    ResultadosCurvasActivity.this,
+                                    "Archivo enviado correctamente",
+                                    Toast.LENGTH_LONG
+                            ).show();
+
+                        } else {
+
+                            Toast.makeText(
+                                    ResultadosCurvasActivity.this,
+                                    "Error al enviar archivo",
+                                    Toast.LENGTH_LONG
+                            ).show();
+                        }
+                    });
+
+                }).start();
+
+            } catch (IOException e) {
+
+                e.printStackTrace();
+
+                Toast.makeText(
+                        this,
+                        "Error al generar el fichero XML",
+                        Toast.LENGTH_LONG
+                ).show();
             }
         });
     }

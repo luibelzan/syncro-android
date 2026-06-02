@@ -69,36 +69,90 @@ public class ReportesActivity extends BaseActivity {
 
     private void enviarSeleccionados() {
 
-        SharedPreferences prefs =
-                getSharedPreferences("ftp_config", MODE_PRIVATE);
+        new Thread(() -> {
 
-        String protocolo = prefs.getString("protocolo", "FTP");
+            SharedPreferences prefs =
+                    getSharedPreferences("ftp_config", MODE_PRIVATE);
 
-        int enviados = 0;
+            String protocolo =
+                    prefs.getString("protocolo", "FTP");
 
-        for (ReportFile report : lista) {
+            String afterSend =
+                    prefs.getString(
+                            "afterSend",
+                            "Mover a la carpeta de backup del dispositivo"
+                    );
 
-            if (report.isSeleccionado()) {
+            int enviados = 0;
 
-                enviados++;
+            for (ReportFile report : lista) {
 
-                if (protocolo.equalsIgnoreCase("SFTP")) {
+                if (!report.isSeleccionado()) {
+                    continue;
+                }
 
-                    Utils.subirArchivoSFTP(this, report.getFile());
+                boolean subidaCorrecta = false;
 
-                } else if (protocolo.equalsIgnoreCase("FTPS")) {
+                try {
 
-                    Utils.subirArchivoFTPS(this, report.getFile());
+                    if ("SFTP".equalsIgnoreCase(protocolo)) {
 
-                } else {
+                        subidaCorrecta =
+                                Utils.subirArchivoSFTP(
+                                        ReportesActivity.this,
+                                        report.getFile()
+                                );
 
-                    Utils.subirArchivoFTP(this, report.getFile());
+                    } else if ("FTPS".equalsIgnoreCase(protocolo)) {
+
+                        subidaCorrecta =
+                                Utils.subirArchivoFTPS(
+                                        ReportesActivity.this,
+                                        report.getFile()
+                                );
+
+                    } else {
+
+                        subidaCorrecta =
+                                Utils.subirArchivoFTP(
+                                        ReportesActivity.this,
+                                        report.getFile()
+                                );
+                    }
+
+                    if (subidaCorrecta) {
+
+                        enviados++;
+
+                        Utils.gestionarArchivoTrasEnvio(
+                                report.getFile(),
+                                afterSend,
+                                ReportesActivity.this
+                        );
+                    }
+
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
-        }
 
-        Toast.makeText(this,
-                enviados + " reportes enviados",
-                Toast.LENGTH_SHORT).show();
+            int totalEnviados = enviados;
+
+            runOnUiThread(() -> {
+
+                Toast.makeText(
+                        ReportesActivity.this,
+                        totalEnviados + " reportes enviados",
+                        Toast.LENGTH_LONG
+                ).show();
+
+                lista.clear();
+                cargarReportes();
+
+                RecyclerView rv = findViewById(R.id.rvReportes);
+                rv.setAdapter(new ReportesAdapter(lista));
+            });
+
+        }).start();
     }
 }
