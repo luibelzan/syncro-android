@@ -20,7 +20,7 @@ public class DailyBillingS05 {
 
         try {
             //System.out.println("Leyendo S05 del contrato " + contract + "...");
-            AppLogger.i("Syncro", "Leyendo S05 del contrato " + contract + "...");
+            AppLogger.i("DailyBilling", "Leyendo S05 del contrato " + contract + "...");
 
             String obisS05 = "0.0.98.2." + contract + ".255";
 
@@ -28,7 +28,9 @@ public class DailyBillingS05 {
             GXDLMSProfileGeneric s05 = new GXDLMSProfileGeneric(obisS05);
 
             // 2️⃣ Leer capture objects
-            System.out.println("Leyendo capture objects de S05...");
+            //System.out.println("Leyendo capture objects de S05...");
+            AppLogger.i("DailyBilling", "Leyendo capture objects de S05...");
+
             reader.read(s05, 3);
 
             // 3️⃣ Configuración de fechas
@@ -59,7 +61,7 @@ public class DailyBillingS05 {
             end.setSkip(skips);
 
             //System.out.println("Leyendo S05 desde " + from + " hasta " + to);
-            AppLogger.i("Syncro", "Leyendo S05 desde " + from + " hasta " + to);
+            AppLogger.i("DailyBilling", "Leyendo S05 desde " + from + " hasta " + to);
 
             // 4️⃣ Leer filas
             Object[] rows = reader.readRowsByRange(s05, start, end);
@@ -99,6 +101,7 @@ public class DailyBillingS05 {
 
             } else {
                 System.out.println("No hay registros en este rango.");
+                AppLogger.i("DailyBilling", "No hay registros en este rango.");
             }
 
         } catch (Exception e) {

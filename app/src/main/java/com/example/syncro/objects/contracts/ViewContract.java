@@ -1,6 +1,7 @@
 package com.example.syncro.objects.contracts;
 
 import com.example.syncro.client.GXDLMSReader;
+import com.example.syncro.utils.AppLogger;
 
 import java.util.Calendar;
 import java.util.List;
@@ -19,6 +20,8 @@ import gurux.dlms.objects.GXDLMSSpecialDaysTable;
 import gurux.dlms.objects.GXDLMSWeekProfile;
 
 public class ViewContract {
+
+    private static final String TAG = "ViewContract";
 
     public static String leerContrato(GXDLMSReader reader, int contract) throws Exception {
         StringBuilder sb = new StringBuilder();
@@ -44,7 +47,6 @@ public class ViewContract {
         reader.read(cal, 4);
         reader.read(cal, 5);
 
-        // Day profiles ACTIVO
         sb.append("Days Profile:\n");
         sb.append(String.format(" %-12s %-12s %-6s%n", "Profile", "Start time", "Tariff"));
         GXDLMSDayProfile[] dayProfilesActive = cal.getDayProfileTableActive();
@@ -61,7 +63,6 @@ public class ViewContract {
             }
         }
 
-        // Week profiles ACTIVO
         sb.append("Weeks Profile:\n");
         sb.append(String.format(" %-6s %-4s %-4s %-4s %-4s %-4s %-4s %-4s%n",
                 "Week", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"));
@@ -76,7 +77,6 @@ public class ViewContract {
             }
         }
 
-        // Season profiles ACTIVO
         sb.append("Seasons:\n");
         sb.append(String.format(" %-12s %-12s %-6s%n", "Season", "Start Date", "Week"));
         GXDLMSSeasonProfile[] seasonProfilesActive = cal.getSeasonProfileActive();
@@ -89,7 +89,6 @@ public class ViewContract {
             }
         }
 
-        // Holidays — leer una vez, mostrar en activo y pasivo
         GXDLMSSpecialDay[] holidays = null;
         try {
             GXDLMSSpecialDaysTable sdt = new GXDLMSSpecialDaysTable(
@@ -98,7 +97,6 @@ public class ViewContract {
             holidays = sdt.getEntries();
         } catch (Exception ignored) {}
 
-        // Holidays bloque ACTIVO
         sb.append("Holidays:\n");
         sb.append(String.format(" %-12s %-6s%n", "Date", "Profile"));
         if (holidays != null && holidays.length > 0) {
@@ -110,7 +108,6 @@ public class ViewContract {
             sb.append(" N/A\n");
         }
 
-        // Fecha de activación ACTIVA
         sb.append("Activado:\n");
         try {
             GXDLMSData activationData = new GXDLMSData("0.1.94.34.130.255");
@@ -130,37 +127,32 @@ public class ViewContract {
                 sb.append("  FFFFFFFFFFFFFFFFFW\n \n");
             }
         } catch (Exception e) {
-            // No accesible en esta asociación — mostrar wildcard
             sb.append("  FFFFFFFFFFFFFFFFFW\n \n");
         }
 
-        // Cierre facturación activo
         sb.append("Cierre de facturación periodo 1\n");
         try {
-            // Crear el objeto con el tipo correcto directamente
             gurux.dlms.objects.GXDLMSSchedule schedule = new gurux.dlms.objects.GXDLMSSchedule(
                     String.format("0.0.15.1.%d.255", contract));
 
-            // Forzar class-id 22 por reflexión en el campo interno
             try {
                 java.lang.reflect.Field f = schedule.getClass().getSuperclass().getDeclaredField("objectType");
                 f.setAccessible(true);
                 f.set(schedule, gurux.dlms.enums.ObjectType.SCHEDULE);
-                System.out.println("objectType forzado: " + schedule.getObjectType());
+                AppLogger.i(TAG, "objectType forzado: " + schedule.getObjectType());
             } catch (Exception ex) {
-                System.out.println("No se pudo forzar objectType: " + ex.getMessage());
+                AppLogger.e(TAG, "No se pudo forzar objectType: " + ex.getMessage());
             }
 
             reader.read(schedule, 4);
             List<GXDLMSScheduleEntry> entries = schedule.getEntries();
             if (entries != null && !entries.isEmpty()) {
-                // Parsear manualmente el entry usando reflexión para ver qué campos tiene
                 GXDLMSScheduleEntry entry = entries.get(0);
                 for (java.lang.reflect.Method m : entry.getClass().getMethods()) {
                     if (m.getName().startsWith("get") && m.getParameterCount() == 0) {
                         try {
                             Object val = m.invoke(entry);
-                            System.out.println("  " + m.getName() + " => " + val);
+                            AppLogger.i(TAG, "  " + m.getName() + " => " + val);
                         } catch (Exception ignored) {}
                     }
                 }
@@ -169,11 +161,10 @@ public class ViewContract {
                 sb.append("  N/A\n");
             }
         } catch (Exception e) {
-            System.out.println("Error cierre activo: " + e.getMessage());
+            AppLogger.e(TAG, "Error cierre activo: " + e.getMessage());
             sb.append("  N/A\n");
         }
 
-        // Umbrales activos — campo E = 1..6
         sb.append("Umbrales de potencia Activos :\n");
         for (int p = 1; p <= 6; p++) {
             String obisT = String.format("0.1.94.34.%d.255", p);
@@ -201,7 +192,6 @@ public class ViewContract {
         reader.read(cal, 8);
         reader.read(cal, 9);
 
-        // Day profiles PASIVO
         sb.append("Days Profile:\n");
         sb.append(String.format(" %-12s %-12s %-6s%n", "Profile", "Start time", "Tariff"));
         GXDLMSDayProfile[] dayProfilesPassive = cal.getDayProfileTablePassive();
@@ -218,7 +208,6 @@ public class ViewContract {
             }
         }
 
-        // Week profiles PASIVO
         sb.append("Weeks Profile:\n");
         sb.append(String.format(" %-6s %-4s %-4s %-4s %-4s %-4s %-4s %-4s%n",
                 "Week", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"));
@@ -233,7 +222,6 @@ public class ViewContract {
             }
         }
 
-        // Season profiles PASIVO
         sb.append("Seasons:\n");
         sb.append(String.format(" %-12s %-12s %-6s%n", "Season", "Start Date", "Week"));
         GXDLMSSeasonProfile[] seasonProfilesPassive = cal.getSeasonProfilePassive();
@@ -246,7 +234,6 @@ public class ViewContract {
             }
         }
 
-        // Holidays bloque PASIVO — reutilizar array ya leído
         sb.append("Holidays:\n");
         sb.append(String.format(" %-12s %-6s%n", "Date", "Profile"));
         if (holidays != null && holidays.length > 0) {
@@ -258,7 +245,6 @@ public class ViewContract {
             sb.append(" N/A\n");
         }
 
-        // Fecha activación pasiva — leer atrib 10 y castear resultado
         sb.append("Fecha pasiva de activación:\n");
         try {
             Object raw = reader.read(cal, 10);
@@ -271,7 +257,6 @@ public class ViewContract {
             sb.append("  FFFFFFFFFFFFFFFFFW\n \n");
         }
 
-        // Cierre facturación pasivo
         sb.append("Cierre de facturación periodo 1\n");
         try {
             GXDLMSData endBillingPassive = new GXDLMSData("0.0.94.34.41.255");
@@ -281,7 +266,6 @@ public class ViewContract {
             sb.append("  N/A\n");
         }
 
-        // Umbrales pasivos — campo E = 0x0B..0x10
         sb.append("Umbrales de potencia pasivos :\n");
         for (int p = 1; p <= 6; p++) {
             String obisT = String.format("0.1.94.34.%d.255", 0x0A + p);
@@ -333,7 +317,6 @@ public class ViewContract {
         try {
             if (value instanceof GXDateTime) {
                 GXDateTime dt = (GXDateTime) value;
-                // Usar getSkip() para respetar wildcards sin pasar por getMeterCalendar()
                 java.util.Set<gurux.dlms.enums.DateTimeSkips> skips = dt.getSkip();
 
                 int year  = skips.contains(gurux.dlms.enums.DateTimeSkips.YEAR)  ? 0xFFFF : dt.getMeterCalendar().get(Calendar.YEAR);
@@ -345,7 +328,6 @@ public class ViewContract {
                 String d = (day   == 0xFF)   ? "FF"   : String.format("%02d", day);
                 return y + "/" + m + "/" + d;
             }
-            // ... resto del método para byte[] igual que antes
             if (value instanceof byte[]) {
                 byte[] bytes = (byte[]) value;
                 if (bytes.length >= 4) {
@@ -365,15 +347,11 @@ public class ViewContract {
     }
 
     private static byte[] gxDateTimeToBytes(GXDateTime dt) {
-        // GXDateTime expone getValue() que devuelve el array original de 12 bytes
-        // si fue creado desde un octet-string DLMS
         try {
-            // Intentar acceder via getValue si está disponible
             Object raw = dt.getValue();
             if (raw instanceof byte[]) return (byte[]) raw;
         } catch (Exception ignored) {}
 
-        // Fallback: reconstruir desde los campos skip wildcards
         try {
             java.lang.reflect.Field f = GXDateTime.class.getDeclaredField("value");
             f.setAccessible(true);
@@ -381,12 +359,10 @@ public class ViewContract {
             if (v instanceof byte[]) return (byte[]) v;
         } catch (Exception ignored) {}
 
-        // Último recurso: serializar de vuelta a bytes
         try {
             gurux.dlms.GXByteBuffer bb = new gurux.dlms.GXByteBuffer();
             gurux.dlms.internal.GXCommon.setData(null, bb,
                     gurux.dlms.enums.DataType.DATETIME, dt);
-            // Los primeros 2 bytes son tipo+longitud, saltar
             byte[] all = bb.array();
             byte[] result = new byte[12];
             System.arraycopy(all, 2, result, 0, 12);
@@ -413,34 +389,29 @@ public class ViewContract {
 
             if (arr == null || arr.length == 0) return "N/A";
 
-            // Nivel 1: array de structs → coger la primera entrada
             Object first = arr[0];
             Object[] entry = null;
-            if (first instanceof Object[])       entry = (Object[]) first;
-            else if (first instanceof List)      entry = ((List<?>) first).toArray();
-            else if (first instanceof byte[])    return formatBillingDate(first);
+            if (first instanceof Object[])        entry = (Object[]) first;
+            else if (first instanceof List)       entry = ((List<?>) first).toArray();
+            else if (first instanceof byte[])     return formatBillingDate(first);
             else if (first instanceof GXDateTime) return formatBillingDate(first);
 
             if (entry == null || entry.length == 0) return "N/A";
 
-            // Nivel 2: struct con campos — buscar el octet-string de 5 bytes (date)
-            // La estructura es: { octet-string(4) [tiempo], octet-string(5) [fecha] }
-            // Priorizar el campo de 5 bytes sobre el de 4
             byte[] candidate4 = null;
             byte[] candidate5 = null;
 
             for (Object field : entry) {
                 if (field instanceof byte[]) {
                     byte[] b = (byte[]) field;
-                    if (b.length == 5)  candidate5 = b;
+                    if (b.length == 5)      candidate5 = b;
                     else if (b.length == 4) candidate4 = b;
-                    else if (b.length == 12) return formatBillingDate(b); // GXDateTime raw
+                    else if (b.length == 12) return formatBillingDate(b);
                 } else if (field instanceof GXDateTime) {
                     return formatBillingDate(field);
                 }
             }
 
-            // El octet-string de 5 bytes es GXDate: año(2) mes(1) día(1) dow(1)
             if (candidate5 != null) return formatBillingDate(candidate5);
             if (candidate4 != null) return formatBillingDate(candidate4);
 

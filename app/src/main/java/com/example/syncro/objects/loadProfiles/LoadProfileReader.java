@@ -2,6 +2,7 @@ package com.example.syncro.objects.loadProfiles;
 
 import com.example.syncro.client.GXDLMSReader;
 import com.example.syncro.models.CurvaFila;
+import com.example.syncro.utils.AppLogger;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -15,16 +16,15 @@ import gurux.dlms.objects.GXDLMSProfileGeneric;
 public class LoadProfileReader {
 
     public static ArrayList<CurvaFila> leerCurvaCarga(GXDLMSReader reader, String fechaInicio, String fechaFin) {
+        AppLogger.w("Syncro", "Leyendo Curvas Horarias");
         ArrayList<CurvaFila> resultados = new ArrayList<>();
         try {
             GXDLMSProfileGeneric lp1 = new GXDLMSProfileGeneric("1.0.99.1.0.255");
 
-            //System.out.println("Leyendo estructura de LP1...");
-            reader.read(lp1, 3); // Intentamos leer la estructura real
+            reader.read(lp1, 3);
 
-            // Solo si el medidor (como ZIV) no nos da la estructura, la forzamos
             if (lp1.getCaptureObjects().isEmpty()) {
-                System.out.println("Estructura vacía (ZIV detectado): Aplicando mapeo manual...");
+                AppLogger.w("LoadProfile", "Estructura vacía (ZIV detectado): Aplicando mapeo manual...");
                 addObject(lp1, new gurux.dlms.objects.GXDLMSClock("0.0.1.0.0.255"));
                 addObject(lp1, new gurux.dlms.objects.GXDLMSData("0.0.96.10.2.255"));
                 addObject(lp1, new gurux.dlms.objects.GXDLMSRegister("1.0.1.8.0.255"));
@@ -34,13 +34,11 @@ public class LoadProfileReader {
                 addObject(lp1, new gurux.dlms.objects.GXDLMSRegister("1.0.5.8.0.255"));
                 addObject(lp1, new gurux.dlms.objects.GXDLMSRegister("1.0.6.8.0.255"));
             } else {
-                System.out.println("Estructura recibida del medidor. Columnas: " + lp1.getCaptureObjects().size());
+                AppLogger.i("LoadProfile", "Estructura recibida del medidor. Columnas: " + lp1.getCaptureObjects().size());
             }
 
-            // --- CONFIGURACIÓN DE FECHAS ULTRA-COMPATIBLE ---
             SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd");
 
-            // Creamos Calendar para asegurar que los segundos sean 0
             Calendar calStart = Calendar.getInstance();
             calStart.setTime(formatter.parse(fechaInicio));
             calStart.set(Calendar.HOUR_OF_DAY, 0);
@@ -51,15 +49,13 @@ public class LoadProfileReader {
             Calendar calEnd = Calendar.getInstance();
             calEnd.setTime(formatter.parse(fechaFin));
             calEnd.set(Calendar.HOUR_OF_DAY, 0);
-            calEnd.set(Calendar.MINUTE, 0); // Sagemcom a veces prefiere el inicio del último bloque
+            calEnd.set(Calendar.MINUTE, 0);
             calEnd.set(Calendar.SECOND, 0);
             calEnd.set(Calendar.MILLISECOND, 0);
 
             GXDateTime start = new GXDateTime(calStart.getTime());
             GXDateTime end = new GXDateTime(calEnd.getTime());
 
-            // IMPORTANTE: Para Sagemcom/ZIV, ignoramos todo menos fecha y hora
-            // Esto evita el "Access Violation" por campos que el medidor no entiende
             EnumSet<DateTimeSkips> skips = EnumSet.of(
                     DateTimeSkips.MILLISECOND,
                     DateTimeSkips.DEVIATION,
@@ -68,11 +64,12 @@ public class LoadProfileReader {
             start.setSkip(skips);
             end.setSkip(skips);
 
-            System.out.println("Solicitando rango: " + fechaInicio + " a " + fechaFin);
+            AppLogger.i("LoadProfile", "Solicitando rango: " + fechaInicio + " a " + fechaFin);
 
             Object[] rows = reader.readRowsByRange(lp1, start, end);
 
             if (rows != null) {
+                AppLogger.i("LoadProfile", "Filas recibidas: " + rows.length);
                 for (Object row : rows) {
                     Object[] cols = (Object[]) row;
 
@@ -88,19 +85,17 @@ public class LoadProfileReader {
                     resultados.add(new CurvaFila(fechaHora, bc, ai, ae, r1, r2, r3, r4));
                 }
             } else {
-                System.out.println("Buffer vacío.");
+                AppLogger.w("LoadProfile", "Buffer vacío: no se recibieron filas.");
             }
 
         } catch (Exception e) {
-            System.err.println("Error crítico: " + e.getMessage());
+            AppLogger.e("LoadProfile", "Error crítico: " + e.getMessage());
         }
         return resultados;
     }
 
-    // Método auxiliar para limpiar el código
     private static void addObject(GXDLMSProfileGeneric pg, gurux.dlms.objects.GXDLMSObject obj) {
         pg.getCaptureObjects().add(new java.util.AbstractMap.SimpleEntry<>(obj,
                 new gurux.dlms.objects.GXDLMSCaptureObject(2, 0)));
     }
-
 }

@@ -34,7 +34,7 @@ public class MonthlyBillingS04 {
 
         try {
             //System.out.println("Ejecutando lectura de cierres S04 por rango...");
-            AppLogger.i("Syncro", "Ejecutando lectura de cierres S04 por rango...");
+            AppLogger.i("MonthlyBilling", "Ejecutando lectura de cierres S04 por rango...");
 
             String obisS04 = "0.0.98.1." + contract + ".255";
             GXDLMSProfileGeneric s04 = new GXDLMSProfileGeneric(obisS04);
@@ -78,7 +78,7 @@ public class MonthlyBillingS04 {
             end.setSkip(skips);
 
             //System.out.println("Solicitando S04: " + from + " al " + to);
-            AppLogger.i("Syncro", "Solicitando S04: " + from + " al " + to);
+            AppLogger.i("MonthlyBilling", "Solicitando S04: " + from + " al " + to);
 
             // 4. Lectura por rango
             Object[] rows = reader.readRowsByRange(s04, start, end);
@@ -115,7 +115,7 @@ public class MonthlyBillingS04 {
                         Object rawVal = fila[86];
                         if (rawVal instanceof byte[]) {
                             byte[] b = (byte[]) rawVal;
-                            System.out.println("VALOR MAX bytes(" + b.length + "): " + GXCommon.toHex(b, true));
+                            //System.out.println("VALOR MAX bytes(" + b.length + "): " + GXCommon.toHex(b, true));
                         }
 
                         // Los índices se mantienen según tu estructura de 100 columnas
