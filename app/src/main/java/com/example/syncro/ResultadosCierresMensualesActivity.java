@@ -135,18 +135,101 @@ public class ResultadosCierresMensualesActivity extends AppCompatActivity {
                 try (FileOutputStream fos = new FileOutputStream(file)) {
                     fos.write(xml.getBytes());
                     fos.flush();
-                    Log.d("FILE_PATH", file.getAbsolutePath());
 
-                    String protocolo = prefs.getString("protocolo", "FTP");
+                    String afterGenerate = prefs.getString(
+                            "afterGenerate",
+                            "Guardar e intentar enviar al FTP inmediatamente"
+                    );
 
-                    // 🔥 SELECCIÓN AUTOMÁTICA
-                    if (protocolo.equalsIgnoreCase("SFTP")) {
-                        Utils.subirArchivoSFTP(this, file);
-                    } else if (protocolo.equalsIgnoreCase("FTPS")) {
-                        Utils.subirArchivoFTPS(this, file);
-                    } else {
-                        Utils.subirArchivoFTP(this, file);
+                    String afterSend = prefs.getString(
+                            "afterSend",
+                            "Mover a la carpeta de backup del dispositivo"
+                    );
+
+                    // ==========================
+                    // SOLO GUARDAR
+                    // ==========================
+                    if (afterGenerate.equals(
+                            "Solo guardar para enviar al FTP mas tarde")) {
+
+                        Toast.makeText(
+                                this,
+                                "Archivo guardado para envío posterior",
+                                Toast.LENGTH_LONG
+                        ).show();
+
+                        return;
                     }
+                    new Thread(() -> {
+
+                        boolean subidaCorrecta = false;
+
+                        try {
+
+                            String protocolo =
+                                    prefs.getString("protocolo", "FTP");
+
+                            if ("SFTP".equalsIgnoreCase(protocolo)) {
+
+                                subidaCorrecta =
+                                        Utils.subirArchivoSFTP(
+                                                ResultadosCierresMensualesActivity.this,
+                                                file
+                                        );
+
+                            } else if ("FTPS".equalsIgnoreCase(protocolo)) {
+
+                                subidaCorrecta =
+                                        Utils.subirArchivoFTPS(
+                                                ResultadosCierresMensualesActivity.this,
+                                                file
+                                        );
+
+                            } else {
+
+                                subidaCorrecta =
+                                        Utils.subirArchivoFTP(
+                                                ResultadosCierresMensualesActivity.this,
+                                                file
+                                        );
+                            }
+
+                            if (subidaCorrecta) {
+
+                                Utils.gestionarArchivoTrasEnvio(
+                                        file,
+                                        afterSend,
+                                        ResultadosCierresMensualesActivity.this
+                                );
+                            }
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
+                        boolean resultadoFinal = subidaCorrecta;
+
+                        runOnUiThread(() -> {
+
+                            if (resultadoFinal) {
+
+                                Toast.makeText(
+                                        ResultadosCierresMensualesActivity.this,
+                                        "Archivo enviado correctamente",
+                                        Toast.LENGTH_LONG
+                                ).show();
+
+                            } else {
+
+                                Toast.makeText(
+                                        ResultadosCierresMensualesActivity.this,
+                                        "Error al enviar archivo",
+                                        Toast.LENGTH_LONG
+                                ).show();
+                            }
+                        });
+
+                    }).start();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

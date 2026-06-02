@@ -81,7 +81,10 @@ public class StgActivity extends AppCompatActivity {
         cargarConfiguracion();
 
         // 🔹 Guardar datos al pulsar botón
-        btnNext.setOnClickListener(v -> guardarConfiguracion());
+        btnNext.setOnClickListener(v -> {
+            guardarConfiguracion();
+            finish();
+        });
     }
 
     private void guardarConfiguracion() {

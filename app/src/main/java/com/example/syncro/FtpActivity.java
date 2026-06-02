@@ -64,7 +64,10 @@ public class FtpActivity extends BaseActivity {
         cargarConfiguracion();
 
         // 🔹 Guardar datos al pulsar botón
-        btnNext.setOnClickListener(v -> guardarConfiguracion());
+        btnNext.setOnClickListener(v -> {
+            guardarConfiguracion();
+            finish();
+        });
     }
 
     private void guardarConfiguracion() {

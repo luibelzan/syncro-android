@@ -122,18 +122,105 @@ public class ResultadosCierresActivity extends BaseActivity {
                 try (FileOutputStream fos = new FileOutputStream(file)) {
                     fos.write(xml.getBytes());
                     fos.flush();
-                    Log.d("FILE_PATH", file.getAbsolutePath());
 
-                    String protocolo = prefs.getString("protocolo", "FTP");
+                    String afterGenerate = prefs.getString(
+                            "afterGenerate",
+                            "Guardar e intentar enviar al FTP inmediatamente"
+                    );
 
-                    // 🔥 SELECCIÓN AUTOMÁTICA
-                    if (protocolo.equalsIgnoreCase("SFTP")) {
-                        Utils.subirArchivoSFTP(this, file);
-                    } else if (protocolo.equalsIgnoreCase("FTPS")) {
-                        Utils.subirArchivoFTPS(this, file);
-                    } else {
-                        Utils.subirArchivoFTP(this, file);
+                    String afterSend = prefs.getString(
+                            "afterSend",
+                            "Mover a la carpeta de backup del dispositivo"
+                    );
+
+                    // ==========================
+                    // SOLO GUARDAR
+                    // ==========================
+                    if (afterGenerate.equals(
+                            "Solo guardar para enviar al FTP mas tarde")) {
+
+                        Toast.makeText(
+                                this,
+                                "Archivo guardado para envío posterior",
+                                Toast.LENGTH_LONG
+                        ).show();
+
+                        return;
                     }
+
+                    // ==========================
+                    // SUBIR EN SEGUNDO PLANO
+                    // ==========================
+                    new Thread(() -> {
+
+                        boolean subidaCorrecta = false;
+
+                        try {
+
+                            String protocolo =
+                                    prefs.getString("protocolo", "FTP");
+
+                            if ("SFTP".equalsIgnoreCase(protocolo)) {
+
+                                subidaCorrecta =
+                                        Utils.subirArchivoSFTP(
+                                                ResultadosCierresActivity.this,
+                                                file
+                                        );
+
+                            } else if ("FTPS".equalsIgnoreCase(protocolo)) {
+
+                                subidaCorrecta =
+                                        Utils.subirArchivoFTPS(
+                                                ResultadosCierresActivity.this,
+                                                file
+                                        );
+
+                            } else {
+
+                                subidaCorrecta =
+                                        Utils.subirArchivoFTP(
+                                                ResultadosCierresActivity.this,
+                                                file
+                                        );
+                            }
+
+                            if (subidaCorrecta) {
+
+                                Utils.gestionarArchivoTrasEnvio(
+                                        file,
+                                        afterSend,
+                                        ResultadosCierresActivity.this
+                                );
+                            }
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
+                        boolean resultadoFinal = subidaCorrecta;
+
+                        runOnUiThread(() -> {
+
+                            if (resultadoFinal) {
+
+                                Toast.makeText(
+                                        ResultadosCierresActivity.this,
+                                        "Archivo enviado correctamente",
+                                        Toast.LENGTH_LONG
+                                ).show();
+
+                            } else {
+
+                                Toast.makeText(
+                                        ResultadosCierresActivity.this,
+                                        "Error al enviar archivo",
+                                        Toast.LENGTH_LONG
+                                ).show();
+                            }
+                        });
+
+                    }).start();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
