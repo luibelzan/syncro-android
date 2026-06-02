@@ -8,7 +8,6 @@
     <string name="welcome">Configuracion Inicial</string>
     <string-array name="sondas_array">
         <item>TesPro</item>
-        <item>Prueba</item>
     </string-array>
     <string name="next">Siguiente</string>
     <string name="ip">IP</string>
