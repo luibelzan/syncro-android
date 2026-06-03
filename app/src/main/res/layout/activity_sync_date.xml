@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F5F5"
+    tools:context=".SyncDateActivity">
+
+    <LinearLayout
+        android:id="@+id/cardSyncDate"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:orientation="vertical"
+        android:padding="20dp"
+        android:background="@drawable/borde_radio_group"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Título -->
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/cierreFact"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="#333333"
+            android:paddingBottom="20dp"/>
+
+        <!-- Texto -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Fecha, hora y zona horaria"
+            android:textStyle="bold"
+            android:textColor="#555555"
+            android:textSize="16sp"
+            android:paddingBottom="12dp"/>
+
+        <!-- Inputs horizontales -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <!-- Fecha/Hora -->
+            <EditText
+                android:id="@+id/editDateTime"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="2"
+                android:layout_marginEnd="10dp"
+                android:background="@drawable/borde_radio_group"
+                android:paddingStart="12dp"
+                android:paddingEnd="0dp"
+                android:textSize="15sp"
+                android:enabled="false"/>
+
+            <!-- Zona horaria -->
+            <EditText
+                android:id="@+id/editTimezone"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                android:background="@drawable/borde_radio_group"
+                android:gravity="center"
+                android:textSize="15sp"
+                android:enabled="false"/>
+
+        </LinearLayout>
+
+        <!-- Checkbox configuración manual -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingTop="18dp">
+
+            <CheckBox
+                android:id="@+id/checkBoxManual"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Configurar los valores manualmente"
+                android:textColor="#555555"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:paddingStart="6dp"
+                android:paddingEnd="0dp"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Contenedor para ProgressBar y texto -->
+    <LinearLayout
+        android:id="@+id/progressContainer"
+        android:orientation="vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/cardSyncDate"
+        app:layout_constraintBottom_toTopOf="@id/btnNext"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:indeterminate="true"/>
+
+        <TextView
+            android:id="@+id/textCargando"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/loading"
+            android:textColor="@color/gris_texto"
+            android:textSize="18sp"
+            android:layout_marginTop="12dp"/>
+    </LinearLayout>
+
+    <ImageButton
+        android:id="@+id/btnNext"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_marginEnd="160dp"
+        android:background="@drawable/circle_button"
+        android:contentDescription="@string/saveConfig"
+        android:src="@android:drawable/ic_media_next"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.916"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/cardSyncDate"
+        app:layout_constraintVertical_bias="0.727"
+        app:tint="@color/gris_texto" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
