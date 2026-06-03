@@ -42,18 +42,14 @@ public class IcpActivity extends AppCompatActivity {
 
             new Thread(() -> {
                 try {
-                    GXDLMSReader reader;
-                    DLMSConnection conn;
+                    DLMSConnection conn = (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH)
+                            ? new DLMSConnection(config.getBluetoothDeviceName())
+                            : new DLMSConnection(config.getIp(), config.getPort());
 
-                    if (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH) {
-                        conn = new DLMSConnection(config.getBluetoothDeviceName());
-                        reader = conn.bluetoothConnnect(IcpActivity.this);
-                    } else {
-                        conn = new DLMSConnection(config.getIp(), config.getPort());
-                        reader = conn.tcpConnect(this);
-                    }
+                    DLMSConnection.ConnectionResult res = conn.connectWithAutoDetect(IcpActivity.this);
 
-                    ControlModeResult result = ControlDisconnectMode.readControlDisconnectMode(reader, conn.getClient());
+
+                    ControlModeResult result = ControlDisconnectMode.readControlDisconnectMode(res.reader, conn.getClient());
 
                     conn.close();
 

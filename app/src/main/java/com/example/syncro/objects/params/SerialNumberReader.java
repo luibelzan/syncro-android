@@ -12,7 +12,7 @@ public class SerialNumberReader {
         String result = null;
         try {
             AppLogger.i("Syncro", "Leyendo numero de serie");
-            GXDLMSData serialNumber = new GXDLMSData("0.0.96.1.0.255");
+            GXDLMSData serialNumber = new GXDLMSData("0.0.96.1.4.255");
             Object value = reader.read(serialNumber, 2);
 
             if (value instanceof byte[]) {

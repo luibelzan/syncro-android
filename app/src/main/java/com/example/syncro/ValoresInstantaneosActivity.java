@@ -47,21 +47,17 @@ public class ValoresInstantaneosActivity extends BaseActivity {
         // 🔹 Hilo secundario para evitar NetworkOnMainThreadException
         new Thread(() -> {
             try {
-                GXDLMSReader reader;
-                DLMSConnection conn;
+                DLMSConnection conn = (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH)
+                        ? new DLMSConnection(config.getBluetoothDeviceName())
+                        : new DLMSConnection(config.getIp(), config.getPort());
 
-                if (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH) {
-                    conn = new DLMSConnection(config.getBluetoothDeviceName());
-                    reader = conn.bluetoothConnnect(ValoresInstantaneosActivity.this);
-                } else {
-                    conn = new DLMSConnection(config.getIp(), config.getPort());
-                    reader = conn.tcpConnect(this);
-                }
+                DLMSConnection.ConnectionResult res = conn.connectWithAutoDetect(ValoresInstantaneosActivity.this);
+
 
                 // Leer Identificadores
-                String datos = InstantaneousValuesReader.leerValores(reader);
+                String datos = InstantaneousValuesReader.leerValores(res.reader);
                 conn.close();
-                Log.d("VALORES", datos);
+                //Log.d("VALORES", datos);
 
                 runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);

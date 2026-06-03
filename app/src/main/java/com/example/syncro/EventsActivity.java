@@ -126,19 +126,14 @@ public class EventsActivity extends BaseActivity {
             // 🔹 Hilo secundario para evitar NetworkOnMainThreadException
             new Thread(() -> {
                 try {
-                    GXDLMSReader reader;
-                    DLMSConnection conn;
+                    DLMSConnection conn = (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH)
+                            ? new DLMSConnection(config.getBluetoothDeviceName())
+                            : new DLMSConnection(config.getIp(), config.getPort());
 
-                    if (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH) {
-                        conn = new DLMSConnection(config.getBluetoothDeviceName());
-                        reader = conn.bluetoothConnnect(EventsActivity.this);
-                    } else {
-                        conn = new DLMSConnection(config.getIp(), config.getPort());
-                        reader = conn.tcpConnect(this);
-                    }
+                    DLMSConnection.ConnectionResult res = conn.connectWithAutoDetect(EventsActivity.this);
+
 
                     ArrayList<EventFila> datos = new ArrayList<>();
-                    String cntId = SerialNumberReader.readSerialNumer(reader);
 
                     SparseBooleanArray checked = listEvents.getCheckedItemPositions();
                     ArrayList<Integer> eventosSeleccionados = new ArrayList<>();
@@ -154,47 +149,47 @@ public class EventsActivity extends BaseActivity {
                         switch(event){
 
                             case 0:
-                                datos.addAll(StandarEventLogReader.readStandardEventLog(this, reader, fechaInicio, fechaFin));
+                                datos.addAll(StandarEventLogReader.readStandardEventLog(this, res.reader, fechaInicio, fechaFin));
                                 break;
 
                             case 1:
-                                datos.addAll(FraudEventLog.readFraudEventLog(this, reader, fechaInicio, fechaFin));
+                                datos.addAll(FraudEventLog.readFraudEventLog(this, res.reader, fechaInicio, fechaFin));
                                 break;
 
                             case 2:
-                                datos.addAll(DisconnectEventLog.readDisconnectEventLog(this, reader, fechaInicio, fechaFin));
+                                datos.addAll(DisconnectEventLog.readDisconnectEventLog(this, res.reader, fechaInicio, fechaFin));
                                 break;
 
                             case 3:
-                                datos.addAll(PowContractEventLog.readImpPowContractEventLog(this, reader, fechaInicio, fechaFin));
+                                datos.addAll(PowContractEventLog.readImpPowContractEventLog(this, res.reader, fechaInicio, fechaFin));
                                 break;
 
                             case 4:
-                                datos.addAll(FirmwareEventLog.leerFirmwareEventLog(this, reader, fechaInicio, fechaFin));
+                                datos.addAll(FirmwareEventLog.leerFirmwareEventLog(this, res.reader, fechaInicio, fechaFin));
                                 break;
 
                             case 5:
-                                datos.addAll(PowerQualityEventLog.readPowerQualityEventLog(this, reader, fechaInicio, fechaFin));
+                                datos.addAll(PowerQualityEventLog.readPowerQualityEventLog(this, res.reader, fechaInicio, fechaFin));
                                 break;
 
                             case 6:
-                                datos.addAll(DemandMgmntEventLog.readDemandMgmntEventLog(this, reader, fechaInicio, fechaFin));
+                                datos.addAll(DemandMgmntEventLog.readDemandMgmntEventLog(this, res.reader, fechaInicio, fechaFin));
                                 break;
 
                             case 7:
-                                datos.addAll(CommonEventLog.leerCommonEventLog(this, reader, fechaInicio, fechaFin));
+                                datos.addAll(CommonEventLog.leerCommonEventLog(this, res.reader, fechaInicio, fechaFin));
                                 break;
 
                             case 8:
-                                datos.addAll(SyncEventLog.readSyncEventLog(this, reader, fechaInicio, fechaFin));
+                                datos.addAll(SyncEventLog.readSyncEventLog(this, res.reader, fechaInicio, fechaFin));
                                 break;
 
                             case 9:
-                                datos.addAll(FinishedPQEventLog.readFinishedPQEventLog(this, reader, fechaInicio, fechaFin));
+                                datos.addAll(FinishedPQEventLog.readFinishedPQEventLog(this, res.reader, fechaInicio, fechaFin));
                                 break;
 
                             case 10:
-                                datos.addAll(ExpPowContractEventLog.readExpPowContractEventLog(this, reader, fechaInicio, fechaFin));
+                                datos.addAll(ExpPowContractEventLog.readExpPowContractEventLog(this, res.reader, fechaInicio, fechaFin));
                                 break;
                         }
                     }
@@ -206,7 +201,7 @@ public class EventsActivity extends BaseActivity {
 
                         Intent intent = new Intent(EventsActivity.this, ResultadosEventsActivity.class);
                         intent.putParcelableArrayListExtra("datos_event_tabla", datos);
-                        intent.putExtra("cntId", cntId);
+                        intent.putExtra("cntId", res.serialNumber);
                         startActivity(intent);
 
                     });

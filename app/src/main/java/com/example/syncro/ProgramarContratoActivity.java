@@ -291,21 +291,17 @@ public class ProgramarContratoActivity extends AppCompatActivity {
 
             // ── Ejecutar en hilo de fondo (DLMS no puede ir en el hilo UI) ──────
             new Thread(() -> {
-                GXDLMSReader reader;
-                DLMSConnection conn;
                 try {
 
-                    if (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH) {
-                        conn = new DLMSConnection(config.getBluetoothDeviceName());
-                        reader = conn.bluetoothConnnect(ProgramarContratoActivity.this);
-                    } else {
-                        conn = new DLMSConnection(config.getIp(), config.getPort());
-                        reader = conn.tcpConnect(this);
-                    }
-                    //String cntId = SerialNumberReader.readSerialNumer(reader);
+                    DLMSConnection conn = (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH)
+                            ? new DLMSConnection(config.getBluetoothDeviceName())
+                            : new DLMSConnection(config.getIp(), config.getPort());
+
+                    DLMSConnection.ConnectionResult res = conn.connectWithAutoDetect(ProgramarContratoActivity.this);
+
 
                     ProgramContract.programarContrato(
-                            reader,
+                            res.reader,
                             contractFinal,
                             tarifaFinal,
                             thresholdsFinal,

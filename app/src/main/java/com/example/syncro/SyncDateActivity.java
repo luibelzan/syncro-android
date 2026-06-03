@@ -94,21 +94,17 @@ public class SyncDateActivity extends BaseActivity {
 
             // 3. Ejecutar en hilo secundario (DLMS bloquea la UI)
             new Thread(() -> {
-                DLMSConnection conn = null;
-                GXDLMSReader reader = null;
-
                 try {
-                    if (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH) {
-                        conn = new DLMSConnection(config.getBluetoothDeviceName());
-                        reader = conn.bluetoothConnnect(SyncDateActivity.this);
-                    } else {
-                        conn = new DLMSConnection(config.getIp(), config.getPort());
-                        reader = conn.tcpConnect(SyncDateActivity.this);
-                    }
+                    DLMSConnection conn = (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH)
+                            ? new DLMSConnection(config.getBluetoothDeviceName())
+                            : new DLMSConnection(config.getIp(), config.getPort());
+
+                    DLMSConnection.ConnectionResult res = conn.connectWithAutoDetect(SyncDateActivity.this);
+
 
                     GXDLMSSecureClient2 client = conn.getClient();
 
-                    DateReader.syncClock(reader, client, finalOffset, finalDateTime);
+                    DateReader.syncClock(res.reader, client, finalOffset, finalDateTime);
                     conn.close();
 
                     runOnUiThread(() -> {
@@ -129,8 +125,6 @@ public class SyncDateActivity extends BaseActivity {
                                 "Error de conexión: " + e.getClass().getSimpleName() +
                                         " - " + e.getMessage(), Toast.LENGTH_LONG).show();
                     });
-                } finally {
-                    if (conn != null) conn.close();
                 }
             }).start();
         });

@@ -155,40 +155,35 @@ public class CierresActivity extends BaseActivity {
             // 🔹 Hilo secundario para evitar NetworkOnMainThreadException
             new Thread(() -> {
                 try {
-                    GXDLMSReader reader;
-                    DLMSConnection conn;
+                    DLMSConnection conn = (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH)
+                            ? new DLMSConnection(config.getBluetoothDeviceName())
+                            : new DLMSConnection(config.getIp(), config.getPort());
 
-                    if (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH) {
-                        conn = new DLMSConnection(config.getBluetoothDeviceName());
-                        reader = conn.bluetoothConnnect(CierresActivity.this);
-                    } else {
-                        conn = new DLMSConnection(config.getIp(), config.getPort());
-                        reader = conn.tcpConnect(this);
-                    }
+                    DLMSConnection.ConnectionResult res = conn.connectWithAutoDetect(CierresActivity.this);
+
 
                     // Leer curvas
-                    String cntId = SerialNumberReader.readSerialNumer(reader);
                     if(tipoCierre.equals("Diarios (S05)")) {
-                        ArrayList<CierreFila> datos = DailyBillingS05.leerS05(reader, fechaInicio, fechaFin, contrato);
+                        ArrayList<CierreFila> datos = DailyBillingS05.leerS05(res.reader, fechaInicio, fechaFin, contrato);
 
                         runOnUiThread(() -> {
                             progressBar.setVisibility(View.GONE);
 
                             Intent intent = new Intent(CierresActivity.this, ResultadosCierresActivity.class);
                             intent.putParcelableArrayListExtra("datos_cierres_tabla", datos);
-                            intent.putExtra("cntId", cntId);
+                            intent.putExtra("cntId", res.serialNumber);
                             startActivity(intent);
 
                         });
                     } else if(tipoCierre.equals("Mensuales (S04)")) {
-                        ArrayList<CierreMensualFila> datos = MonthlyBillingS04.leerS04(reader, fechaInicio, fechaFin, contrato);
+                        ArrayList<CierreMensualFila> datos = MonthlyBillingS04.leerS04(res.reader, fechaInicio, fechaFin, contrato);
 
                         runOnUiThread(() -> {
                             progressBar.setVisibility(View.GONE);
 
                             Intent intent = new Intent(CierresActivity.this, ResultadosCierresMensualesActivity.class);
                             intent.putParcelableArrayListExtra("datos_cierres_tabla", datos);
-                            intent.putExtra("cntId", cntId);
+                            intent.putExtra("cntId", res.serialNumber);
                             startActivity(intent);
 
                         });
@@ -198,10 +193,10 @@ public class CierresActivity extends BaseActivity {
 
                         if (posicion == 3) {
                             // Leer los 3 contratos
-                            datos = CurrentBillingReader.readCurrentBilling(reader);
+                            datos = CurrentBillingReader.readCurrentBilling(res.reader);
                         } else {
                             // Leer solo el contrato seleccionado
-                            datos = CurrentBillingReader.readCurrentBilling(reader, contrato);
+                            datos = CurrentBillingReader.readCurrentBilling(res.reader, contrato);
                         }
 
                         runOnUiThread(() -> {
@@ -209,7 +204,7 @@ public class CierresActivity extends BaseActivity {
 
                             Intent intent = new Intent(CierresActivity.this, ResultadosCierresEnCursoActivity.class);
                             intent.putParcelableArrayListExtra("datos_cierres_tabla", datos);
-                            intent.putExtra("cntId", cntId);
+                            intent.putExtra("cntId", res.serialNumber);
                             startActivity(intent);
 
                         });

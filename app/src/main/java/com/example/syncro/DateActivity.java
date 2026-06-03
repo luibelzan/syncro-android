@@ -48,18 +48,14 @@ public class DateActivity extends AppCompatActivity {
             ConnectionConfig config = SessionManager.getInstance().getConnectionConfig();
             new Thread(() -> {
                 try {
-                    GXDLMSReader reader;
-                    DLMSConnection conn;
+                    DLMSConnection conn = (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH)
+                            ? new DLMSConnection(config.getBluetoothDeviceName())
+                            : new DLMSConnection(config.getIp(), config.getPort());
 
-                    if (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH) {
-                        conn = new DLMSConnection(config.getBluetoothDeviceName());
-                        reader = conn.bluetoothConnnect(DateActivity.this);
-                    } else {
-                        conn = new DLMSConnection(config.getIp(), config.getPort());
-                        reader = conn.tcpConnect(this);
-                    }
+                    DLMSConnection.ConnectionResult res = conn.connectWithAutoDetect(DateActivity.this);
 
-                    String date = DateReader.readDate(reader);
+
+                    String date = DateReader.readDate(res.reader);
 
                     conn.close();
 

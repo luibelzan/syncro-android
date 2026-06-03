@@ -38,7 +38,7 @@ public class ConfigContadorActivity extends BaseActivity {
     private static final int     DEFAULT_CLIENT_ADDRESS  = 1;
     private static final int     DEFAULT_LOGICAL_DEVICE  = 1;
     private static final int     DEFAULT_PHYSICAL_DEVICE = 16;
-    private static final int     DEFAULT_ADDRESS_SIZE    = 4;
+    private static final int     DEFAULT_ADDRESS_SIZE    = 1;
     private static final int     DEFAULT_MAX_PDU         = 236;
 
     private Spinner spinnerAuth;

@@ -99,20 +99,14 @@ public class CurvasActivity extends BaseActivity {
             // 🔹 Hilo secundario para evitar NetworkOnMainThreadException
             new Thread(() -> {
                 try {
-                    GXDLMSReader reader;
-                    DLMSConnection conn;
+                    DLMSConnection conn = (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH)
+                            ? new DLMSConnection(config.getBluetoothDeviceName())
+                            : new DLMSConnection(config.getIp(), config.getPort());
 
-                    if (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH) {
-                        conn = new DLMSConnection(config.getBluetoothDeviceName());
-                        reader = conn.bluetoothConnnect(CurvasActivity.this);
-                    } else {
-                        conn = new DLMSConnection(config.getIp(), config.getPort());
-                        reader = conn.tcpConnect(this);
-                    }
+                    DLMSConnection.ConnectionResult res = conn.connectWithAutoDetect(CurvasActivity.this);
 
-                    String cntId = SerialNumberReader.readSerialNumer(reader);
                     // Leer curvas
-                    ArrayList<CurvaFila> datos = LoadProfileReader.leerCurvaCarga(reader, fechaInicio, fechaFin);
+                    ArrayList<CurvaFila> datos = LoadProfileReader.leerCurvaCarga(res.reader, fechaInicio, fechaFin);
                     conn.close();
 
                     runOnUiThread(() -> {
@@ -120,7 +114,7 @@ public class CurvasActivity extends BaseActivity {
 
                         Intent intent = new Intent(CurvasActivity.this, ResultadosCurvasActivity.class);
                         intent.putParcelableArrayListExtra("datos_curva_tabla", datos);
-                        intent.putExtra("cntId", cntId);
+                        intent.putExtra("cntId", res.serialNumber);
                         startActivity(intent);
 
                     });

@@ -91,24 +91,20 @@ public class IcpExecuteActivity extends AppCompatActivity {
             // 🔹 Hilo secundario para evitar NetworkOnMainThreadException
             new Thread(() -> {
                 try {
-                    GXDLMSReader reader;
-                    DLMSConnection conn;
+                    DLMSConnection conn = (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH)
+                            ? new DLMSConnection(config.getBluetoothDeviceName())
+                            : new DLMSConnection(config.getIp(), config.getPort());
 
-                    if (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH) {
-                        conn = new DLMSConnection(config.getBluetoothDeviceName());
-                        reader = conn.bluetoothConnnect(IcpExecuteActivity.this);
-                    } else {
-                        conn = new DLMSConnection(config.getIp(), config.getPort());
-                        reader = conn.tcpConnect(this);
-                    }
+                    DLMSConnection.ConnectionResult res = conn.connectWithAutoDetect(IcpExecuteActivity.this);
+
 
                     ControlModeResult result;
 
                     // Ejecutar operacion
                     if(operacion.equals("Connect")) {
-                         result = ControlDisconnectMode.setControlDisconnectMode(reader, conn.getClient(), true);
+                         result = ControlDisconnectMode.setControlDisconnectMode(res.reader, conn.getClient(), true);
                     } else {
-                        result = ControlDisconnectMode.setControlDisconnectMode(reader, conn.getClient(), false);
+                        result = ControlDisconnectMode.setControlDisconnectMode(res.reader, conn.getClient(), false);
                     }
                     conn.close();
 

@@ -51,26 +51,22 @@ public class IdsActivity extends BaseActivity {
         // 🔹 Hilo secundario para evitar NetworkOnMainThreadException
         new Thread(() -> {
             try {
-                GXDLMSReader reader;
-                DLMSConnection conn;
+                DLMSConnection conn = (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH)
+                        ? new DLMSConnection(config.getBluetoothDeviceName())
+                        : new DLMSConnection(config.getIp(), config.getPort());
 
-                if (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH) {
-                    conn = new DLMSConnection(config.getBluetoothDeviceName());
-                    reader = conn.bluetoothConnnect(IdsActivity.this);
-                } else {
-                    conn = new DLMSConnection(config.getIp(), config.getPort());
-                    reader = conn.tcpConnect(this);
-                }
+                DLMSConnection.ConnectionResult res = conn.connectWithAutoDetect(IdsActivity.this);
+
 
                 // Leer Identificadores
-                MeterInfo datos = MeterInfoReader.leerIdentificadores(reader);
+                MeterInfo datos = MeterInfoReader.leerIdentificadores(res.reader);
                 conn.close();
 
                 runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);
                     layoutResultados.setVisibility(View.VISIBLE);
 
-                    tvSerial.setText("Número serial: " + datos.serial);
+                    tvSerial.setText("Número serial: " + res.serialNumber);
                     tvEquipo.setText("Identificador equipo: " + datos.equipo);
                     tvTipo.setText("Identificador tipo: " + datos.tipo);
                     tvFirmware.setText("Versión firmware: " + datos.firmware);

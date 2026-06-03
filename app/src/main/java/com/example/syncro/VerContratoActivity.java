@@ -74,19 +74,15 @@ public class VerContratoActivity extends AppCompatActivity {
 
             // ── Ejecutar en hilo de fondo (DLMS no puede ir en el hilo UI) ──────
             new Thread(() -> {
-                GXDLMSReader reader;
-                DLMSConnection conn;
                 try {
+                    DLMSConnection conn = (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH)
+                            ? new DLMSConnection(config.getBluetoothDeviceName())
+                            : new DLMSConnection(config.getIp(), config.getPort());
 
-                    if (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH) {
-                        conn = new DLMSConnection(config.getBluetoothDeviceName());
-                        reader = conn.bluetoothConnnect(VerContratoActivity.this);
-                    } else {
-                        conn = new DLMSConnection(config.getIp(), config.getPort());
-                        reader = conn.tcpConnect(this);
-                    }
+                    DLMSConnection.ConnectionResult res = conn.connectWithAutoDetect(VerContratoActivity.this);
 
-                    String datos = ViewContract.leerContrato(reader, contract);
+
+                    String datos = ViewContract.leerContrato(res.reader, contract);
                     //Log.d("CONTRATO", datos);
 
                     conn.close();
