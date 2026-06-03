@@ -10,52 +10,34 @@ import android.util.Log;
 import androidx.core.app.ActivityCompat;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
 import gurux.common.enums.TraceLevel;
-import com.example.syncro.client.GXDLMSSecureClient2;
 
-import gurux.dlms.GXByteBuffer;
+import com.example.syncro.ConfigContadorActivity;
+import com.example.syncro.objects.params.SerialNumberReader;
+
 import gurux.dlms.GXDLMSClient;
-import gurux.dlms.GXReplyData;
-import gurux.dlms.enums.Authentication;
-import gurux.dlms.enums.Conformance;
 import gurux.dlms.enums.InterfaceType;
-import gurux.io.BaudRate;
-import gurux.io.Parity;
-import gurux.io.StopBits;
 import gurux.net.GXNet;
 import gurux.net.enums.NetworkType;
-import gurux.serial.GXSerial;
 
 public class DLMSConnection {
+
+    private static final String TAG = "DLMSConnection";
+
+    // Orden de prueba: 1 y 4 son los más comunes en campo
+    private static final int[] ADDRESS_SIZE_CANDIDATES = {1, 4, 2, 0};
 
     private final String device;
     private final String ip;
     private final int port;
-    private static GXDLMSSecureClient2 client;
-    private static BluetoothCommunicator serial;
-    private static GXDLMSReader reader;
-    private static GXNet net;
 
-
-    /*
-    private final InputStream in;
-    private final OutputStream out;
-
-
-    public DLMSConnection(GXDLMSSecureClient2 client, BluetoothSocket socket) throws Exception {
-        this.client = client;
-        this.socket = socket;
-        this.in = socket.getInputStream();
-        this.out = socket.getOutputStream();
-    }
-
-     */
+    private GXDLMSSecureClient2 client;
+    private BluetoothCommunicator serial;
+    private GXDLMSReader reader;
+    private GXNet net;
 
     public DLMSConnection(String device) {
         this.device = device;
@@ -69,58 +51,74 @@ public class DLMSConnection {
         this.device = null;
     }
 
-    public GXDLMSReader bluetoothConnnect(Context context) throws Exception {
-        //configurarSerial();
-        configurarClienteDlms();
+    // -----------------------------------------------------------------------
+    // AUTO-DETECT: prueba addressSizes hasta encontrar uno que devuelva datos
+    // -----------------------------------------------------------------------
 
-        reader = new GXDLMSReader(client, serial, TraceLevel.VERBOSE, null);
-        initializeConnection2(context, device);
+    public ConnectionResult connectWithAutoDetect(Context context) throws Exception {
+        int savedSize = ConfigContadorActivity.loadConfig(context).addressSize;
+        int[] candidates = buildCandidateOrder(savedSize);
 
-        System.out.println("Handshake IEC completado. Cambiando a DLMS.");
-        return reader;
+        Exception lastException = null;
+
+        for (int size : candidates) {
+            Log.d(TAG, "Probando addressSize=" + size);
+            try {
+                GXDLMSReader r = (device != null)
+                        ? connectBluetooth(context, size)
+                        : connectTcp(context, size);
+
+                // Verificar que el contador realmente responde
+                String serial = SerialNumberReader.readSerialNumer(r);
+                if (serial != null && !serial.isEmpty()) {
+                    Log.i(TAG, "addressSize=" + size + " OK. Serial=" + serial);
+
+                    if (size != savedSize) {
+                        saveAddressSize(context, size);
+                        Log.i(TAG, "Nuevo addressSize guardado: " + size);
+                    }
+                    return new ConnectionResult(r, serial);
+                }
+
+                Log.w(TAG, "addressSize=" + size + " conectó pero no devolvió serial. Reintentando...");
+                closeInternal();
+
+            } catch (Exception e) {
+                Log.w(TAG, "addressSize=" + size + " falló: " + e.getMessage());
+                lastException = e;
+                closeInternal();
+            }
+        }
+
+        throw new Exception(
+                "No se pudo conectar con ningún addressSize." +
+                        (lastException != null ? " Último error: " + lastException.getMessage() : ""),
+                lastException
+        );
     }
 
-    public GXDLMSReader tcpConnect() throws Exception {
+    // -----------------------------------------------------------------------
+    // Conexión TCP con addressSize explícito
+    // -----------------------------------------------------------------------
+
+    private GXDLMSReader connectTcp(Context context, int addressSize) throws Exception {
         net = new GXNet(NetworkType.TCP, ip, port);
         net.setTrace(TraceLevel.VERBOSE);
         net.open();
+        Log.d(TAG, "Conectado por TCP a " + ip + ":" + port);
 
-        System.out.println("Conectado por TCP/IP a " + ip + ":" + port);
-
-        configurarClienteDlms();
+        configurarClienteDlms(context, addressSize);
 
         reader = new GXDLMSReader(client, net, TraceLevel.VERBOSE, null);
         reader.initializeConnection();
-        System.out.println("Handshake IEC completado. Cambiando a DLMS.");
         return reader;
     }
 
-    private static void configurarClienteDlms() {
-        client = new GXDLMSSecureClient2(true);
+    // -----------------------------------------------------------------------
+    // Conexión Bluetooth con addressSize explícito
+    // -----------------------------------------------------------------------
 
-        // 1. IMPORTANTE: En puerto serie suele ser HDLC, en TCP suele ser WRAPPER
-        client.setInterfaceType(InterfaceType.HDLC);
-
-        // 2. CONFIGURACIÓN DE DIRECCIÓN (Aquí está el truco)
-        // Para obtener la trama 00 02 00 21:
-        // El primer '1' es el Management Logical Device.
-        // El '16' es el Physical Device ID (común en Sagemcom/Landis).
-        client.setServerAddress(GXDLMSClient.getServerAddress(1, 16, 4));
-
-        // Si lo anterior falla, intenta forzar el ServerAddressSize a 1
-        // como tenías al principio, pero usa el ClientAddress 0x1 (decimal 1)
-        // client.setServerAddress(0x03); // A veces el ID físico es simplemente 0x03
-
-        client.setClientAddress(1);
-        client.setUseLogicalNameReferencing(true);
-        client.setAuthentication(Authentication.LOW);
-        client.setPassword("00000002".getBytes());
-        // Limitar el tamaño de PDU para evitar que el Gateway TCP se sature
-        client.setMaxReceivePDUSize(236);
-    }
-
-
-    public static DLMSConnection initializeConnection2(Context context, String dispositivo) throws Exception {
+    private GXDLMSReader connectBluetooth(Context context, int addressSize) throws Exception {
         BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
         if (adapter == null) throw new Exception("Bluetooth no disponible en este dispositivo");
 
@@ -129,101 +127,129 @@ public class DLMSConnection {
             throw new SecurityException("Permiso BLUETOOTH_CONNECT no concedido");
         }
 
-        String targetName = "TesPro V4_7706";
-        BluetoothDevice targetDevice = null;
-        Set<BluetoothDevice> pairedDevices = adapter.getBondedDevices();
-
-        if (pairedDevices != null) {
-            for (BluetoothDevice device : pairedDevices) {
-                Log.d("DLMS", "Emparejado: " + device.getName() + " (" + device.getAddress() + ")");
-                if (device.getName() != null && device.getName().equals(targetName)) {
-                    targetDevice = device;
-                    break;
-                }
-            }
-        }
-
-        if (targetDevice == null) {
-            throw new Exception("No se encontró la sonda TesPro emparejada");
-        }
+        BluetoothDevice targetDevice = findBluetoothDevice(adapter, context);
+        if (targetDevice == null) throw new Exception("No se encontró la sonda TesPro emparejada");
 
         UUID SPP = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
-
-        // 1. Crear socket
         BluetoothSocket socket = targetDevice.createRfcommSocketToServiceRecord(SPP);
 
         try {
-            // 2. CONECTAR EL SOCKET ANTES DE USAR STREAMS
-            Log.d("DLMS", "Conectando a TesPro V4_7706...");
+            Log.d(TAG, "Conectando a TesPro...");
             socket.connect();
-            Log.d("DLMS", "Conexión Bluetooth SPP establecida.");
+            Log.d(TAG, "Conexión Bluetooth SPP establecida.");
 
-            // 3. AHORA crear el comunicador
             serial = new BluetoothCommunicator(socket);
+            configurarClienteDlms(context, addressSize);
 
-            // Configurar cliente DLMS
-            configurarClienteDlms();
-
-            // Crear lector DLMS
             reader = new GXDLMSReader(client, serial, TraceLevel.VERBOSE, null);
-            reader.setContext(context); // Para trace.txt
-
-            // Handshake inicial
+            reader.setContext(context);
             reader.initializeConnectionBluetooth();
-            Log.i("DLMS", "Handshake IEC completado. Conexión DLMS activa.");
+            Log.i(TAG, "Handshake IEC completado.");
 
-            return new DLMSConnection(dispositivo);
+            return reader;
 
         } catch (IOException e) {
-            Log.e("DLMS", "Error conectando Bluetooth", e);
-            if (socket != null) {
-                try { socket.close(); } catch (IOException ignored) {}
-            }
+            Log.e(TAG, "Error conectando Bluetooth", e);
+            try { socket.close(); } catch (IOException ignored) {}
             throw new Exception("Fallo al conectar Bluetooth: " + e.getMessage());
         }
     }
 
-    public static void closeConnection(GXDLMSReader reader, BluetoothCommunicator serial) {
-        try {
-            if (reader != null) {
-                reader.close();
-                System.out.println("Sesión DLMS cerrada correctamente.");
-            }
-        } catch (Exception e) {
-            System.err.println("Error cerrando la sesión DLMS: " + e.getMessage());
-        }
+    // -----------------------------------------------------------------------
+    // Métodos legacy (por si los usas en otros sitios del proyecto)
+    // -----------------------------------------------------------------------
 
-        try {
-            if (serial != null && serial.isOpen()) {
-                serial.close();
-                System.out.println("Puerto serie cerrado correctamente.");
-            }
-        } catch (Exception e) {
-            System.err.println("Error cerrando el puerto serie: " + e.getMessage());
+    public ConnectionResult bluetoothConnnect(Context context) throws Exception {
+        return connectWithAutoDetect(context);
+    }
+
+    public ConnectionResult tcpConnect(Context context) throws Exception {
+        return connectWithAutoDetect(context);
+    }
+
+    // -----------------------------------------------------------------------
+    // Configuración del cliente DLMS
+    // -----------------------------------------------------------------------
+
+    private void configurarClienteDlms(Context context, int addressSize) {
+        ConfigContadorActivity.DLMSConfigValues cfg = ConfigContadorActivity.loadConfig(context);
+
+        client = new GXDLMSSecureClient2(true);
+        client.setInterfaceType(InterfaceType.HDLC);
+        client.setServerAddress(GXDLMSClient.getServerAddress(
+                cfg.logicalDevice, cfg.physicalDevice, addressSize));
+        client.setClientAddress(cfg.clientAddress);
+        client.setUseLogicalNameReferencing(true);
+        client.setAuthentication(cfg.authentication);
+        client.setPassword(cfg.password.getBytes());
+        client.setMaxReceivePDUSize(236);
+    }
+
+    // -----------------------------------------------------------------------
+    // Helpers
+    // -----------------------------------------------------------------------
+
+    private int[] buildCandidateOrder(int preferred) {
+        int[] ordered = new int[ADDRESS_SIZE_CANDIDATES.length];
+        ordered[0] = preferred;
+        int idx = 1;
+        for (int s : ADDRESS_SIZE_CANDIDATES) {
+            if (s != preferred) ordered[idx++] = s;
         }
+        return ordered;
+    }
+
+    private BluetoothDevice findBluetoothDevice(BluetoothAdapter adapter, Context context) {
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT)
+                != PackageManager.PERMISSION_GRANTED) {
+            return null;
+        }
+        Set<BluetoothDevice> paired = adapter.getBondedDevices();
+        if (paired == null) return null;
+        for (BluetoothDevice d : paired) {
+            Log.d(TAG, "Emparejado: " + d.getName() + " (" + d.getAddress() + ")");
+            if (d.getName() != null && d.getName().contains("TesPro")) return d;
+        }
+        return null;
+    }
+
+    private void saveAddressSize(Context context, int size) {
+        context.getSharedPreferences(ConfigContadorActivity.PREFS_NAME, Context.MODE_PRIVATE)
+                .edit()
+                .putInt(ConfigContadorActivity.KEY_ADDRESS_SIZE, size)
+                .apply();
+    }
+
+    /** Cierra recursos internos entre intentos de auto-detect */
+    private void closeInternal() {
+        try { if (reader != null) reader.close(); } catch (Exception ignored) {}
+        try { if (serial != null && serial.isOpen()) serial.close(); } catch (Exception ignored) {}
+        try { if (net != null && net.isOpen()) net.close(); } catch (Exception ignored) {}
+        reader = null;
+        serial = null;
+        net = null;
+    }
+
+    public void close() {
+        closeInternal();
     }
 
     public GXDLMSSecureClient2 getClient() {
         return client;
     }
 
-    private static String bytesToHex(byte[] bytes, int length) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < length; i++) {
-            sb.append(String.format("%02X ", bytes[i]));
-        }
-        return sb.toString();
+    public static void closeConnection(GXDLMSReader reader, BluetoothCommunicator serial) {
+        try { if (reader != null) reader.close(); } catch (Exception e) { Log.e(TAG, "Error cerrando reader", e); }
+        try { if (serial != null && serial.isOpen()) serial.close(); } catch (Exception e) { Log.e(TAG, "Error cerrando serial", e); }
     }
 
-    public void close() {
-        try {
-            if (reader != null) reader.close();
-            if (serial != null && serial.isOpen()) serial.close();
-            if (net != null && net.isOpen()) net.close();
-        } catch (Exception e) {
-            e.printStackTrace();
+    public static class ConnectionResult {
+        public final GXDLMSReader reader;
+        public final String serialNumber;
+
+        public ConnectionResult(GXDLMSReader reader, String serialNumber) {
+            this.reader = reader;
+            this.serialNumber = serialNumber;
         }
     }
-
-
 }

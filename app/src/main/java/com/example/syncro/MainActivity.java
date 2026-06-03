@@ -31,6 +31,7 @@ import com.example.syncro.objects.params.DateReader;
 import com.example.syncro.session.ConnectionConfig;
 import com.example.syncro.session.SessionManager;
 import com.example.syncro.utils.MeterData;
+import com.example.syncro.utils.PasswordHelper;
 
 
 public class MainActivity extends BaseActivity {
@@ -50,6 +51,8 @@ public class MainActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
+        // En MainActivity.onCreate() o en tu clase Application:
+        PasswordHelper.initDefaultPasswordIfNeeded(this);
 
         // 🔹 Verificar permisos Bluetooth
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT)
@@ -140,15 +143,59 @@ public class MainActivity extends BaseActivity {
                 String deviceName = spinnerSonda.getSelectedItem().toString();
                 config.setBluetoothDeviceName(deviceName);
             } else {
-                config = new ConnectionConfig(ConnectionConfig.ConnectionType.TCP);
-                String ip = etIp.getText().toString();
-                int port = 0;
-                try {
-                    port = Integer.parseInt(etPort.getText().toString());
-                } catch (NumberFormatException e) {
-                    Toast.makeText(this, "Puerto inválido", Toast.LENGTH_SHORT).show();
+
+                String ip =
+                        etIp.getText().toString().trim();
+
+                String puertoTexto =
+                        etPort.getText().toString().trim();
+
+                if (ip.isEmpty()) {
+
+                    etIp.setError("Introduzca una dirección IP");
+                    etIp.requestFocus();
                     return;
                 }
+
+                if (!esIpValida(ip)) {
+
+                    etIp.setError("Formato IP inválido");
+                    etIp.requestFocus();
+                    return;
+                }
+
+                if (puertoTexto.isEmpty()) {
+
+                    etPort.setError("Introduzca un puerto");
+                    etPort.requestFocus();
+                    return;
+                }
+
+                int port;
+
+                try {
+
+                    port = Integer.parseInt(puertoTexto);
+
+                } catch (NumberFormatException e) {
+
+                    etPort.setError("Puerto inválido");
+                    etPort.requestFocus();
+                    return;
+                }
+
+                if (port < 1 || port > 65535) {
+
+                    etPort.setError(
+                            "El puerto debe estar entre 1 y 65535");
+
+                    etPort.requestFocus();
+                    return;
+                }
+
+                config = new ConnectionConfig(
+                        ConnectionConfig.ConnectionType.TCP);
+
                 config.setIp(ip);
                 config.setPort(port);
             }
@@ -162,5 +209,14 @@ public class MainActivity extends BaseActivity {
 
 
 
+    }
+
+    private boolean esIpValida(String ip) {
+
+        String patron =
+                "^((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.){3}" +
+                        "(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)$";
+
+        return ip.matches(patron);
     }
 }

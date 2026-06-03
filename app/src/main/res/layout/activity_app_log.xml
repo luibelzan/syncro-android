@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#0D1117">
+
+    <!-- Toolbar -->
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="#161B22"
+        android:elevation="4dp"
+        android:minHeight="56dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:title="App Log"
+        app:titleTextColor="#58A6FF" />
+
+    <!-- Barra de filtros -->
+    <HorizontalScrollView
+        android:id="@+id/filterScrollView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="#161B22"
+        android:scrollbars="none"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toolbar">
+
+        <LinearLayout
+            android:id="@+id/filterContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="8dp"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Filtro:"
+                android:textColor="#8B949E"
+                android:textSize="12sp"
+                android:layout_marginEnd="6dp" />
+
+            <!-- Chip ALL -->
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipAll"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ALL"
+                android:textSize="11sp"
+                app:chipBackgroundColor="#21262D"
+                app:chipStrokeColor="#58A6FF"
+                app:chipStrokeWidth="1dp"
+                android:textColor="#58A6FF"
+                android:layout_marginEnd="4dp"
+                style="@style/Widget.MaterialComponents.Chip.Filter"/>
+
+            <!-- Chip DEBUG -->
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipDebug"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="DEBUG"
+                android:textSize="11sp"
+                app:chipBackgroundColor="#21262D"
+                app:chipStrokeColor="#8B949E"
+                app:chipStrokeWidth="1dp"
+                android:textColor="#8B949E"
+                android:layout_marginEnd="4dp"
+                style="@style/Widget.MaterialComponents.Chip.Filter"/>
+
+            <!-- Chip INFO -->
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipInfo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="INFO"
+                android:textSize="11sp"
+                app:chipBackgroundColor="#21262D"
+                app:chipStrokeColor="#3FB950"
+                app:chipStrokeWidth="1dp"
+                android:textColor="#3FB950"
+                android:layout_marginEnd="4dp"
+                style="@style/Widget.MaterialComponents.Chip.Filter"/>
+
+            <!-- Chip WARN -->
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipWarn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="WARN"
+                android:textSize="11sp"
+                app:chipBackgroundColor="#21262D"
+                app:chipStrokeColor="#D29922"
+                app:chipStrokeWidth="1dp"
+                android:textColor="#D29922"
+                android:layout_marginEnd="4dp"
+                style="@style/Widget.MaterialComponents.Chip.Filter"/>
+
+            <!-- Chip ERROR -->
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipError"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ERROR"
+                android:textSize="11sp"
+                app:chipBackgroundColor="#21262D"
+                app:chipStrokeColor="#F85149"
+                app:chipStrokeWidth="1dp"
+                android:textColor="#F85149"
+                android:layout_marginEnd="4dp"
+                style="@style/Widget.MaterialComponents.Chip.Filter"/>
+
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <!-- Barra de búsqueda -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/searchLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="8dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/filterScrollView"
+        app:boxBackgroundColor="#21262D"
+        app:boxStrokeColor="#30363D"
+        app:hintTextColor="#8B949E"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/searchInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Buscar en logs..."
+            android:textColor="#E6EDF3"
+            android:textColorHint="#8B949E"
+            android:inputType="text"
+            android:textSize="13sp" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Stats bar -->
+    <LinearLayout
+        android:id="@+id/statsBar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:gravity="center_vertical"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/searchLayout">
+
+        <TextView
+            android:id="@+id/tvLogCount"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="0 entradas"
+            android:textColor="#8B949E"
+            android:textSize="11sp"/>
+
+        <TextView
+            android:id="@+id/tvAutoScroll"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="● Auto-scroll ON"
+            android:textColor="#3FB950"
+            android:textSize="11sp"
+            android:layout_marginEnd="8dp"/>
+
+        <TextView
+            android:id="@+id/tvClearLogs"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Limpiar"
+            android:textColor="#F85149"
+            android:textSize="11sp"
+            android:padding="4dp"/>
+
+    </LinearLayout>
+
+    <!-- Divider -->
+    <View
+        android:id="@+id/divider"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:background="#21262D"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/statsBar"/>
+
+    <!-- Lista de logs -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewLogs"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:paddingBottom="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/divider"/>
+
+    <!-- Empty state -->
+    <LinearLayout
+        android:id="@+id/emptyState"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/divider">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="📋"
+            android:textSize="48sp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sin entradas de log"
+            android:textColor="#8B949E"
+            android:textSize="16sp"
+            android:layout_marginTop="8dp"/>
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

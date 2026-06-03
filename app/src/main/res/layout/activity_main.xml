@@ -110,18 +110,19 @@
             android:id="@+id/etIp"
             android:layout_width="250dp"
             android:layout_height="wrap_content"
-            android:autofillHints=""
             android:hint="@string/ip"
-            android:layout_marginBottom="12dp"
-            android:inputType="text" />
+            android:inputType="textUri"
+            android:maxLength="15"
+            android:singleLine="true"/>
 
         <EditText
             android:id="@+id/etPort"
             android:layout_width="250dp"
             android:layout_height="wrap_content"
-            android:autofillHints=""
             android:hint="@string/port"
-            android:inputType="number" />
+            android:inputType="number"
+            android:maxLength="5"
+            android:singleLine="true"/>
 
     </LinearLayout>
 

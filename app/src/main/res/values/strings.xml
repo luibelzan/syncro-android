@@ -8,7 +8,6 @@
     <string name="welcome">Configuracion Inicial</string>
     <string-array name="sondas_array">
         <item>TesPro</item>
-        <item>Prueba</item>
     </string-array>
     <string name="next">Siguiente</string>
     <string name="ip">IP</string>
@@ -24,6 +23,7 @@
     <string name="about">Acerca de</string>
 
     <!-- LECTURAS -->
+    <string name="readsMenu">Menu de Lecturas</string>
     <string name="curvas">Curvas de Carga</string>
     <string name="cierres">Cierres</string>
     <string name="events">Eventos</string>
@@ -42,4 +42,161 @@
         <item>Load_Profile_2_Absoluto_S03</item>
     </string-array>
     <string name="loading">Cargando...</string>
+    <string name="export">Exportar</string>
+
+
+    <!-- CIERRES -->
+    <string name="tipoCierre">Tipo de cierre:</string>
+    <string name="contrato">Contrato a leer:</string>
+    <string-array name="cierres_array">
+        <item>Diarios (S05)</item>
+        <item>Mensuales (S04)</item>
+        <item>Actuales (S27)</item>
+    </string-array>
+    <string-array name="contratos_array">
+        <item>Contrato 1</item>
+        <item>Contrato 2</item>
+        <item>Contrato 3</item>
+        <item>Todos los contratos</item>
+    </string-array>
+
+
+    <!-- EVENTOS -->
+    <string name="tipoEvent">Tipo de evento:</string>
+    <string-array name="events_array">
+        <item>Standard Event Log</item>
+        <item>Fraud Event Log</item>
+        <item>Disconnect Event Log</item>
+        <item>Imp Pow Contract Event Log</item>
+        <item>Firmware Event Log</item>
+        <item>Power Quality Event Log</item>
+        <item>Demand Mgmnt Event Log</item>
+        <item>Common Event Log</item>
+        <item>Sync Event Log</item>
+        <item>Finished PQ Event Log</item>
+        <item>Exp Pow Contract Event Log</item>
+    </string-array>
+
+    <!-- VALORES INSTANTANEOS -->
+    <string name="instantValues">Valores Instantaneos</string>
+    <string name="serial">Numero serial contador:</string>
+    <string name="time">Timestamp</string>
+    <string name="relacion">Relacion de transformacion de tension : [deciVolts]</string>
+    <string name="volRelation">Prim/sec</string>
+    <string name="instantVol">Tension instantanea Primario</string>
+    <string name="volFase1">Fase 1 :</string>
+    <string name="volFase2">Fase 2 :</string>
+    <string name="volFase3">Fase 3 :</string>
+    <string name="relacionA">Relacion de transformacion de corriente : [deciAmps]</string>
+    <string name="aRelation">Prim/sec</string>
+    <string name="instantA">Corriente instantanea Primario</string>
+    <string name="aFase1">Fase 1 :</string>
+    <string name="aFase2">Fase 2 :</string>
+    <string name="aFase3">Fase 3 :</string>
+    <string name="potenciaActivaPlus">Potencia Activa + :</string>
+    <string name="potenciaActivaMinus">Potencia Activa - :</string>
+    <string name="potenciaReactivaPlus">Potencia Reactiva + :</string>
+    <string name="potenciaReactivaMinus">Potencia Reactiva - :</string>
+    <string name="factorPotencia">Factor de Potencia :</string>
+
+    <!-- MENU CONFIG -->
+    <string name="configMenu">Menu de Configuracion</string>
+    <string name="ftpStg">FTP STG</string>
+    <string name="ftpFirmware">FTP Firmware</string>
+    <string name="stg">STG</string>
+    <string name="sonda">Sonda</string>
+    <string name="appLog">App Log</string>
+    <string name="cnt">Contador</string>
+
+    <!-- FTP CONFIG -->
+    <string name="ftp">Configuracion FTP</string>
+    <string name="protocoloFtp">Protocolo FTP</string>
+    <string name="dirFtp">Direccion Servidor</string>
+    <string name="portFtp">Puerto</string>
+    <string name="folderFtp">Carpeta</string>
+    <string name="userFtp">Usuario</string>
+    <string name="passFtp">Contrase;a</string>
+    <string name="saveConfig">Guardar Configuracion</string>
+    <string-array name="protocolo_array">
+        <item>SFTP</item>
+        <item>FTPS</item>
+        <item>FTP</item>
+    </string-array>
+
+    <!-- STG CONFIG -->
+    <string name="stgConfig">Configuracion STG</string>
+    <string name="cncName">Concentrador Virtual por defecto</string>
+    <string name="afterGenerate">Luego de generar reporte Sxx</string>
+    <string name="afterSend">Luego de enviar un reporte al FTP</string>
+    <string-array name="afterGenerate_array">
+        <item>Guardar e intentar enviar al FTP inmediatamente</item>
+        <item>Solo guardar para enviar al FTP mas tarde</item>
+    </string-array>
+    <string-array name="afterSend_array">
+        <item>Mover a la carpeta de backup del dispositivo</item>
+        <item>Eliminar del dispositivo</item>
+    </string-array>
+    <string name="infoStg">Los reportes se eliminan de la carpeta backup de forma automatica transcurrido 30 dias. En ese periodo puede reenviar cualquier reporte del backup al FTP</string>
+
+    <!-- PARAMETROS MENU -->
+    <string name="paramsMenu">Menu de Parametros</string>
+    <string name="icp">ICP</string>
+    <string name="date">Fecha y Hora</string>
+    <string name="screen">Pantalla</string>
+    <string name="transf">Rel. Transf.</string>
+
+    <!-- ICP MENU -->
+    <string name="icpMenu">ICP Menu</string>
+    <string name="icpStatus">Ver estado</string>
+    <string name="icpExecute">Ejecutar</string>
+    <string name="icpMode">Modo</string>
+    <string name="icpStatusTitle">Interruptor Control de Potencia</string>
+    <string name="tipoOperacionIcp">Tipo de operacion:</string>
+    <string name="operacionIcp">Operacion:</string>
+
+    <!-- ICP EJECUCION -->
+    <string-array name="tipo_operaciones_array">
+        <item>Manual</item>
+        <item>Automatico</item>
+    </string-array>
+    <string-array name="operaciones_array">
+        <item>Connect</item>
+        <item>Disconnect</item>
+    </string-array>
+
+    <!-- DATE MENU -->
+    <string name="dateMenu">Menu de Fecha y Hora</string>
+    <string name="readDate">Consultar Reloj</string>
+    <string name="syncDate">Sincronizar Reloj</string>
+
+    <!-- CONTRATOS MENU -->
+    <string name="contractsMenu">Menu de Contratos</string>
+    <string name="actualContract">Ver Actual</string>
+    <string name="programContract">Programar</string>
+
+    <!-- PROGRAMAR CONTRATOS MENU -->
+    <string name="tarifContract">Contrato de tarifacion</string>
+    <string name="tarif">Seleccione la tarifa a programar</string>
+    <string name="powerLimit">Limite de Potencia</string>
+    <string name="t1">T1</string>
+    <string name="t2">T2</string>
+    <string name="t3">T3</string>
+    <string name="t4">T4</string>
+    <string name="t5">T5</string>
+    <string name="t6">T6</string>
+    <string name="powerInput">5000</string>
+    <string name="fechaAct">Fecha de activacion:</string>
+    <string name="cierreFact">Cierre de facturacion:</string>
+    <string-array name="program_contracts_array">
+        <item>Contrato 1</item>
+        <item>Contrato 2</item>
+        <item>Contrato 3</item>
+    </string-array>
+    <string-array name="tarifas_array">
+        <item>2.0 TD</item>
+        <item>3.0 TD</item>
+    </string-array>
+    <string name="verContract">Leer Actual</string>
+
+
 </resources>

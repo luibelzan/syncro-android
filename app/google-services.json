@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "95155630513",
+    "project_id": "syncro-d677b",
+    "storage_bucket": "syncro-d677b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:95155630513:android:2a2784d87284bba0098d90",
+        "android_client_info": {
+          "package_name": "com.example.syncro"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDDUUNFOZ5PJxzS2Rc9-kn1jfznhPoOjes"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

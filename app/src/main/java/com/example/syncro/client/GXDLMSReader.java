@@ -3,6 +3,8 @@ package com.example.syncro.client;
 import android.content.Context;
 import android.util.Log;
 
+import com.example.syncro.utils.AppLogger;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -69,6 +71,7 @@ import gurux.dlms.objects.GXXmlWriterSettings;
 import gurux.dlms.objects.IGXDLMSBase;
 import gurux.dlms.objects.enums.CertificateEntity;
 import gurux.dlms.objects.enums.CertificateType;
+import gurux.dlms.secure.GXDLMSSecureClient;
 import gurux.io.BaudRate;
 import gurux.io.Parity;
 import gurux.io.StopBits;
@@ -192,6 +195,19 @@ public class GXDLMSReader {
         if (Trace.ordinal() >= level.ordinal()) {
             System.out.println(line);
         }
+
+        // 🔹 Redirigir al AppLogger según el nivel
+        if (level == TraceLevel.ERROR) {
+            AppLogger.e("DLMS", line);
+        } else if (level == TraceLevel.WARNING) {
+            AppLogger.w("DLMS", line);
+        } else if (level == TraceLevel.INFO) {
+            AppLogger.i("DLMS", line);
+        } else {
+            // VERBOSE → DEBUG en AppLogger (TX/RX de tramas)
+            AppLogger.d("DLMS", line);
+        }
+
         if (traceWriter != null) {
             try {
                 traceWriter.write(line);
@@ -199,7 +215,6 @@ public class GXDLMSReader {
                 traceWriter.flush();
             } catch (IOException ignored) {}
         }
-        // También escribe en logFile.txt
         if (logWriter != null) {
             try {
                 logWriter.write(line);
@@ -1481,5 +1496,10 @@ public class GXDLMSReader {
             }
             dlms.parseAccessResponse(list, reply.getData());
         }
+    }
+
+    // En GXDLMSReader.java
+    public GXDLMSSecureClient getClient() {
+        return dlms;
     }
 }

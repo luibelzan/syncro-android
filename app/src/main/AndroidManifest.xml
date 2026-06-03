@@ -27,6 +27,96 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Syncro">
         <activity
+            android:name=".AppLogActivity"
+            android:exported="false" />
+        <activity
+            android:name=".licenses.BluetoothScanActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".licenses.LicenseCheckActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ReportesActivity"
+            android:exported="false" />
+        <activity
+            android:name=".InfoActivity"
+            android:exported="false" />
+        <activity
+            android:name=".SyncDateActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ConfigContadorActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ResultadosVerContratoActivity"
+            android:exported="false" />
+        <activity
+            android:name=".VerContratoActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ProgramarContratoActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ContratosActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ResultadosCierresMensualesActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ResultadosDateActivity"
+            android:exported="false" />
+        <activity
+            android:name=".DateActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ResultadosIcpActivity"
+            android:exported="false" />
+        <activity
+            android:name=".IcpExecuteActivity"
+            android:exported="false" />
+        <activity
+            android:name=".IcpActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ParametrosActivity"
+            android:exported="false" />
+        <activity
+            android:name=".StgActivity"
+            android:exported="false" />
+        <activity
+            android:name=".FtpActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ConfigActivity"
+            android:exported="false" />
+        <activity
+            android:name=".EstadoSondaActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ValoresInstantaneosActivity"
+            android:exported="false" />
+        <activity
+            android:name=".IdsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ResultadosEventsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".EventsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ResultadosCierresActivity"
+            android:exported="false" />
+        <activity
+            android:name=".CierresActivity"
+            android:exported="false" />
+        <activity
             android:name=".ResultadosCurvasActivity"
             android:exported="false" />
         <activity
@@ -40,13 +130,10 @@
             android:exported="false" />
         <activity
             android:name=".MainActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+            android:exported="false" />
+        <activity
+            android:name=".ResultadosCierresEnCursoActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

@@ -23,11 +23,15 @@ import com.example.syncro.client.DLMSConnection;
 import com.example.syncro.client.GXDLMSReader;
 import com.example.syncro.models.CurvaFila;
 import com.example.syncro.objects.loadProfiles.LoadProfileReader;
+import com.example.syncro.objects.params.SerialNumberReader;
 import com.example.syncro.session.ConnectionConfig;
 import com.example.syncro.session.SessionManager;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Locale;
 
 public class CurvasActivity extends BaseActivity {
@@ -61,22 +65,6 @@ public class CurvasActivity extends BaseActivity {
             return insets;
         });
 
-        // Spinner de tipo de curva
-        Spinner spinnerTipoCurva = findViewById(R.id.spinnerTipoCurva);
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
-                this,
-                R.array.curvas_array,
-                android.R.layout.simple_spinner_item
-        );
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerTipoCurva.setAdapter(adapter);
-        spinnerTipoCurva.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {}
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
-        });
-
         EditText editFechaInicio = findViewById(R.id.editFechaInicio);
         EditText editFechaFin = findViewById(R.id.editFechaFin);
         editFechaInicio.setOnClickListener(v -> showDatePicker(editFechaInicio));
@@ -87,6 +75,10 @@ public class CurvasActivity extends BaseActivity {
         ImageButton btnNext = findViewById(R.id.btnNext);
 
         btnNext.setOnClickListener(v -> {
+
+            if (!validarFechas(editFechaInicio, editFechaFin)) {
+                return;
+            }
 
             String fechaInicio = editFechaInicio.getText().toString();
             String fechaFin = editFechaFin.getText().toString();
@@ -107,19 +99,14 @@ public class CurvasActivity extends BaseActivity {
             // 🔹 Hilo secundario para evitar NetworkOnMainThreadException
             new Thread(() -> {
                 try {
-                    GXDLMSReader reader;
-                    DLMSConnection conn;
+                    DLMSConnection conn = (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH)
+                            ? new DLMSConnection(config.getBluetoothDeviceName())
+                            : new DLMSConnection(config.getIp(), config.getPort());
 
-                    if (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH) {
-                        conn = new DLMSConnection(config.getBluetoothDeviceName());
-                        reader = conn.bluetoothConnnect(CurvasActivity.this);
-                    } else {
-                        conn = new DLMSConnection(config.getIp(), config.getPort());
-                        reader = conn.tcpConnect();
-                    }
+                    DLMSConnection.ConnectionResult res = conn.connectWithAutoDetect(CurvasActivity.this);
 
                     // Leer curvas
-                    ArrayList<CurvaFila> datos = LoadProfileReader.leerCurvaCarga(reader, fechaInicio, fechaFin);
+                    ArrayList<CurvaFila> datos = LoadProfileReader.leerCurvaCarga(res.reader, fechaInicio, fechaFin);
                     conn.close();
 
                     runOnUiThread(() -> {
@@ -127,6 +114,7 @@ public class CurvasActivity extends BaseActivity {
 
                         Intent intent = new Intent(CurvasActivity.this, ResultadosCurvasActivity.class);
                         intent.putParcelableArrayListExtra("datos_curva_tabla", datos);
+                        intent.putExtra("cntId", res.serialNumber);
                         startActivity(intent);
 
                     });
@@ -144,5 +132,55 @@ public class CurvasActivity extends BaseActivity {
             }).start();
 
         });
+    }
+
+    private boolean validarFechas(EditText editFechaInicio,
+                                  EditText editFechaFin) {
+
+        String fechaInicio = editFechaInicio.getText().toString().trim();
+        String fechaFin = editFechaFin.getText().toString().trim();
+
+        if (fechaInicio.isEmpty()) {
+            editFechaInicio.setError("Seleccione una fecha de inicio");
+            editFechaInicio.requestFocus();
+            return false;
+        }
+
+        if (fechaFin.isEmpty()) {
+            editFechaFin.setError("Seleccione una fecha de fin");
+            editFechaFin.requestFocus();
+            return false;
+        }
+
+        try {
+
+            SimpleDateFormat sdf =
+                    new SimpleDateFormat("yyyy/MM/dd", Locale.US);
+
+            sdf.setLenient(false);
+
+            Date inicio = sdf.parse(fechaInicio);
+            Date fin = sdf.parse(fechaFin);
+
+            if (inicio.after(fin)) {
+
+                editFechaInicio.setError(
+                        "La fecha de inicio no puede ser posterior a la fecha fin");
+
+                return false;
+            }
+
+        } catch (ParseException e) {
+
+            Toast.makeText(
+                    this,
+                    "Formato de fecha inválido",
+                    Toast.LENGTH_SHORT
+            ).show();
+
+            return false;
+        }
+
+        return true;
     }
 }

@@ -1,345 +1,191 @@
 package com.example.syncro.objects.instantValues;
 
 import com.example.syncro.client.GXDLMSReader;
-import com.example.syncro.utils.MeterData;
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import com.example.syncro.utils.AppLogger;
 
 import gurux.dlms.objects.GXDLMSData;
 import gurux.dlms.objects.GXDLMSRegister;
 
 public class InstantaneousValuesReader {
 
-    private static final Logger LOGGER = Logger.getLogger(InstantaneousValuesReader.class.getName());
-
-
-    /**
-     * Método principal que lee todos los datos del medidor
-     * Replica la funcionalidad del log proporcionado
+    /*
+     * Scalers reales de este contador (leídos de las tramas DLMS capturadas):
      *
-     * @return MeterData con todos los valores leídos
-     */
-    public static MeterData readMeterData(GXDLMSReader reader) throws Exception {
-        LOGGER.info("Iniciando lectura de datos del medidor...");
-
-        MeterData meterData = new MeterData();
-
-        // 1. Leer timestamp
-        //meterData.setTimestamp(readTimestamp());
-
-        // 2. Leer energías totales
-        readEnergyValues(meterData, reader);
-
-        // 3. Leer valores instantáneos (voltaje, corriente)
-        readInstantaneousValues(meterData, reader);
-
-        // 4. Leer relaciones de transformación
-        //readTransformationRatios(meterData, reader);
-
-        // 5. Leer factores de potencia
-        readPowerFactors(meterData, reader);
-
-        // 6. Leer potencias instantáneas
-        //readInstantaneousPower(meterData, reader);
-
-        LOGGER.info("Lectura completada exitosamente");
-        return meterData;
-    }
-
-
-
-    /**
-     * Lee los valores de energía acumulada
-     * OBIS codes:
-     * - 1.0.1.8.0.255: Activa Importada
-     * - 1.0.2.8.0.255: Activa Exportada (o 1.0.5.8.0.255 según medidor)
-     * - 1.0.3.8.0.255: Reactiva Q1 (o 5.0.3.8.0.255)
-     * - 1.0.4.8.0.255: Reactiva Q2 (o 5.0.4.8.0.255)
-     * - 1.0.7.8.0.255: Reactiva Q3 (o 5.0.7.8.0.255)
-     * - 1.0.8.8.0.255: Reactiva Q4 (o 5.0.8.8.0.255)
-     */
-    private static void readEnergyValues(MeterData meterData, GXDLMSReader reader) throws Exception {
-        LOGGER.info("Leyendo valores de energía...");
-
-        try {
-            // Activa Importada
-            double activeImport = readRegisterValue("1.0.1.8.0.255", reader);
-            meterData.getEnergyValues().setActiveEnergyImport(activeImport);
-
-            // Activa Exportada - intentar diferentes OBIS codes
-            double activeExport = 0;
-            try {
-                activeExport = readRegisterValue("1.0.2.8.0.255", reader);
-            } catch (Exception e) {
-                try {
-                    //activeExport = readRegisterValue("1.0.5.8.0.255", reader);
-                } catch (Exception ex) {
-                    LOGGER.log(Level.WARNING, "No se pudo leer activa exportada", ex);
-                }
-            }
-            meterData.getEnergyValues().setActiveEnergyExport(activeExport);
-
-            // Reactiva Q1-Q4
-            try {
-                double q1 = readRegisterValue("1.0.5.8.0.255", reader);
-                meterData.getEnergyValues().setReactiveEnergyQ1(q1);
-            } catch (Exception e) {
-                LOGGER.log(Level.WARNING, "Error leyendo Q1", e);
-            }
-
-            try {
-                double q2 = readRegisterValue("1.0.6.8.0.255", reader);
-                meterData.getEnergyValues().setReactiveEnergyQ2(q2);
-            } catch (Exception e) {
-                LOGGER.log(Level.WARNING, "Error leyendo Q2", e);
-            }
-
-            try {
-                double q3 = readRegisterValue("1.0.7.8.0.255", reader);
-                meterData.getEnergyValues().setReactiveEnergyQ3(q3);
-            } catch (Exception e) {
-                LOGGER.log(Level.WARNING, "Error leyendo Q3", e);
-            }
-
-            try {
-                double q4 = readRegisterValue("1.0.8.8.0.255", reader);
-                meterData.getEnergyValues().setReactiveEnergyQ4(q4);
-            } catch (Exception e) {
-                LOGGER.log(Level.WARNING, "Error leyendo Q4", e);
-            }
-
-        } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Error leyendo valores de energía", e);
-            throw e;
-        }
-    }
-
-    /**
-     * Lee valores instantáneos de voltaje y corriente
-     * OBIS codes:
-     * - 1.0.32.7.0.255: Voltaje L1
-     * - 1.0.52.7.0.255: Voltaje L2
-     * - 1.0.72.7.0.255: Voltaje L3
-     * - 1.0.31.7.0.255: Corriente L1
-     * - 1.0.51.7.0.255: Corriente L2
-     * - 1.0.71.7.0.255: Corriente L3
-     */
-    private static void readInstantaneousValues(MeterData meterData, GXDLMSReader reader) throws Exception {
-        LOGGER.info("Leyendo valores instantáneos...");
-
-        try {
-            // Voltajes
-            double voltageL1 = readRegisterValue("1.0.32.7.0.255", reader);
-            double voltageL2 = readRegisterValue("1.0.52.7.0.255", reader);
-            double voltageL3 = readRegisterValue("1.0.72.7.0.255", reader);
-
-            meterData.getInstantaneousValues().setVoltageL1(voltageL1);
-            meterData.getInstantaneousValues().setVoltageL2(voltageL2);
-            meterData.getInstantaneousValues().setVoltageL3(voltageL3);
-
-            // Corrientes
-            double currentL1 = readRegisterValue("1.0.31.7.0.255", reader);
-            double currentL2 = readRegisterValue("1.0.51.7.0.255", reader);
-            double currentL3 = readRegisterValue("1.0.71.7.0.255", reader);
-
-            meterData.getInstantaneousValues().setCurrentL1(currentL1);
-            meterData.getInstantaneousValues().setCurrentL2(currentL2);
-            meterData.getInstantaneousValues().setCurrentL3(currentL3);
-
-        } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Error leyendo valores instantáneos", e);
-            throw e;
-        }
-    }
-
-    /**
-     * Lee las relaciones de transformación
-     * OBIS codes:
-     * - 1.1.0.4.2.255: Primario corriente
-     * - 1.1.0.4.5.255: Secundario corriente
-     * - 1.1.0.4.3.255: Primario voltaje
-     * - 1.1.0.4.6.255: Secundario voltaje
-     */
-    private static void readTransformationRatios(MeterData meterData, GXDLMSReader reader) throws Exception {
-        LOGGER.info("Leyendo relaciones de transformación...");
-
-        try {
-            // Relación de corriente
-            int currentPrimary = (int) readRegisterValue("0.0.4.2.0.255", reader);
-            int currentSecondary = (int) readRegisterValue("0.0.4.5.0.255", reader);
-
-            meterData.getTransformationRatios().setCurrentPrimary(currentPrimary);
-            meterData.getTransformationRatios().setCurrentSecondary(currentSecondary);
-
-            LOGGER.info(String.format("Relación Corriente Prim/sec (%d / %d)",
-                    currentPrimary, currentSecondary));
-
-            // Relación de voltaje
-            int voltagePrimary = (int) readRegisterValue("0.0.4.3.0.255", reader);
-            int voltageSecondary = (int) readRegisterValue("0.0.4.6.0.255", reader);
-
-            meterData.getTransformationRatios().setVoltagePrimary(voltagePrimary);
-            meterData.getTransformationRatios().setVoltageSecondary(voltageSecondary);
-
-            LOGGER.info(String.format("Relación Voltaje Prim/sec (%d / %d)",
-                    voltagePrimary, voltageSecondary));
-
-        } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Error leyendo relaciones de transformación", e);
-            throw e;
-        }
-    }
-
-    /**
-     * Lee los factores de potencia instantáneos
-     * OBIS codes:
-     * - 1.0.33.7.0.255: FP L1
-     * - 1.0.53.7.0.255: FP L2
-     * - 1.0.73.7.0.255: FP L3
-     * - 1.0.13.7.0.255: FP Total
-     */
-    private static void readPowerFactors(MeterData meterData, GXDLMSReader reader) throws Exception {
-        LOGGER.info("Leyendo factores de potencia...");
-
-        try {
-            double pfL1 = readRegisterValue("1.0.33.7.0.255", reader);
-            double pfL2 = readRegisterValue("1.0.53.7.0.255", reader);
-            double pfL3 = readRegisterValue("1.0.73.7.0.255", reader);
-
-            meterData.getInstantaneousValues().setPowerFactorL1(pfL1);
-            meterData.getInstantaneousValues().setPowerFactorL2(pfL2);
-            meterData.getInstantaneousValues().setPowerFactorL3(pfL3);
-
-            try {
-                double pfTotal = readRegisterValue("1.0.13.7.0.255", reader);
-                meterData.getInstantaneousValues().setPowerFactorTotal(pfTotal);
-            } catch (Exception e) {
-                // Si no está disponible, calcular promedio
-                double pfTotal = (pfL1 + pfL2 + pfL3) / 3.0;
-                meterData.getInstantaneousValues().setPowerFactorTotal(pfTotal);
-            }
-
-        } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Error leyendo factores de potencia", e);
-            throw e;
-        }
-    }
-
-    /**
-     * Lee las potencias instantáneas
-     * OBIS codes para cada fase (L1, L2, L3):
-     * - X.0.21.7.0.255: P+ L1
-     * - X.0.22.7.0.255: P- L1
-     * - X.0.23.7.0.255: Q+ L1
-     * - X.0.24.7.0.255: Q- L1
-     * (similar para L2 = 41-44, L3 = 61-64)
-     */
-    private static void readInstantaneousPower(MeterData meterData, GXDLMSReader reader) throws Exception {
-        LOGGER.info("Leyendo potencias instantáneas...");
-
-        try {
-            // Fase 1
-            double pPlusL1 = readRegisterValue("1.0.21.7.0.255", reader);
-            double pMinusL1 = readRegisterValue("1.0.22.7.0.255", reader);
-            double qPlusL1 = readRegisterValue("1.0.23.7.0.255", reader);
-            double qMinusL1 = readRegisterValue("1.0.24.7.0.255", reader);
-
-            meterData.getPowerValues().setActivePowerPlusL1(pPlusL1);
-            meterData.getPowerValues().setActivePowerMinusL1(pMinusL1);
-            meterData.getPowerValues().setReactivePowerPlusL1(qPlusL1);
-            meterData.getPowerValues().setReactivePowerMinusL1(qMinusL1);
-
-            // Fase 2
-            double pPlusL2 = readRegisterValue("1.0.41.7.0.255", reader);
-            double pMinusL2 = readRegisterValue("1.0.42.7.0.255", reader);
-            double qPlusL2 = readRegisterValue("1.0.43.7.0.255", reader);
-            double qMinusL2 = readRegisterValue("1.0.44.7.0.255", reader);
-
-            meterData.getPowerValues().setActivePowerPlusL2(pPlusL2);
-            meterData.getPowerValues().setActivePowerMinusL2(pMinusL2);
-            meterData.getPowerValues().setReactivePowerPlusL2(qPlusL2);
-            meterData.getPowerValues().setReactivePowerMinusL2(qMinusL2);
-
-            // Fase 3
-            double pPlusL3 = readRegisterValue("1.0.61.7.0.255", reader);
-            double pMinusL3 = readRegisterValue("1.0.62.7.0.255", reader);
-            double qPlusL3 = readRegisterValue("1.0.63.7.0.255", reader);
-            double qMinusL3 = readRegisterValue("1.0.64.7.0.255", reader);
-
-            meterData.getPowerValues().setActivePowerPlusL3(pPlusL3);
-            meterData.getPowerValues().setActivePowerMinusL3(pMinusL3);
-            meterData.getPowerValues().setReactivePowerPlusL3(qPlusL3);
-            meterData.getPowerValues().setReactivePowerMinusL3(qMinusL3);
-
-            // Calcular totales
-            double totalPPlus = pPlusL1 + pPlusL2 + pPlusL3;
-            double totalPMinus = pMinusL1 + pMinusL2 + pMinusL3;
-            double totalQPlus = qPlusL1 + qPlusL2 + qPlusL3;
-            double totalQMinus = qMinusL1 + qMinusL2 + qMinusL3;
-
-            meterData.getPowerValues().setTotalActivePowerPlus(totalPPlus);
-            meterData.getPowerValues().setTotalActivePowerMinus(totalPMinus);
-            meterData.getPowerValues().setTotalReactivePowerPlus(totalQPlus);
-            meterData.getPowerValues().setTotalReactivePowerMinus(totalQMinus);
-
-        } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Error leyendo potencias instantáneas", e);
-            throw e;
-        }
-    }
-
-    /**
-     * Método auxiliar para leer un valor de registro usando OBIS code
+     *   Voltaje    (1.0.3x.7.0.255)  → 0F 00  → scaler =  0  unidad deciV  → raw/10  = V
+     *   Corriente  (1.0.x1.7.0.255)  → 0F FF  → scaler = -1  unidad deciA  → raw*0.1 = A
+     *   FP         (1.0.x3.7.0.255)  → 0F FF  → scaler = -3  adimensional  → raw*1e-3
+     *   Potencia   (1.0.x1-4.7.0.255)→ 0F FD  → scaler = -3  W             → raw*1e-3 = kW
+     *   Energía    (1.0.x.8.0.255)   → 0F 00  → scaler =  0  Wh            → raw/1000 = kWh
      *
-     * @param obisCode Código OBIS (ej: "1.0.1.8.0.255")
-     * @return Valor leído como double
+     * getScaler() de la librería Gurux devuelve siempre 0 para este contador,
+     * por eso parseamos el scaler manualmente del atributo 3 (array de 2 bytes:
+     * byte[0]=scaler con signo, byte[1]=unidad).
      */
-    private static double readRegisterValue(String obisCode, GXDLMSReader reader) throws Exception {
+
+    public static String leerValores(GXDLMSReader reader) throws Exception {
+
+        AppLogger.i("InstantValues", "Leyendo valores instantáneos...");
+        StringBuilder sb = new StringBuilder();
+
+        // ── Timestamp ─────────────────────────────────────────────────────────
+        sb.append("------------------------------\n");
         try {
-            GXDLMSRegister register = new GXDLMSRegister(obisCode);
-            reader.read(register, 2); // Attribute 2 contiene el valor
-
-            Object value = register.getValue();
-            if (value == null) {
-                return 0.0;
-            }
-
-            // Convertir a double
-            if (value instanceof Number) {
-                return ((Number) value).doubleValue();
-            } else if (value instanceof String) {
-                return Double.parseDouble((String) value);
-            }
-
-            return 0.0;
+            gurux.dlms.objects.GXDLMSClock clock =
+                    new gurux.dlms.objects.GXDLMSClock("0.0.1.0.0.255");
+            reader.read(clock, 2);
+            gurux.dlms.GXDateTime dt = clock.getTime();
+            java.util.Calendar c = dt.getMeterCalendar();
+            sb.append(String.format("Timestamp : %04d/%02d/%02d %02d:%02d:%02d.000S%n",
+                    c.get(java.util.Calendar.YEAR),
+                    c.get(java.util.Calendar.MONTH) + 1,
+                    c.get(java.util.Calendar.DAY_OF_MONTH),
+                    c.get(java.util.Calendar.HOUR_OF_DAY),
+                    c.get(java.util.Calendar.MINUTE),
+                    c.get(java.util.Calendar.SECOND)));
         } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "Error leyendo OBIS " + obisCode, e);
-            throw e;
+            sb.append("Timestamp : N/A\n");
+            AppLogger.w("InstantValues", "No se pudo leer el timestamp: " + e.getMessage());
         }
+
+        // ── Voltajes, corrientes, FP ──────────────────────────────────────────
+        double v1 = 0, v2 = 0, v3 = 0;
+        double a1 = 0, a2 = 0, a3 = 0;
+        double fp1 = 0, fp2 = 0, fp3 = 0, fpTotal = 0;
+
+        try { v1 = readRawValue("1.0.32.7.0.255", reader); } catch (Exception ignored) {}
+        try { v2 = readRawValue("1.0.52.7.0.255", reader); } catch (Exception ignored) {}
+        try { v3 = readRawValue("1.0.72.7.0.255", reader); } catch (Exception ignored) {}
+
+        try { a1 = readScaledValue("1.0.31.7.0.255", reader); } catch (Exception ignored) {}
+        try { a2 = readScaledValue("1.0.51.7.0.255", reader); } catch (Exception ignored) {}
+        try { a3 = readScaledValue("1.0.71.7.0.255", reader); } catch (Exception ignored) {}
+
+        try { fp1 = readScaledValue("1.0.33.7.0.255", reader); } catch (Exception ignored) {}
+        try { fp2 = readScaledValue("1.0.53.7.0.255", reader); } catch (Exception ignored) {}
+        try { fp3 = readScaledValue("1.0.73.7.0.255", reader); } catch (Exception ignored) {}
+        try { fpTotal = readScaledValue("1.0.13.7.0.255", reader); } catch (Exception e) {
+            fpTotal = (fp1 + fp2 + fp3) / 3.0;
+            AppLogger.w("InstantValues", "FP total calculado como media de fases: " + fpTotal);
+        }
+
+        sb.append("Valores Tensión       Corriente        FP :\n");
+        sb.append(String.format("Fase 1 :   %,.1f [V]       %,.1f [A]   %,.3f%n", v1, a1, fp1));
+        sb.append(String.format("Fase 2 :   %,.1f [V]       %,.1f [A]   %,.3f%n", v2, a2, fp2));
+        sb.append(String.format("Fase 3 :   %,.1f [V]       %,.1f [A]   %,.3f%n", v3, a3, fp3));
+        sb.append(String.format("FP (sum of all phases: +P/S) : %,.3f%n", fpTotal));
+
+        // ── Relaciones ────────────────────────────────────────────────────────
+        double vPrim = 0, vSec = 0, aPrim = 0, aSec = 0;
+        try { vPrim = readDataValue("1.0.0.4.3.255", reader); } catch (Exception e) {
+            try { vPrim = readDataValue("0.0.4.3.0.255", reader); } catch (Exception ignored) {}
+        }
+        try { vSec = readDataValue("1.0.0.4.6.255", reader); } catch (Exception e) {
+            try { vSec = readDataValue("0.0.4.6.0.255", reader); } catch (Exception ignored) {}
+        }
+        try { aPrim = readDataValue("1.0.0.4.2.255", reader); } catch (Exception e) {
+            try { aPrim = readDataValue("0.0.4.2.0.255", reader); } catch (Exception ignored) {}
+        }
+        try { aSec = readDataValue("1.0.0.4.5.255", reader); } catch (Exception e) {
+            try { aSec = readDataValue("0.0.4.5.0.255", reader); } catch (Exception ignored) {}
+        }
+
+        double vRatio = (vSec != 0) ? vPrim / vSec : 1.0;
+        double aRatio = (aSec != 0) ? aPrim / aSec : 1.0;
+
+        sb.append("Relación de Transformacion de Tensión : [deciVolts]/[deciVolts] \n");
+        sb.append(String.format("Prim/sec  (%.0f / %.0f) = %,.3f%n", vPrim, vSec, vRatio));
+        sb.append("Relación de Transformacion Corriente : [deciAmps]/[deciAmps]\n");
+        sb.append(String.format("Prim/sec (%.0f / %.0f) = %,.3f%n", aPrim, aSec, aRatio));
+
+        // ── Potencias por fase (en kW) ────────────────────────────────────────
+        double p1p=0, p2p=0, p3p=0, p1m=0, p2m=0, p3m=0;
+        double q1p=0, q2p=0, q3p=0, q1m=0, q2m=0, q3m=0;
+
+        try { p1p = readRawValue("1.0.21.7.0.255", reader) * 1e-3; } catch (Exception ignored) {}
+        try { p2p = readRawValue("1.0.41.7.0.255", reader) * 1e-3; } catch (Exception ignored) {}
+        try { p3p = readRawValue("1.0.61.7.0.255", reader) * 1e-3; } catch (Exception ignored) {}
+
+        try { p1m = readRawValue("1.0.22.7.0.255", reader) * 1e-3; } catch (Exception ignored) {}
+        try { p2m = readRawValue("1.0.42.7.0.255", reader) * 1e-3; } catch (Exception ignored) {}
+        try { p3m = readRawValue("1.0.62.7.0.255", reader) * 1e-3; } catch (Exception ignored) {}
+
+        try { q1p = readRawValue("1.0.23.7.0.255", reader) * 1e-3; } catch (Exception ignored) {}
+        try { q2p = readRawValue("1.0.43.7.0.255", reader) * 1e-3; } catch (Exception ignored) {}
+        try { q3p = readRawValue("1.0.63.7.0.255", reader) * 1e-3; } catch (Exception ignored) {}
+
+        try { q1m = readRawValue("1.0.24.7.0.255", reader) * 1e-3; } catch (Exception ignored) {}
+        try { q2m = readRawValue("1.0.44.7.0.255", reader) * 1e-3; } catch (Exception ignored) {}
+        try { q3m = readRawValue("1.0.64.7.0.255", reader) * 1e-3; } catch (Exception ignored) {}
+
+        sb.append("Valores       P+ [Kw]    P- [Kw]    Q+ [Kvar]  Q- [Kvar]  :\n");
+        sb.append(String.format("Fase 1 :       %,.3f      %,.3f      %,.3f      %,.3f%n", p1p, p1m, q1p, q1m));
+        sb.append(String.format("Fase 2 :       %,.3f      %,.3f      %,.3f      %,.3f%n", p2p, p2m, q2p, q2m));
+        sb.append(String.format("Fase 3 :       %,.3f      %,.3f      %,.3f      %,.3f%n", p3p, p3m, q3p, q3m));
+        sb.append(String.format("Total  :       %,.3f      %,.3f      %,.3f      %,.3f%n",
+                p1p+p2p+p3p, p1m+p2m+p3m, q1p+q2p+q3p, q1m+q2m+q3m));
+
+        // ── Energías (en kWh) ─────────────────────────────────────────────────
+        double eaPlus=0, eaMinus=0, eq1=0, eq2=0, eq3=0, eq4=0;
+
+        try { eaPlus  = readRawValue("1.0.1.8.0.255", reader) / 1000.0; } catch (Exception ignored) {}
+        try { eaMinus = readRawValue("1.0.2.8.0.255", reader) / 1000.0; } catch (Exception ignored) {}
+        try { eq1 = readRawValue("1.0.5.8.0.255", reader) / 1000.0; } catch (Exception ignored) {}
+        try { eq2 = readRawValue("1.0.6.8.0.255", reader) / 1000.0; } catch (Exception ignored) {}
+        try { eq3 = readRawValue("1.0.7.8.0.255", reader) / 1000.0; } catch (Exception ignored) {}
+        try { eq4 = readRawValue("1.0.8.8.0.255", reader) / 1000.0; } catch (Exception ignored) {}
+
+        sb.append(String.format("Activa Importada   :   %,.3f  [Kwh]%n", eaPlus));
+        sb.append(String.format("Activa Exportada   :   %,.3f  [Kwh]%n", eaMinus));
+        sb.append(String.format("Reactiva Q1        :   %,.3f  [KVArh]%n", eq1));
+        sb.append(String.format("Reactiva Q2        :   %,.3f  [KVArh]%n", eq2));
+        sb.append(String.format("Reactiva Q3        :   %,.3f  [KVArh]%n", eq3));
+        sb.append(String.format("Reactiva Q4        :   %,.3f  [KVArh]%n", eq4));
+
+        AppLogger.i("InstantValues", "Lectura de valores instantáneos completada.");
+        return sb.toString();
     }
 
-    /**
-     * Obtiene información del medidor
-     */
-    public String getMeterInfo(GXDLMSReader reader) throws Exception {
-        StringBuilder info = new StringBuilder();
+    // ── Helpers ───────────────────────────────────────────────────────────────
 
-        try {
-            // Leer fabricante
-            GXDLMSData manufacturer = new GXDLMSData("0.0.96.1.0.255");
-            reader.read(manufacturer, 2);
-            info.append("Fabricante: ").append(manufacturer.getValue()).append("");
+    private static double readRawValue(String obis, GXDLMSReader reader) throws Exception {
+        GXDLMSRegister reg = new GXDLMSRegister(obis);
+        reader.read(reg, 3);
+        reader.read(reg, 2);
+        Object value = reg.getValue();
+        if (value == null) return 0.0;
+        if (value instanceof Number) return ((Number) value).doubleValue();
+        return Double.parseDouble(value.toString());
+    }
 
-            // Leer número de serie
-            GXDLMSData serialNumber = new GXDLMSData("0.0.96.1.1.255");
-            reader.read(serialNumber, 2);
-            info.append("Número de Serie: ").append(serialNumber.getValue()).append("");
+    private static double readScaledValue(String obis, GXDLMSReader reader) throws Exception {
+        GXDLMSRegister reg = new GXDLMSRegister(obis);
+        reader.read(reg, 3);
+        reader.read(reg, 2);
 
-        } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "Error obteniendo info del medidor", e);
+        Object value = reg.getValue();
+        double raw = 0;
+        if (value instanceof Number) {
+            raw = ((Number) value).doubleValue();
+        } else if (value != null) {
+            raw = Double.parseDouble(value.toString());
         }
 
-        return info.toString();
+        int scalerInt = (int) reg.getScaler();
+        if (scalerInt > 127) scalerInt -= 256;
+
+        AppLogger.d("InstantValues", String.format(
+                "OBIS %s  raw=%.0f  scalerRaw=%.0f  scalerSigned=%d  result=%f",
+                obis, raw, reg.getScaler(), scalerInt, raw * Math.pow(10, scalerInt)));
+
+        return raw * Math.pow(10, scalerInt);
+    }
+
+    private static double readDataValue(String obis, GXDLMSReader reader) throws Exception {
+        GXDLMSData data = new GXDLMSData(obis);
+        reader.read(data, 2);
+        Object value = data.getValue();
+        if (value == null) return 0.0;
+        if (value instanceof Number) return ((Number) value).doubleValue();
+        return Double.parseDouble(value.toString());
     }
 }

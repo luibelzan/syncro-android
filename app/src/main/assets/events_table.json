@@ -1,0 +1,1082 @@
+[
+  {
+    "grp":1,
+    "cod":32,
+    "desc":"Password de Lectura Cambiado"
+  },
+  {
+    "grp":1,
+    "cod":33,
+    "desc":"Password de Parametrizacion Cambiado"
+  },
+  {
+    "grp":1,
+    "cod":34,
+    "desc":"Password de Firmware Cambiado"
+  },
+  {
+    "grp":1,
+    "cod":98,
+    "desc":"Sincronizacion de Fecha/Hora"
+  },
+  {
+    "grp":1,
+    "cod":101,
+    "desc":"Reset de Parametros"
+  },
+  {
+    "grp":2,
+    "cod":1,
+    "desc":"Reconexion manual por exceso de potencia (Boton del contador)"
+  },
+  {
+    "grp":2,
+    "cod":2,
+    "desc":"Desconexion Remota (por comando)"
+  },
+  {
+    "grp":2,
+    "cod":3,
+    "desc":"Conexion Remota (por comando)"
+  },
+  {
+    "grp":2,
+    "cod":4,
+    "desc":"Desconexion por exceso de potencia"
+  },
+  {
+    "grp":2,
+    "cod":5,
+    "desc":"Reconexion manual por exceso de demanda (ICP del suministro)"
+  },
+  {
+    "grp":3,
+    "cod":1,
+    "desc":"Subtension entre Fases (Promedio) No Finalizada"
+  },
+  {
+    "grp":3,
+    "cod":2,
+    "desc":"Subtension L1 No Finalizada"
+  },
+  {
+    "grp":3,
+    "cod":3,
+    "desc":"Subtension L2 No Finalizada"
+  },
+  {
+    "grp":3,
+    "cod":4,
+    "desc":"Subtension L3 No Finalizada"
+  },
+  {
+    "grp":3,
+    "cod":5,
+    "desc":"Sobretension entre Fases (Promedio) No Finalizada"
+  },
+  {
+    "grp":3,
+    "cod":6,
+    "desc":"Sobretension en L1 No Finalizada"
+  },
+  {
+    "grp":3,
+    "cod":7,
+    "desc":"Sobretension en L2 No Finalizada"
+  },
+  {
+    "grp":3,
+    "cod":8,
+    "desc":"Sobretension en L3 No Finalizada"
+  },
+  {
+    "grp":3,
+    "cod":9,
+    "desc":"Corte Larga Duracion en Todas las Fases no Finalizado"
+  },
+  {
+    "grp":3,
+    "cod":10,
+    "desc":"Corte Larga Duracion L1"
+  },
+  {
+    "grp":3,
+    "cod":11,
+    "desc":"Corte Larga Duracion L2"
+  },
+  {
+    "grp":3,
+    "cod":12,
+    "desc":"Corte Larga Duracion L3"
+  },
+  {
+    "grp":3,
+    "cod":13,
+    "desc":"Subtension entre Fases (Promedio)"
+  },
+  {
+    "grp":3,
+    "cod":14,
+    "desc":"Subtension L1"
+  },
+  {
+    "grp":3,
+    "cod":15,
+    "desc":"Subtension L2"
+  },
+  {
+    "grp":3,
+    "cod":16,
+    "desc":"Subtension L3"
+  },
+  {
+    "grp":3,
+    "cod":17,
+    "desc":"Sobretension entre Fases (Promedio)"
+  },
+  {
+    "grp":3,
+    "cod":18,
+    "desc":"Sobretension L1"
+  },
+  {
+    "grp":3,
+    "cod":19,
+    "desc":"Sobretension L2"
+  },
+  {
+    "grp":3,
+    "cod":20,
+    "desc":"Sobretension L3"
+  },
+  {
+    "grp":3,
+    "cod":21,
+    "desc":"Corte Larga Duracion en Todas las Fases"
+  },
+  {
+    "grp":3,
+    "cod":22,
+    "desc":"Corte Larga Duracion L1"
+  },
+  {
+    "grp":3,
+    "cod":23,
+    "desc":"Corte Larga Duracion L2"
+  },
+  {
+    "grp":3,
+    "cod":24,
+    "desc":"Corte Larga Duracion L3"
+  },
+  {
+    "grp":4,
+    "cod":1,
+    "desc":"Tapa (envolvente) del Contador abierta"
+  },
+  {
+    "grp":4,
+    "cod":2,
+    "desc":"Tapa (envolvente) del Contador cerrada"
+  },
+  {
+    "grp":4,
+    "cod":5,
+    "desc":"Corriente sin Tension"
+  },
+  {
+    "grp":4,
+    "cod":7,
+    "desc":"Tapa Cubrebornas abierta"
+  },
+  {
+    "grp":4,
+    "cod":8,
+    "desc":"Tapa Cubrebornas cerrada"
+  },
+  {
+    "grp":4,
+    "cod":9,
+    "desc":"Deteccion de Tension en Bornas de Salida (ICP abierto por comando)"
+  },
+  {
+    "grp":4,
+    "cod":10,
+    "desc":"Fin de Deteccion de Tension en Bornas de Salida (ICP abierto por comando)"
+  },
+  {
+    "grp":1,
+    "cod":1,
+    "desc":"Reset con perdida de datos"
+  },
+  {
+    "grp":1,
+    "cod":3,
+    "desc":"Fallo de Alimentacion (Corte)"
+  },
+  {
+    "grp":1,
+    "cod":7,
+    "desc":"Perdida de Neutro"
+  },
+  {
+    "grp":1,
+    "cod":8,
+    "desc":"Bateria Baja"
+  },
+  {
+    "grp":1,
+    "cod":30,
+    "desc":"Cambio de Parametros (Otros)"
+  },
+  {
+    "grp":1,
+    "cod":31,
+    "desc":"Cambio de Parametros (Otros)"
+  },
+  {
+    "grp":1,
+    "cod":2,
+    "desc":"Reset sin perdida de datos"
+  },
+  {
+    "grp":1,
+    "cod":4,
+    "desc":"Fallo de Alimentacion Fase 1"
+  },
+  {
+    "grp":1,
+    "cod":5,
+    "desc":"Fallo de Alimentacion Fase 2"
+  },
+  {
+    "grp":1,
+    "cod":6,
+    "desc":"Fallo de Alimentacion Fase 3"
+  },
+  {
+    "grp":1,
+    "cod":9,
+    "desc":"Error Critico Interno"
+  },
+  {
+    "grp":1,
+    "cod":10,
+    "desc":"Errores del Fabricante (Otros)"
+  },
+  {
+    "grp":1,
+    "cod":21,
+    "desc":"Fin de Fallo de Alimentacion Fase 1"
+  },
+  {
+    "grp":1,
+    "cod":22,
+    "desc":"Fin de Fallo de Alimentacion Fase 2"
+  },
+  {
+    "grp":1,
+    "cod":23,
+    "desc":"Fin de Fallo de Alimentacion Fase 3"
+  },
+  {
+    "grp":1,
+    "cod":24,
+    "desc":"Cambio de Estacion (Invierno/Verano)"
+  },
+  {
+    "grp":1,
+    "cod":25,
+    "desc":"Cambio de Estacion (Verano/Invierno)"
+  },
+  {
+    "grp":1,
+    "cod":35,
+    "desc":"Reset de Estado de Bateria"
+  },
+  {
+    "grp":1,
+    "cod":36,
+    "desc":"Modificacion de parametros de cambio automatico de hora(DST)"
+  },
+  {
+    "grp":1,
+    "cod":37,
+    "desc":"Tiempo Minimo de fin de Cierre Modificado"
+  },
+  {
+    "grp":1,
+    "cod":38,
+    "desc":"Cambio de Periodo de Curva de Carga"
+  },
+  {
+    "grp":1,
+    "cod":39,
+    "desc":"Relacion de Transformacion Modificada"
+  },
+  {
+    "grp":1,
+    "cod":40,
+    "desc":"Modo de Sincronizacion de Reloj Modificado"
+  },
+  {
+    "grp":1,
+    "cod":41,
+    "desc":"Cambio de Etiqueta de Programa"
+  },
+  {
+    "grp":1,
+    "cod":42,
+    "desc":"Estado de Activacion de Cierre Manual Modificado"
+  },
+  {
+    "grp":1,
+    "cod":43,
+    "desc":"Magnitud de Salida Modificada"
+  },
+  {
+    "grp":1,
+    "cod":44,
+    "desc":"Cierre automatico del contrato 1"
+  },
+  {
+    "grp":1,
+    "cod":45,
+    "desc":"Cambio de Parametros de Contrato 1"
+  },
+  {
+    "grp":1,
+    "cod":46,
+    "desc":"Uso Futuro"
+  },
+  {
+    "grp":1,
+    "cod":47,
+    "desc":"Cambio de tabla de dias especiales del contrato 1 (Pasivo)"
+  },
+  {
+    "grp":1,
+    "cod":48,
+    "desc":"Cambio de tabla de temporadas del contrato 1 (Pasivo)"
+  },
+  {
+    "grp":1,
+    "cod":49,
+    "desc":"Borrado de Contrato 1 (Pasivo)"
+  },
+  {
+    "grp":1,
+    "cod":50,
+    "desc":"Cambio de dia de cierre automatico del contrato 1 (Pasivo)"
+  },
+  {
+    "grp":1,
+    "cod":51,
+    "desc":"Cambio de fecha de activacion del contrato 1 (Pasivo)"
+  },
+  {
+    "grp":1,
+    "cod":52,
+    "desc":"Cierre automatico del contrato 2"
+  },
+  {
+    "grp":1,
+    "cod":53,
+    "desc":"Cambio de Parametros de Contrato 2"
+  },
+  {
+    "grp":1,
+    "cod":54,
+    "desc":"Cambio de tabla de dias especiales del contrato 2 (Pasivo)"
+  },
+  {
+    "grp":1,
+    "cod":55,
+    "desc":"Cambio de tabla de temporadas del contrato 2 (Pasivo)"
+  },
+  {
+    "grp":1,
+    "cod":56,
+    "desc":"Borrado de Contrato 2 (Pasivo)"
+  },
+  {
+    "grp":1,
+    "cod":57,
+    "desc":"Cambio de dia de cierre automatico del contrato 2 (Pasivo)"
+  },
+  {
+    "grp":1,
+    "cod":58,
+    "desc":"Cambio de fecha de activacion del contrato 2 (Pasivo)"
+  },
+  {
+    "grp":1,
+    "cod":59,
+    "desc":"Cierre automatico del contrato 3"
+  },
+  {
+    "grp":1,
+    "cod":60,
+    "desc":"Cambio de Parametros de Contrato 3"
+  },
+  {
+    "grp":1,
+    "cod":61,
+    "desc":"Cambio de tabla de dias especiales del contrato 3 (Pasivo)"
+  },
+  {
+    "grp":1,
+    "cod":62,
+    "desc":"Cambio de tabla de temporadas del contrato 3 (Pasivo)"
+  },
+  {
+    "grp":1,
+    "cod":63,
+    "desc":"Borrado de Contrato 3 (Pasivo)"
+  },
+  {
+    "grp":1,
+    "cod":64,
+    "desc":"Cambio de dia de cierre automatico del contrato 3 (Pasivo)"
+  },
+  {
+    "grp":1,
+    "cod":65,
+    "desc":"Cambio de fecha de activacion del contrato 3 (Pasivo)"
+  },
+  {
+    "grp":1,
+    "cod":66,
+    "desc":"Cierre Manual efectuado para todos los contratos (Boton del Contador)"
+  },
+  {
+    "grp":1,
+    "cod":90,
+    "desc":"Umbral de tiempo para SubtensionS y SobretensionS de Tension Modificados"
+  },
+  {
+    "grp":1,
+    "cod":91,
+    "desc":"Umbral de tiempo para Cortes de Larga Duracion Modificado(T)"
+  },
+  {
+    "grp":1,
+    "cod":92,
+    "desc":"Voltaje Nominal (Vn) Modificado"
+  },
+  {
+    "grp":1,
+    "cod":93,
+    "desc":"Nivel de Maximo Voltaje Modificado(+V)"
+  },
+  {
+    "grp":1,
+    "cod":94,
+    "desc":"Nivel de Minimo Voltaje Modificado(-V)"
+  },
+  {
+    "grp":1,
+    "cod":95,
+    "desc":"Diferencia entre Voltaje Minimo y No Voltaje Modificada"
+  },
+  {
+    "grp":1,
+    "cod":96,
+    "desc":"Potencias del Contrato Activadas (Importacion)"
+  },
+  {
+    "grp":1,
+    "cod":97,
+    "desc":"Actualizacion de Firmware"
+  },
+  {
+    "grp":1,
+    "cod":99,
+    "desc":"Reset de Claves"
+  },
+  {
+    "grp":2,
+    "cod":6,
+    "desc":"Comienzo de Non-trip Current (Valida para Importacion y Exportacion) Superada por Bloqueo"
+  },
+  {
+    "grp":2,
+    "cod":7,
+    "desc":"Desconexion habilitada"
+  },
+  {
+    "grp":2,
+    "cod":8,
+    "desc":"Desconexion deshabilitada"
+  },
+  {
+    "grp":2,
+    "cod":9,
+    "desc":"Desconexion por Control de Potencia Residual"
+  },
+  {
+    "grp":2,
+    "cod":10,
+    "desc":"Desactivacion de Control de Conexion por Potencia Residual"
+  },
+  {
+    "grp":2,
+    "cod":11,
+    "desc":"Conexion por Control de Potencia Residual"
+  },
+  {
+    "grp":2,
+    "cod":12,
+    "desc":"Modo de Control de Desconexion Modificado"
+  },
+  {
+    "grp":2,
+    "cod":13,
+    "desc":"Desconexion por exceso de potencia (exportacion)"
+  },
+  {
+    "grp":2,
+    "cod":14,
+    "desc":"Fin de Non-trip Current (Valida para Importacion y Exportacion) Superada por Bloqueo"
+  },
+  {
+    "grp":1,
+    "cod":100,
+    "desc":"Reset de Datos"
+  },
+  {
+    "grp":3,
+    "cod":25,
+    "desc":"Perdida de Alta Impedancia (LVS)"
+  },
+  {
+    "grp":3,
+    "cod":26,
+    "desc":"Fin de Perdida de Alta Impedancia (LVS)"
+  },
+  {
+    "grp":3,
+    "cod":101,
+    "desc":"Subtension L1 - LV"
+  },
+  {
+    "grp":3,
+    "cod":102,
+    "desc":"Subtension L2 - LV"
+  },
+  {
+    "grp":3,
+    "cod":103,
+    "desc":"Subtension L3 - LV"
+  },
+  {
+    "grp":3,
+    "cod":104,
+    "desc":"Sobretension L1 - LV"
+  },
+  {
+    "grp":3,
+    "cod":105,
+    "desc":"Sobretension L2 - LV"
+  },
+  {
+    "grp":3,
+    "cod":106,
+    "desc":"Sobretension L3 - LV"
+  },
+  {
+    "grp":3,
+    "cod":107,
+    "desc":"Hard voltage Subtension L1 - LV"
+  },
+  {
+    "grp":3,
+    "cod":108,
+    "desc":"Hard voltage Subtension L2 - LV"
+  },
+  {
+    "grp":3,
+    "cod":109,
+    "desc":"Hard voltage Subtension L3 - LV"
+  },
+  {
+    "grp":3,
+    "cod":110,
+    "desc":"Hard voltage Sobretension L1 - LV"
+  },
+  {
+    "grp":3,
+    "cod":111,
+    "desc":"Hard voltage Sobretension L2 - LV"
+  },
+  {
+    "grp":3,
+    "cod":112,
+    "desc":"Hard voltage Sobretension L3 - LV"
+  },
+  {
+    "grp":3,
+    "cod":113,
+    "desc":"Micro Corte en todas las Fases - LV"
+  },
+  {
+    "grp":3,
+    "cod":114,
+    "desc":"Micro Corte L1 - LV"
+  },
+  {
+    "grp":3,
+    "cod":115,
+    "desc":"Micro Corte L2 - LV"
+  },
+  {
+    "grp":3,
+    "cod":116,
+    "desc":"Micro Corte L3 - LV"
+  },
+  {
+    "grp":3,
+    "cod":117,
+    "desc":"Subtension L1 - MV"
+  },
+  {
+    "grp":3,
+    "cod":118,
+    "desc":"Subtension L2 - MV"
+  },
+  {
+    "grp":3,
+    "cod":119,
+    "desc":"Subtension L3 - MV"
+  },
+  {
+    "grp":3,
+    "cod":120,
+    "desc":"Sobretension L1 - MV"
+  },
+  {
+    "grp":3,
+    "cod":121,
+    "desc":"Sobretension L2 - MV"
+  },
+  {
+    "grp":3,
+    "cod":122,
+    "desc":"Sobretension L3 - MV"
+  },
+  {
+    "grp":3,
+    "cod":123,
+    "desc":"Hard voltage Subtension L1 - MV"
+  },
+  {
+    "grp":3,
+    "cod":124,
+    "desc":"Hard voltage Subtension L2 - MV"
+  },
+  {
+    "grp":3,
+    "cod":125,
+    "desc":"Hard voltage Subtension L3 - MV"
+  },
+  {
+    "grp":3,
+    "cod":126,
+    "desc":"Hard voltage Sobretension L1 - MV"
+  },
+  {
+    "grp":3,
+    "cod":127,
+    "desc":"Hard voltage Sobretension L2 - MV"
+  },
+  {
+    "grp":3,
+    "cod":128,
+    "desc":"Hard voltage Sobretension L3 - MV"
+  },
+  {
+    "grp":3,
+    "cod":129,
+    "desc":"Perdida de Neutro bajo Condiciones Especiales"
+  },
+  {
+    "grp":3,
+    "cod":130,
+    "desc":"Perdida de Fase L1 bajo Condiciones Especiales"
+  },
+  {
+    "grp":3,
+    "cod":131,
+    "desc":"Perdida de Fase L2 bajo Condiciones Especiales"
+  },
+  {
+    "grp":3,
+    "cod":132,
+    "desc":"Perdida de Fase L3 bajo Condiciones Especiales"
+  },
+  {
+    "grp":3,
+    "cod":133,
+    "desc":"Sobrecarga Fase L1"
+  },
+  {
+    "grp":3,
+    "cod":134,
+    "desc":"Sobrecarga Fase L2"
+  },
+  {
+    "grp":3,
+    "cod":135,
+    "desc":"Sobrecarga Fase L3"
+  },
+  {
+    "grp":3,
+    "cod":136,
+    "desc":"Sobrecarga en Neutro"
+  },
+  {
+    "grp":3,
+    "cod":137,
+    "desc":"Cargas Desbalanceadas bajo Condiciones Especiales"
+  },
+  {
+    "grp":3,
+    "cod":201,
+    "desc":"Subtension L1 - LV"
+  },
+  {
+    "grp":3,
+    "cod":202,
+    "desc":"Subtension L2 - LV"
+  },
+  {
+    "grp":3,
+    "cod":203,
+    "desc":"Subtension L3 - LV"
+  },
+  {
+    "grp":3,
+    "cod":204,
+    "desc":"Sobretension L1 - LV"
+  },
+  {
+    "grp":3,
+    "cod":205,
+    "desc":"Sobretension L2 - LV"
+  },
+  {
+    "grp":3,
+    "cod":206,
+    "desc":"Sobretension L3 - LV"
+  },
+  {
+    "grp":3,
+    "cod":207,
+    "desc":"Hard voltage Subtension L1 - LV"
+  },
+  {
+    "grp":3,
+    "cod":208,
+    "desc":"Hard voltage Subtension L2 - LV"
+  },
+  {
+    "grp":3,
+    "cod":209,
+    "desc":"Hard voltage Subtension L3 - LV"
+  },
+  {
+    "grp":3,
+    "cod":210,
+    "desc":"Hard voltage Sobretension L1 - LV"
+  },
+  {
+    "grp":3,
+    "cod":211,
+    "desc":"Hard voltage Sobretension L2 - LV"
+  },
+  {
+    "grp":3,
+    "cod":212,
+    "desc":"Hard voltage Sobretension L3 - LV"
+  },
+  {
+    "grp":3,
+    "cod":213,
+    "desc":"Micro Corte en todas las Fases - LV"
+  },
+  {
+    "grp":3,
+    "cod":214,
+    "desc":"Micro Corte L1 - LV"
+  },
+  {
+    "grp":3,
+    "cod":215,
+    "desc":"Micro Corte L2 - LV"
+  },
+  {
+    "grp":3,
+    "cod":216,
+    "desc":"Micro Corte L3 - LV"
+  },
+  {
+    "grp":3,
+    "cod":217,
+    "desc":"Subtension L1 - MV"
+  },
+  {
+    "grp":3,
+    "cod":218,
+    "desc":"Subtension L2 - MV"
+  },
+  {
+    "grp":3,
+    "cod":219,
+    "desc":"Subtension L3 - MV"
+  },
+  {
+    "grp":3,
+    "cod":220,
+    "desc":"Sobretension L1 - MV"
+  },
+  {
+    "grp":3,
+    "cod":221,
+    "desc":"Sobretension L2 - MV"
+  },
+  {
+    "grp":3,
+    "cod":222,
+    "desc":"Sobretension L3 - MV"
+  },
+  {
+    "grp":3,
+    "cod":223,
+    "desc":"Hard voltage Subtension L1 - MV"
+  },
+  {
+    "grp":3,
+    "cod":224,
+    "desc":"Hard voltage Subtension L2 - MV"
+  },
+  {
+    "grp":3,
+    "cod":225,
+    "desc":"Hard voltage Subtension L3 - MV"
+  },
+  {
+    "grp":3,
+    "cod":226,
+    "desc":"Hard voltage Sobretension L1 - MV"
+  },
+  {
+    "grp":3,
+    "cod":227,
+    "desc":"Hard voltage Sobretension L2 - MV"
+  },
+  {
+    "grp":3,
+    "cod":228,
+    "desc":"Hard voltage Sobretension L3 - MV"
+  },
+  {
+    "grp":3,
+    "cod":229,
+    "desc":"Perdida de Neutro bajo Condiciones Especiales"
+  },
+  {
+    "grp":3,
+    "cod":230,
+    "desc":"Perdida de Fase L1 bajo Condiciones Especiales"
+  },
+  {
+    "grp":3,
+    "cod":231,
+    "desc":"Perdida de Fase L2 bajo Condiciones Especiales"
+  },
+  {
+    "grp":3,
+    "cod":232,
+    "desc":"Perdida de Fase L3 bajo Condiciones Especiales"
+  },
+  {
+    "grp":3,
+    "cod":233,
+    "desc":"Sobrecarga Fase L1"
+  },
+  {
+    "grp":3,
+    "cod":234,
+    "desc":"Sobrecarga Fase L2"
+  },
+  {
+    "grp":3,
+    "cod":235,
+    "desc":"Sobrecarga Fase L3"
+  },
+  {
+    "grp":3,
+    "cod":236,
+    "desc":"Sobrecarga en Neutro"
+  },
+  {
+    "grp":3,
+    "cod":237,
+    "desc":"Cargas Desbalanceadas bajo Condiciones Especiales"
+  },
+  {
+    "grp":4,
+    "cod":3,
+    "desc":"Inicio de Presencia de campo magnetico"
+  },
+  {
+    "grp":4,
+    "cod":4,
+    "desc":"Fin de Presencia de campo magnetico"
+  },
+  {
+    "grp":4,
+    "cod":6,
+    "desc":"Deteccion de Fraude en Comunicaciones"
+  },
+  {
+    "grp":4,
+    "cod":11,
+    "desc":"Deteccion de Alta Impedancia en Bornas de Salida (ICP abierto por comando)"
+  },
+  {
+    "grp":4,
+    "cod":12,
+    "desc":"Fin de Deteccion de Alta Impedancia en Bornas de Salida (ICP abierto por comando)"
+  },
+  {
+    "grp":5,
+    "cod":1,
+    "desc":"Reception order management critic residual demand                                                   "
+  },
+  {
+    "grp":5,
+    "cod":2,
+    "desc":"Reception order management critic % decrease demand                                                 "
+  },
+  {
+    "grp":5,
+    "cod":3,
+    "desc":"Reception order management demand absolute value critic demand                                      "
+  },
+  {
+    "grp":5,
+    "cod":4,
+    "desc":"Reception order management no critic residual demand                                                "
+  },
+  {
+    "grp":5,
+    "cod":5,
+    "desc":"Client acceptance management  no critic residual demand                                             "
+  },
+  {
+    "grp":5,
+    "cod":6,
+    "desc":"Client rejection management no critic residual demand                                               "
+  },
+  {
+    "grp":5,
+    "cod":7,
+    "desc":"Reception order management  no critic demand % decrease                                             "
+  },
+  {
+    "grp":5,
+    "cod":8,
+    "desc":"Client acceptance management no critic demand % decrease                                            "
+  },
+  {
+    "grp":5,
+    "cod":9,
+    "desc":"Rejection management no critic demand % decrease                                                    "
+  },
+  {
+    "grp":5,
+    "cod":10,
+    "desc":"Reception order management no critic absolute demand                                                "
+  },
+  {
+    "grp":5,
+    "cod":11,
+    "desc":"Client acceptance management no critic absolute demand                                              "
+  },
+  {
+    "grp":5,
+    "cod":12,
+    "desc":"Client Rejection management no critic absolute demand                                               "
+  },
+  {
+    "grp":5,
+    "cod":13,
+    "desc":"Cambio en Demanda Residual suscrita"
+  },
+  {
+    "grp":5,
+    "cod":14,
+    "desc":"Comienzo de Demanda Residual"
+  },
+  {
+    "grp":5,
+    "cod":15,
+    "desc":"Fin de Demanda Residual"
+  },
+  {
+    "grp":5,
+    "cod":16,
+    "desc":"Inicio Disminución % Demanda Suscrita"
+  },
+  {
+    "grp":5,
+    "cod":17,
+    "desc":"Fin Disminución % Demanda Suscrita"
+  },
+  {
+    "grp":5,
+    "cod":18,
+    "desc":"Comienzo de Reduccion de Potencia Absoluta"
+  },
+  {
+    "grp":5,
+    "cod":19,
+    "desc":"Fin de Reduccion de Potencia Absoluta"
+  },
+  {
+    "grp":5,
+    "cod":20,
+    "desc":"Demanda cercana a Potencia Contratada"
+  },
+  {
+    "grp":6,
+    "cod":1,
+    "desc":"Inicio de Comunicaciones Puerto PLC"
+  },
+  {
+    "grp":6,
+    "cod":2,
+    "desc":"Fin de Comunicaciones Puerto PLC"
+  },
+  {
+    "grp":6,
+    "cod":3,
+    "desc":"Inicio de Comunicaciones Puerto Optico"
+  },
+  {
+    "grp":6,
+    "cod":4,
+    "desc":"Fin de Comunicaciones Puerto Optico"
+  },
+  {
+    "grp":6,
+    "cod":5,
+    "desc":"Inicio de Comunicaciones Puerto Serial"
+  },
+  {
+    "grp":6,
+    "cod":6,
+    "desc":"Fin de Comunicacioness Puerto Serial"
+  }
+]

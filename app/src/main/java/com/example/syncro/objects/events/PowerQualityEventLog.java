@@ -1,11 +1,26 @@
 package com.example.syncro.objects.events;
 
-import com.example.syncro.client.GXDLMSReader;
+import android.content.Context;
 
-import java.time.LocalDate;
+import com.example.syncro.client.GXDLMSReader;
+import com.example.syncro.models.EventDescription;
+import com.example.syncro.models.EventFila;
+import com.example.syncro.models.EventInfo;
+import com.example.syncro.utils.AppLogger;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import gurux.dlms.GXDateTime;
@@ -14,43 +29,132 @@ import gurux.dlms.objects.GXDLMSProfileGeneric;
 
 public class PowerQualityEventLog {
 
-    public static List<Object[]> readPowerQualityEventLog(GXDLMSReader reader, LocalDate from, LocalDate to) {
-        List<Object[]> result = new ArrayList<>();
+    private static final String TAG = "PowerQualityEventLog";
+    private static Map<String, EventInfo> eventMap = new HashMap<>();
+
+    public static List<EventFila> readPowerQualityEventLog(Context context, GXDLMSReader reader, String from, String to) {
+        List<EventFila> result = new ArrayList<>();
         try {
-            // OBIS para Power Quality Event Log: 0.0.99.98.5.255
             String obisPQ = "0.0.99.98.5.255";
             GXDLMSProfileGeneric pqLog = new GXDLMSProfileGeneric(obisPQ);
 
-            System.out.println("Leyendo estructura de Power Quality Event Log...");
-            reader.read(pqLog, 3); // Lee capture_objects (definición de columnas)
+            AppLogger.i(TAG, "Leyendo estructura de Power Quality Event Log...");
+            reader.read(pqLog, 3);
 
-            // Rango de fechas
-            GXDateTime start = new GXDateTime(from.getYear(), from.getMonthValue(), from.getDayOfMonth(), 0, 0, 0, 0);
-            GXDateTime end = new GXDateTime(to.getYear(), to.getMonthValue(), to.getDayOfMonth(), 23, 59, 59, 0);
+            if (pqLog.getCaptureObjects() == null || pqLog.getCaptureObjects().isEmpty()) {
+                AppLogger.i(TAG, "ZIV detectado o estructura vacía. Aplicando plantilla manual...");
+
+                gurux.dlms.objects.GXDLMSClock clock = new gurux.dlms.objects.GXDLMSClock("0.0.1.0.0.255");
+                gurux.dlms.objects.GXDLMSData eventCode = new gurux.dlms.objects.GXDLMSData("0.0.96.11.7.255");
+
+                gurux.dlms.objects.GXDLMSCaptureObject capClock = new gurux.dlms.objects.GXDLMSCaptureObject(2, 0);
+                gurux.dlms.objects.GXDLMSCaptureObject capEvent = new gurux.dlms.objects.GXDLMSCaptureObject(2, 0);
+
+                pqLog.getCaptureObjects().add(new java.util.AbstractMap.SimpleEntry<>(clock, capClock));
+                pqLog.getCaptureObjects().add(new java.util.AbstractMap.SimpleEntry<>(eventCode, capEvent));
+            }
+
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd");
+
+            Calendar calStart = Calendar.getInstance();
+            calStart.setTime(formatter.parse(from));
+            calStart.set(Calendar.SECOND, 0);
+            calStart.set(Calendar.MILLISECOND, 0);
+
+            Calendar calEnd = Calendar.getInstance();
+            calEnd.setTime(formatter.parse(to));
+            calEnd.set(Calendar.HOUR_OF_DAY, 23);
+            calEnd.set(Calendar.MINUTE, 45);
+            calEnd.set(Calendar.SECOND, 0);
+            calEnd.set(Calendar.MILLISECOND, 0);
+
+            GXDateTime start = new GXDateTime(calStart.getTime());
+            GXDateTime end = new GXDateTime(calEnd.getTime());
 
             Set<DateTimeSkips> skips = new HashSet<>();
-            skips.add(DateTimeSkips.DEVIATION); // Evita el error de zona horaria (FF C4)
-            skips.add(DateTimeSkips.STATUS); // Evita el error de byte de estado
+            skips.add(DateTimeSkips.DEVIATION);
+            skips.add(DateTimeSkips.STATUS);
 
-            // PASAR EL SET DIRECTAMENTE
             start.setSkip(skips);
             end.setSkip(skips);
 
-            System.out.println("Solicitando eventos de calidad de red...");
+            AppLogger.i(TAG, "Solicitando eventos de calidad de red...");
             Object[] rows = reader.readRowsByRange(pqLog, start, end);
 
             if (rows != null && rows.length > 0) {
+                AppLogger.i(TAG, "Eventos encontrados: " + rows.length);
+
                 for (Object row : rows) {
                     Object[] fila = (Object[]) row;
-                    result.add(fila);
-                    System.out.println("PQ EVENT: Fecha=" + fila[0] + " | ID=" + fila[1]);
+                    String fecha = fila[0].toString();
+                    int id = Integer.parseInt(fila[1].toString());
+                    EventDescription info = getEventDescription(context, id, 99);
+
+                    EventFila evento = new EventFila(
+                            fecha,
+                            id,
+                            info.description,
+                            info.grp
+                    );
+
+                    result.add(evento);
                 }
+
             } else {
-                System.out.println("No hay eventos de calidad de red registrados.");
+                AppLogger.i(TAG, "No hay eventos de calidad de red registrados.");
             }
         } catch (Exception e) {
-            System.err.println("Error en Power Quality Log: " + e.getMessage());
+            AppLogger.e(TAG, "Error en Power Quality Log: " + e.getMessage());
         }
         return result;
+    }
+
+    private static void loadEvents(Context context) {
+        if (!eventMap.isEmpty()) return;
+
+        try {
+            InputStream is = context.getAssets().open("events_table.json");
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+
+            StringBuilder json = new StringBuilder();
+            String line;
+
+            while ((line = reader.readLine()) != null) {
+                json.append(line);
+            }
+
+            JSONArray array = new JSONArray(json.toString());
+
+            for (int i = 0; i < array.length(); i++) {
+                JSONObject obj = array.getJSONObject(i);
+
+                EventInfo info = new EventInfo();
+                info.grp = obj.getInt("grp");
+                info.cod = obj.getInt("cod");
+                info.desc = obj.getString("desc");
+                String key = info.grp + "-" + info.cod;
+
+                eventMap.put(key, info);
+            }
+
+            AppLogger.i(TAG, "Tabla de eventos cargada: " + eventMap.size() + " entradas.");
+
+        } catch (Exception e) {
+            AppLogger.e(TAG, "Error cargando events_table.json: " + e.getMessage());
+        }
+    }
+
+    private static EventDescription getEventDescription(Context context, int code, int group) {
+        loadEvents(context);
+
+        String key = group + "-" + code;
+        EventInfo info = eventMap.get(key);
+
+        if (info != null) {
+            return new EventDescription(info.grp, info.desc);
+        }
+
+        AppLogger.i(TAG, "Evento desconocido — grupo: " + group + ", código: " + code);
+        return new EventDescription(group, "Unknown Event");
     }
 }
