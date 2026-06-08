@@ -163,29 +163,40 @@ public class CierresActivity extends BaseActivity {
 
 
                     // Leer curvas
-                    if(tipoCierre.equals("Diarios (S05)")) {
-                        ArrayList<CierreFila> datos = DailyBillingS05.leerS05(res.reader, fechaInicio, fechaFin, contrato);
+                    if (tipoCierre.equals("Diarios (S05)")) {
+                        ArrayList<CierreFila> datos;
+
+                        if (spinnerContrato.getSelectedItemPosition() == 3) {
+                            // Posición 3 = "Todos los contratos"
+                            datos = DailyBillingS05.leerS05Todos(res.reader, fechaInicio, fechaFin);
+                        } else {
+                            datos = DailyBillingS05.leerS05(res.reader, fechaInicio, fechaFin, contrato);
+                        }
 
                         runOnUiThread(() -> {
                             progressBar.setVisibility(View.GONE);
-
-                            Intent intent = new Intent(CierresActivity.this, ResultadosCierresActivity.class);
+                            Intent intent = new Intent(CierresActivity.this,
+                                    ResultadosCierresActivity.class);
                             intent.putParcelableArrayListExtra("datos_cierres_tabla", datos);
                             intent.putExtra("cntId", res.serialNumber);
                             startActivity(intent);
-
                         });
-                    } else if(tipoCierre.equals("Mensuales (S04)")) {
-                        ArrayList<CierreMensualFila> datos = MonthlyBillingS04.leerS04(res.reader, fechaInicio, fechaFin, contrato);
+                    } else if (tipoCierre.equals("Mensuales (S04)")) {
+                        ArrayList<CierreMensualFila> datos;
+
+                        if (spinnerContrato.getSelectedItemPosition() == 3) {
+                            datos = MonthlyBillingS04.leerS04Todos(res.reader, fechaInicio, fechaFin);
+                        } else {
+                            datos = MonthlyBillingS04.leerS04(res.reader, fechaInicio, fechaFin, contrato);
+                        }
 
                         runOnUiThread(() -> {
                             progressBar.setVisibility(View.GONE);
-
-                            Intent intent = new Intent(CierresActivity.this, ResultadosCierresMensualesActivity.class);
+                            Intent intent = new Intent(CierresActivity.this,
+                                    ResultadosCierresMensualesActivity.class);
                             intent.putParcelableArrayListExtra("datos_cierres_tabla", datos);
                             intent.putExtra("cntId", res.serialNumber);
                             startActivity(intent);
-
                         });
                     } else if(tipoCierre.equals("Actuales (S27)")) {
                         int posicion = spinnerContrato.getSelectedItemPosition();

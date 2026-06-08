@@ -33,6 +33,7 @@ public class CierreFila implements Parcelable {
     protected CierreFila(Parcel in) {
         fecha = in.readString();
         periodo = in.readInt();
+        contrato = in.readInt();
         activeImport = in.readString();
         activeExport = in.readString();
         r1 = in.readString();
@@ -62,6 +63,7 @@ public class CierreFila implements Parcelable {
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(fecha);
         dest.writeInt(periodo);
+        dest.writeInt(contrato);
         dest.writeString(activeImport);
         dest.writeString(activeExport);
         dest.writeString(r1);

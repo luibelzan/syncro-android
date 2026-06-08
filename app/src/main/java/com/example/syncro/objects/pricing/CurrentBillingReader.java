@@ -8,6 +8,7 @@ import com.example.syncro.utils.AppLogger;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -15,8 +16,11 @@ import java.util.Map;
 
 import gurux.dlms.GXDateTime;
 import gurux.dlms.objects.GXDLMSCaptureObject;
+import gurux.dlms.objects.GXDLMSClock;
+import gurux.dlms.objects.GXDLMSDemandRegister;
 import gurux.dlms.objects.GXDLMSObject;
 import gurux.dlms.objects.GXDLMSProfileGeneric;
+import gurux.dlms.objects.GXDLMSRegister;
 
 public class CurrentBillingReader {
 
@@ -41,6 +45,14 @@ public class CurrentBillingReader {
                 reader.read(pg, 3);
                 List<Map.Entry<GXDLMSObject, GXDLMSCaptureObject>> captureObjects =
                         pg.getCaptureObjects();
+
+                if (captureObjects == null || captureObjects.isEmpty()) {
+                    AppLogger.w("CurrentBilling",
+                            "Capture objects vacíos para contrato " + contract
+                                    + ", usando estructura hardcodeada");
+                    pg.getCaptureObjects().addAll(buildCaptureObjects(contract)); // ← clave
+                    captureObjects = pg.getCaptureObjects();
+                }
 
                 reader.read(pg, 2);
                 Object[] buffer = pg.getBuffer();
@@ -79,6 +91,13 @@ public class CurrentBillingReader {
             List<Map.Entry<GXDLMSObject, GXDLMSCaptureObject>> captureObjects =
                     pg.getCaptureObjects();
 
+            if (captureObjects == null || captureObjects.isEmpty()) {
+                AppLogger.w("CurrentBilling",
+                        "Capture objects vacíos para contrato " + contract
+                                + ", usando estructura hardcodeada");
+                pg.getCaptureObjects().addAll(buildCaptureObjects(contract)); // ← clave
+                captureObjects = pg.getCaptureObjects();
+            }
             reader.read(pg, 2);
             Object[] buffer = pg.getBuffer();
             if (buffer == null || buffer.length == 0) return resultado;
@@ -91,6 +110,53 @@ public class CurrentBillingReader {
         }
 
         return resultado;
+    }
+
+    private static List<Map.Entry<GXDLMSObject, GXDLMSCaptureObject>> buildCaptureObjects(int contract) {
+        List<Map.Entry<GXDLMSObject, GXDLMSCaptureObject>> list = new ArrayList<>();
+
+        // Tarifas: 1,2,3,4,5,6,0  (0 = total)
+        int[] tariffs = {0, 1, 2, 3, 4, 5, 6};
+
+        // col 0: timestamp
+        addCO(list, new GXDLMSClock("0.0.1.0.0.255"), 2);
+
+        // col 1-7:  aPlus
+        for (int t : tariffs)
+            addCO(list, new GXDLMSRegister("1.0.1.8." + (contract * 10 + t) + ".255"), 2);
+
+        // col 8-14: aMinus
+        for (int t : tariffs)
+            addCO(list, new GXDLMSRegister("1.0.2.8." + (contract * 10 + t) + ".255"), 2);
+
+        // col 15-21: qi
+        for (int t : tariffs)
+            addCO(list, new GXDLMSRegister("1.0.5.8." + (contract * 10 + t) + ".255"), 2);
+
+        // col 22-28: qii
+        for (int t : tariffs)
+            addCO(list, new GXDLMSRegister("1.0.6.8." + (contract * 10 + t) + ".255"), 2);
+
+        // col 29-35: qiii
+        for (int t : tariffs)
+            addCO(list, new GXDLMSRegister("1.0.7.8." + (contract * 10 + t) + ".255"), 2);
+
+        // col 36-42: qiv
+        for (int t : tariffs)
+            addCO(list, new GXDLMSRegister("1.0.8.8." + (contract * 10 + t) + ".255"), 2);
+
+        for (int t : tariffs) {
+            addCO(list, new GXDLMSDemandRegister("1.0.1.6." + (contract * 10 + t) + ".255"), 2);
+            addCO(list, new GXDLMSDemandRegister("1.0.1.6." + (contract * 10 + t) + ".255"), 5);
+        }
+
+        return list; // 1 + 8×7 = 57 entradas
+    }
+
+    private static void addCO(
+            List<Map.Entry<GXDLMSObject, GXDLMSCaptureObject>> list,
+            GXDLMSObject obj, int attr) {
+        list.add(new AbstractMap.SimpleEntry<>(obj, new GXDLMSCaptureObject(attr, 0)));
     }
 
     // ── Parser ───────────────────────────────────────────────────────────────
@@ -137,8 +203,12 @@ public class CurrentBillingReader {
                 else if (obisCode.startsWith("1.0.8.8.")) qiv      [idx] = scaleEnergy(value);
                 else if (obisCode.startsWith("1.0.1.6.") ||
                         obisCode.startsWith("1.0.2.6.")) maxDemand[idx] = scalePower(value);
-            } else if (attrIndex == 5 && value instanceof GXDateTime) {
-                maxDates[idx] = formatTimestamp((GXDateTime) value);
+            } else if (attrIndex == 5) {
+                if (value instanceof GXDateTime) {
+                    maxDates[idx] = formatTimestamp((GXDateTime) value);
+                } else if (value instanceof byte[]) {
+                    maxDates[idx] = parseDlmsDateTimeBytes((byte[]) value);
+                }
             }
         }
 
@@ -183,6 +253,26 @@ public class CurrentBillingReader {
                     .atZone(java.util.TimeZone.getDefault().toZoneId())
                     .toLocalDateTime();
             return ldt.format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"));
+        } catch (Exception e) {
+            return "N/A";
+        }
+    }
+
+    private static String parseDlmsDateTimeBytes(byte[] b) {
+        if (b == null || b.length < 12) return "N/A";
+        try {
+            int year    = ((b[0] & 0xFF) << 8) | (b[1] & 0xFF);
+            int month   =   b[2] & 0xFF;
+            int day     =   b[3] & 0xFF;
+            int hour    =   b[5] & 0xFF;
+            int minute  =   b[6] & 0xFF;
+            int second  =   b[7] & 0xFF;
+
+            // 0xFF en cualquier campo = valor no especificado
+            if (year == 0xFFFF || month == 0xFF || day == 0xFF) return "N/A";
+
+            return String.format("%04d/%02d/%02d %02d:%02d:%02d",
+                    year, month, day, hour, minute, second);
         } catch (Exception e) {
             return "N/A";
         }

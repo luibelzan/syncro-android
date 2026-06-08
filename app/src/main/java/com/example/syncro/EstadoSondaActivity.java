@@ -23,7 +23,7 @@ import java.util.UUID;
 
 public class EstadoSondaActivity extends BaseActivity {
 
-    private TextView tvNombre, tvMac, tvBateria, tvFirmware;
+    private TextView tvNombre, tvMac, tvBateria;
     private Button btnActualizar;
 
     private BluetoothSocket socket;
@@ -37,9 +37,9 @@ public class EstadoSondaActivity extends BaseActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_estado_sonda);
 
-        tvNombre    = findViewById(R.id.tvNombre);
-        tvMac       = findViewById(R.id.tvMac);
-        tvBateria   = findViewById(R.id.tvBateria);
+        tvNombre      = findViewById(R.id.tvNombre);
+        tvMac         = findViewById(R.id.tvMac);
+        tvBateria     = findViewById(R.id.tvBateria);
         btnActualizar = findViewById(R.id.btnActualizar);
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -72,7 +72,7 @@ public class EstadoSondaActivity extends BaseActivity {
                     return;
                 }
 
-                // Buscar dispositivo emparejado
+                // ── Buscar dispositivo emparejado ──────────────────────────
                 Set<BluetoothDevice> pairedDevices = adapter.getBondedDevices();
                 targetDevice = null;
                 for (BluetoothDevice device : pairedDevices) {
@@ -92,7 +92,7 @@ public class EstadoSondaActivity extends BaseActivity {
                     tvMac.setText("MAC: " + targetDevice.getAddress());
                 });
 
-                // Conectar socket SPP
+                // ── Conectar socket SPP ────────────────────────────────────
                 UUID SPP = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
                 socket = targetDevice.createRfcommSocketToServiceRecord(SPP);
                 socket.connect();
@@ -101,49 +101,24 @@ public class EstadoSondaActivity extends BaseActivity {
                 OutputStream out = socket.getOutputStream();
                 InputStream  in  = socket.getInputStream();
 
-                // ── PASO 1: Activar modo comandos ──────────────────────────
-                runOnUiThread(() -> tvBateria.setText("Activando modo comandos..."));
-
-                String respuestaOpen = enviarComando(out, in, "at\r\n", 3000);
-                Log.d("SONDA", "Respuesta at+open=1: '" + respuestaOpen + "'");
-
-                if (!respuestaOpen.toLowerCase().contains("ok")) {
-                    respuestaOpen = enviarComando(out, in, "AT\r\n", 3000);
-                    Log.d("SONDA", "Respuesta AT+OPEN=1: '" + respuestaOpen + "'");
-                }
-
-                if (!respuestaOpen.toLowerCase().contains("ok")) {
-                    respuestaOpen = enviarComando(out, in, "AT+EN1\r\n", 3000);
-                    Log.d("SONDA", "Respuesta AT+EN1: '" + respuestaOpen + "'");
-                }
-
-                boolean modoComandosActivo = respuestaOpen.toLowerCase().contains("ok");
-                Log.d("SONDA", "Modo comandos activo: " + modoComandosActivo);
-
-                // ── PASO 2: Leer batería ───────────────────────────────────
+                // ── PASO 1: Leer batería ───────────────────────────────────
+                // Comando del fabricante: "GetBatteryVolt"
+                // Respuesta esperada: "V=4027" (valor en milivoltios)
                 runOnUiThread(() -> tvBateria.setText("Leyendo batería..."));
 
-                String respuestaBatt = enviarComando(out, in, "AT+BATT?\r\n", 2000);
-                Log.d("SONDA", "Respuesta AT+BATT?: '" + respuestaBatt + "'");
+                String respuestaBatt = enviarComando(out, in, "GetBatteryVolt\r\n", 3000);
+                Log.d("SONDA", "Respuesta GetBatteryVolt: '" + respuestaBatt + "'");
 
-                if (respuestaBatt.isEmpty()) {
-                    respuestaBatt = enviarComando(out, in, "AT+CBC?\r\n", 2000);
-                    Log.d("SONDA", "Respuesta AT+CBC?: '" + respuestaBatt + "'");
-                }
+                // ── PASO 2: Parsear voltaje y calcular porcentaje ──────────
+                String bateriaTexto = parsearBateria(respuestaBatt);
 
-                // ── PASO 3: Leer firmware ──────────────────────────────────
-                String respuestaVer = enviarComando(out, in, "AT+VER\r\n", 2000);
-                Log.d("SONDA", "Respuesta AT+VER: '" + respuestaVer + "'");
-
-                // ── PASO 4: Leer MAC de la sonda ───────────────────────────
+                // ── PASO 3: Leer MAC de la sonda ───────────────────────────
                 String respuestaMac = enviarComando(out, in, "AT+ADDR\r\n", 2000);
                 Log.d("SONDA", "Respuesta AT+ADDR: '" + respuestaMac + "'");
+                final String mac = respuestaMac.isEmpty() ? targetDevice.getAddress() : respuestaMac;
 
                 // ── Actualizar UI ──────────────────────────────────────────
-                final String batt = respuestaBatt.isEmpty() ? "Sin respuesta" : respuestaBatt;
-                final String ver  = respuestaVer.isEmpty()  ? "Sin respuesta" : respuestaVer;
-                final String mac  = respuestaMac.isEmpty()  ? targetDevice.getAddress() : respuestaMac;
-
+                final String batt = bateriaTexto;
                 runOnUiThread(() -> {
                     tvBateria.setText("Batería: " + batt);
                     tvMac.setText("MAC: " + mac);
@@ -160,7 +135,53 @@ public class EstadoSondaActivity extends BaseActivity {
     }
 
     /**
-     * Envía un comando AT y espera la respuesta con lectura activa.
+     * Parsea la respuesta "V=4027" del comando GetBatteryVolt.
+     * Convierte milivoltios a voltios y calcula el porcentaje estimado
+     * basado en el rango típico de una batería LiPo (3.3V–4.2V).
+     */
+    private String parsearBateria(String respuesta) {
+        if (respuesta == null || respuesta.isEmpty()) return "Sin respuesta";
+
+        if (respuesta.contains("V=")) {
+            try {
+                String valorStr = respuesta
+                        .substring(respuesta.indexOf("V=") + 2)
+                        .trim()
+                        .split("[\\r\\n\\s]+")[0];
+
+                int raw = Integer.parseInt(valorStr);
+
+                // Determinar el factor de escala según el rango del valor
+                double voltios;
+                if (raw > 1000) {
+                    // Ya viene en mV (ej: 4027 → 4.027V)
+                    voltios = raw / 1000.0;
+                } else if (raw > 100) {
+                    // Viene en décimas de mV × 10 (ej: 381 → 3.81V)
+                    voltios = raw / 100.0;
+                } else {
+                    voltios = raw; // Fallback: mostrar raw
+                }
+
+                int porcentaje = (int) Math.min(100, Math.max(0,
+                        (voltios - 3.3) / (4.2 - 3.3) * 100
+                ));
+
+                Log.d("SONDA", String.format("Batería raw=%d → %.3fV → %d%%",
+                        raw, voltios, porcentaje));
+
+                return String.format("%.2fV  (%d%%)", voltios, porcentaje);
+
+            } catch (NumberFormatException e) {
+                return respuesta;
+            }
+        }
+        return respuesta;
+    }
+
+    /**
+     * Envía un comando y espera la respuesta con lectura activa.
+     * Sale en cuanto detecta una línea completa o el patrón esperado.
      */
     private String enviarComando(OutputStream out, InputStream in,
                                  String comando, int maxWaitMs) {
@@ -178,12 +199,16 @@ public class EstadoSondaActivity extends BaseActivity {
             while (System.currentTimeMillis() - start < maxWaitMs) {
                 if (in.available() > 0) {
                     byte[] buffer = new byte[256];
-                    int len = in.read(buffer);
+                    int    len    = in.read(buffer);
                     sb.append(new String(buffer, 0, len));
 
-                    // Salir en cuanto tengamos una línea completa
                     String partial = sb.toString().trim();
-                    if (partial.toLowerCase().contains("ok") || partial.endsWith("\n")) {
+
+                    // Salir en cuanto tengamos una respuesta completa:
+                    // "ok" para comandos AT, "V=XXXX" para GetBatteryVolt
+                    if (partial.toLowerCase().contains("ok")
+                            || partial.startsWith("V=")
+                            || partial.endsWith("\n")) {
                         break;
                     }
                 } else {
@@ -192,7 +217,8 @@ public class EstadoSondaActivity extends BaseActivity {
             }
 
             String respuesta = sb.toString().trim();
-            Log.d("SONDA_CMD", "Respuesta (" + (System.currentTimeMillis() - start) + "ms): '" + respuesta + "'");
+            Log.d("SONDA_CMD", "Respuesta (" + (System.currentTimeMillis() - start) + "ms): '"
+                    + respuesta + "'");
             return respuesta;
 
         } catch (Exception e) {
