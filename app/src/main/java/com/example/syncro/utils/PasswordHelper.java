@@ -14,7 +14,7 @@ public class PasswordHelper {
     private static final String KEY_SALT   = "admin_password_salt";
 
     // Contraseña por defecto si nunca se ha configurado una
-    private static final String DEFAULT_PASSWORD = "admin1234";
+    private static final String DEFAULT_PASSWORD = "C3ln3t#AppL0g!92XvQ";
 
     // ---- Hash ----
 

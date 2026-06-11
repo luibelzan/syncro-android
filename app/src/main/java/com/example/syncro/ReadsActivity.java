@@ -30,6 +30,7 @@ public class ReadsActivity extends BaseActivity {
         LinearLayout btnIds = findViewById(R.id.btnIds);
         LinearLayout btnInstantValues = findViewById(R.id.btnInstantValues);
         LinearLayout btnSondaStatus = findViewById(R.id.btnSondaStatus);
+        LinearLayout btnParams = findViewById(R.id.btnParameters);
 
         btnCurvas.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -75,6 +76,14 @@ public class ReadsActivity extends BaseActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(ReadsActivity.this, EstadoSondaActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        btnParams.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(ReadsActivity.this, ParametersActivity.class);
                 startActivity(intent);
             }
         });
