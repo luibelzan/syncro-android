@@ -1,0 +1,189 @@
+package com.celnet.syncro.client;
+
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+
+import javax.crypto.Cipher;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+
+import gurux.dlms.GXByteBuffer;
+import gurux.dlms.GXCryptoKeyParameter;
+import gurux.dlms.GXDLMSTranslator;
+import gurux.dlms.IGXCryptoNotifier;
+import gurux.dlms.IGXCustomObjectNotifier;
+import gurux.dlms.asn.GXPkcs8;
+import gurux.dlms.asn.GXx509Certificate;
+import gurux.dlms.objects.GXDLMSObject;
+import gurux.dlms.objects.enums.CertificateType;
+import gurux.dlms.objects.enums.SecuritySuite;
+import gurux.dlms.secure.GXDLMSSecureClient;
+
+public class GXDLMSSecureClient2 extends GXDLMSSecureClient implements IGXCryptoNotifier, IGXCustomObjectNotifier {
+
+    /**
+     * Constructor.
+     *
+     * @param useLogicalNameReferencing
+     *            Is Logical Name referencing used.
+     */
+    public GXDLMSSecureClient2(final boolean useLogicalNameReferencing) {
+        super(useLogicalNameReferencing);
+    }
+
+    /**
+     * Return correct path.
+     *
+     * @param securitySuite
+     *            Security Suite.
+     * @param type
+     *            Certificate type.
+     * @param path
+     *            Folder.
+     * @param systemTitle
+     *            System title.
+     * @return Path to the certificate file or folder if system title is not
+     *         given.
+     */
+    private static Path getPath(final SecuritySuite securitySuite, final CertificateType type, final String path,
+                                final byte[] systemTitle) {
+        String pre;
+        Path tmp;
+        if (securitySuite == SecuritySuite.SUITE_2) {
+            tmp = Paths.get(path, "384");
+        } else {
+            tmp = Paths.get(path);
+        }
+        if (systemTitle == null) {
+            return tmp;
+        }
+        switch (type) {
+            case DIGITAL_SIGNATURE:
+                pre = "D";
+                break;
+            case KEY_AGREEMENT:
+                pre = "A";
+                break;
+            default:
+                throw new RuntimeException("Invalid type.");
+        }
+        return Paths.get(tmp.toString(), pre + GXDLMSTranslator.toHex(systemTitle, false) + ".pem");
+    }
+
+    public void onPdu(Object sender, byte[] data) {
+        /*
+        // Send and received PDUs are converted to XML.
+        GXDLMSTranslator translator = new GXDLMSTranslator();
+        translator.setComments(true);
+        translator.setSecuritySuite(getCiphering().getSecuritySuite());
+        translator.setBlockCipherKey(getCiphering().getBlockCipherKey());
+        translator.setAuthenticationKey(getCiphering().getAuthenticationKey());
+        String xml = translator.pduToXml(data);
+        System.out.print(xml);
+        */
+    }
+
+    /**
+     * Find ciphering keys.
+     *
+     * @throws IOException
+     */
+    @Override
+    public void onKey(Object sender, GXCryptoKeyParameter args) {
+        try {
+            if (args.getEncrypt()) {
+                // Find private key.
+                Path path = getPath(args.getSecuritySuite(), args.getCertificateType(), "Keys", args.getSystemTitle());
+                args.setPrivateKey(GXPkcs8.load(path).getPrivateKey());
+            } else {
+                // Find public key.
+                Path path = getPath(args.getSecuritySuite(), args.getCertificateType(), "Certificates",
+                        args.getSystemTitle());
+                args.setPublicKey(GXx509Certificate.load(path).getPublicKey());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static Cipher getCipher(final GXCryptoKeyParameter p, final boolean encrypt)
+            throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException,
+            InvalidAlgorithmParameterException {
+        GXByteBuffer iv = new GXByteBuffer();
+        if (encrypt) {
+            iv.set(p.getSystemTitle());
+        } else {
+            iv.set(p.getRecipientSystemTitle());
+        }
+        iv.setUInt32(p.getInvocationCounter());
+        SecretKeySpec eks = new SecretKeySpec(p.getBlockCipherKey(), "AES");
+        Cipher c = Cipher.getInstance("AES/GCM/NoPadding");
+        int mode;
+        if (encrypt) {
+            mode = Cipher.ENCRYPT_MODE;
+        } else {
+            mode = Cipher.DECRYPT_MODE;
+        }
+        c.init(mode, eks, new GCMParameterSpec(12 * 8, iv.array()));
+        return c;
+    }
+
+    /**
+     * External Hardware Security Module is used to encrypt the data.
+     */
+    @Override
+    public void onCrypto(final Object sender, final GXCryptoKeyParameter args) {
+        try {
+            // Cipher c = getCipher(args,
+            // args.getEncrypt() || args.getSecurity() !=
+            // Security.AUTHENTICATION_ENCRYPTION);
+            // if (args.getEncrypt()) {
+            // // Encrypt the data.
+            // if (args.getKeyType() == CryptoKeyType
+            // .forValue(CryptoKeyType.BLOCK_CIPHER.getValue()
+            // | CryptoKeyType.AUTHENTICATION.getValue())) {
+            // args.setEncrypted(c.doFinal(args.getPlainText()));
+            // }
+            // } else {
+            // // Decrypt the data.
+            // if (args.getKeyType() == CryptoKeyType
+            // .forValue(CryptoKeyType.BLOCK_CIPHER.getValue()
+            // | CryptoKeyType.AUTHENTICATION.getValue())) {
+            // // Encrypt with block cipher key and count authentication
+            // // key.
+            // GXByteBuffer data2 = new GXByteBuffer();
+            // data2.setUInt8(
+            // args.getSecurity().getValue() |
+            // args.getSecuritySuite().getValue());
+            // data2.set(args.getAuthenticationKey());
+            // c.updateAAD(data2.array());
+            // args.setPlainText(c.doFinal(args.getEncrypted()));
+            // }
+            // }
+        } catch (Exception ex) {
+            System.out.println(ex.getMessage());
+        }
+    }
+
+    /**
+     * Create manufacturer specific custom COSEM object.
+     */
+    @Override
+    public GXDLMSObject onObjectCreate(int type, int version) {
+        // if (type == 10006 && version == 1) {
+        // return new ManufacturerSpecificObject();
+        // }
+        return null;
+    }
+
+    @Override
+    public void onPduEventHandler(Object sender, byte[] data) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'onPduEventHandler'");
+    }
+}

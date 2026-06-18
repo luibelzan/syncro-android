@@ -4,14 +4,14 @@ plugins {
 }
 
 android {
-    namespace = "com.example.syncro"
+    namespace = "com.celnet.syncro"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.example.syncro"
+        applicationId = "com.celnet.syncro"
         minSdk = 30
         targetSdk = 36
-        versionCode = 1
+        versionCode = 2
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -55,5 +55,7 @@ dependencies {
     implementation("commons-net:commons-net:3.9.0")
     implementation(platform("com.google.firebase:firebase-bom:34.13.0"))
     implementation("com.google.firebase:firebase-analytics")
+    implementation("javax.xml.stream:stax-api:1.0-2")
+    implementation("com.fasterxml.woodstox:woodstox-core:6.2.8")
 
 }

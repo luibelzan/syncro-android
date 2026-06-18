@@ -33,7 +33,8 @@
     <LinearLayout
         android:id="@+id/layoutResultados"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:orientation="vertical"
         android:visibility="gone">
 
@@ -65,5 +66,30 @@
 
         </ScrollView>
     </LinearLayout>
+
+    <!-- Botón de eventos abajo -->
+    <LinearLayout
+        android:id="@+id/btnExport"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <ImageView
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:padding="8dp"
+            android:src="@drawable/reportestg" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/export" />
+    </LinearLayout>
+
+
 
 </LinearLayout>

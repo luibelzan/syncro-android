@@ -109,7 +109,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="12dp"
                     android:layout_weight="1"
-                    android:text="P.I. El PIBO, Avda Umbrete 11A, Bollullos de la Mitación-Sevilla"
+                    android:text="C/Vendimiadoras, 5, Carrión de los Cespedes, Sevilla, 41820. P.I Novaparq"
                     android:textColor="#888888"
                     android:textSize="15sp" />
             </LinearLayout>
@@ -130,7 +130,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="12dp"
-                    android:text="(+34) 607 349 326"
+                    android:text="(+34) 637594882"
                     android:textColor="#888888"
                     android:textSize="15sp" />
             </LinearLayout>
