@@ -198,5 +198,8 @@
     </string-array>
     <string name="verContract">Leer Actual</string>
 
+    <!-- PANTALLA -->
+    <string name="screenParams">Parametros de Pantalla</string>
+
 
 </resources>
