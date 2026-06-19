@@ -94,7 +94,7 @@ public class ResultadosCurvasActivity extends BaseActivity {
             ).format(new Date());
 
             String nombreFichero =
-                    cncName + "_0_S02_0_" + fechaActual + ".xml";
+                    cncName + "_0_S02_0_" + fechaActual;
 
             File downloadsFolder =
                     Environment.getExternalStoragePublicDirectory(

@@ -85,7 +85,7 @@ public class ResultadosEventsActivity extends BaseActivity {
                         .format(new Date());
 
                 // 🔹 Construir nombre del archivo
-                String nombreFichero = cncName + "_0_S09_0_" + fechaActual + ".xml";
+                String nombreFichero = cncName + "_0_S09_0_" + fechaActual;
 
                 // 🔹 Carpeta Downloads
                 File downloadsFolder =

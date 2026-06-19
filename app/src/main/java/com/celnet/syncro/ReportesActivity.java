@@ -59,7 +59,7 @@ public class ReportesActivity extends BaseActivity {
 
                 for (File file : archivos) {
 
-                    if (file.isFile() && file.getName().endsWith(".xml")) {
+                    if (file.isFile()) {
                         lista.add(new ReportFile(file));
                     }
                 }

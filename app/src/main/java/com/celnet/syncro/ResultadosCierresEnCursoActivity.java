@@ -50,7 +50,7 @@ public class ResultadosCierresEnCursoActivity extends BaseActivity {
             rv.setAdapter(new CierreEnCursoAdapter(datos));
         }
 
-        LinearLayout btnExport = findViewById(R.id.btnExport);
+        //LinearLayout btnExport = findViewById(R.id.btnExport);
 
     }
 
