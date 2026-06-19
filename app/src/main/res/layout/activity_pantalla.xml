@@ -36,7 +36,7 @@
             android:id="@+id/textTiempoDesplazamiento"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/fechainicio"
+            android:text="@string/editTiempoDesplazamiento"
             android:textColor="@color/gris_texto"
             android:textSize="18sp" />
 
@@ -55,7 +55,7 @@
             android:id="@+id/textModoDesplazamiento"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/fechafin"
+            android:text="@string/editModoDesplazamiento"
             android:textColor="@color/gris_texto"
             android:textSize="18sp" />
 
@@ -126,14 +126,12 @@
 
             <ImageButton
                 android:id="@+id/btnNext"
-                android:layout_width="70dp"
-                android:layout_height="70dp"
-                android:padding="60dp"
-                android:scaleType="fitCenter"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:scaleType="center"
                 android:contentDescription="@string/next"
-                android:src="@drawable/ic_eyeglasses"
-                android:background="@drawable/circle_button"
-                app:tint="@color/gris_texto" />
+                android:src="@drawable/leer_pantalla"
+                android:background="@android:color/transparent"/>
 
             <TextView
                 android:layout_width="wrap_content"
@@ -154,14 +152,13 @@
 
             <ImageButton
                 android:id="@+id/btnProgram"
-                android:layout_width="70dp"
-                android:layout_height="70dp"
-                android:padding="8dp"
-                android:scaleType="fitCenter"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:scaleType="center"
                 android:contentDescription="@string/next"
-                android:src="@drawable/ic_monitor"
-                android:background="@drawable/circle_button"
-                app:tint="@color/gris_texto" />
+                android:src="@drawable/programar_pantalla"
+                android:background="@android:color/transparent"
+                />
 
             <TextView
                 android:layout_width="wrap_content"

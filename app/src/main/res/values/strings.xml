@@ -200,6 +200,8 @@
 
     <!-- PANTALLA -->
     <string name="screenParams">Parametros de Pantalla</string>
+    <string name="editTiempoDesplazamiento">Tiempo desplazamiento en segundos</string>
+    <string name="editModoDesplazamiento">Modo de pantalla</string>
 
 
 </resources>
