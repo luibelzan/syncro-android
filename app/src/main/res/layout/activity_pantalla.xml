@@ -36,12 +36,9 @@
             android:id="@+id/textTiempoDesplazamiento"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-
             android:text="@string/fechainicio"
             android:textColor="@color/gris_texto"
-            android:textSize="18sp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textView" />
+            android:textSize="18sp" />
 
         <EditText
             android:id="@+id/editTiempoDesplazamiento"
@@ -50,9 +47,9 @@
             android:layout_marginTop="8dp"
             android:layout_marginBottom="16dp"
             android:background="@drawable/borde_radio_group"
-            android:focusable="false"
             android:clickable="true"
-            android:hint="4" />
+            android:hint="4"
+            android:text="4"/>
 
         <TextView
             android:id="@+id/textModoDesplazamiento"
@@ -60,9 +57,7 @@
             android:layout_height="wrap_content"
             android:text="@string/fechafin"
             android:textColor="@color/gris_texto"
-            android:textSize="18sp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textView" />
+            android:textSize="18sp" />
 
         <EditText
             android:id="@+id/editModoDesplazamiento"
@@ -71,27 +66,112 @@
             android:layout_marginTop="8dp"
             android:layout_marginBottom="16dp"
             android:background="@drawable/borde_radio_group"
-            android:focusable="false"
             android:clickable="true"
-            android:hint="A" />
+            android:hint="A"
+            android:text="A"/>
 
     </LinearLayout>
 
-    <ImageButton
-        android:id="@+id/btnNext"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
-        android:layout_marginEnd="160dp"
-        android:layout_marginBottom="116dp"
-        android:contentDescription="@string/next"
-        android:src="@android:drawable/ic_media_next"
-        android:background="@drawable/circle_button"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.916"
+    <!-- Contenedor para ProgressBar y texto -->
+    <LinearLayout
+        android:id="@+id/progressContainer"
+        android:orientation="vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/layoutBluetooth"
+        app:layout_constraintBottom_toTopOf="@id/buttonContainer"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/layoutBluetooth"
-        app:layout_constraintVertical_bias="1.0"
-        app:tint="@color/gris_texto" />
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:indeterminate="true"/>
+
+        <TextView
+            android:id="@+id/textCargando"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/loading"
+            android:textColor="@color/gris_texto"
+            android:textSize="18sp"
+            android:layout_marginTop="12dp"/>
+    </LinearLayout>
+
+
+    <!-- Contenedor de los dos botones -->
+    <LinearLayout
+        android:id="@+id/buttonContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginBottom="116dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Botón leer -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:paddingEnd="30dp"
+            android:layout_marginEnd="32dp">
+
+            <ImageButton
+                android:id="@+id/btnNext"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:padding="60dp"
+                android:scaleType="fitCenter"
+                android:contentDescription="@string/next"
+                android:src="@drawable/ic_eyeglasses"
+                android:background="@drawable/circle_button"
+                app:tint="@color/gris_texto" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Leer"
+                android:textColor="@color/gris_texto"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <!-- Botón programar -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="30dp"
+            android:gravity="center">
+
+            <ImageButton
+                android:id="@+id/btnProgram"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:padding="8dp"
+                android:scaleType="fitCenter"
+                android:contentDescription="@string/next"
+                android:src="@drawable/ic_monitor"
+                android:background="@drawable/circle_button"
+                app:tint="@color/gris_texto" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Programar"
+                android:textColor="@color/gris_texto"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

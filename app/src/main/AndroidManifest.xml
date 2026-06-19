@@ -27,6 +27,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Syncro">
         <activity
+            android:name=".ResultadosPantallaActivity"
+            android:exported="false" />
+        <activity
             android:name=".PantallaActivity"
             android:exported="false" />
         <activity

@@ -26,6 +26,7 @@ public class ParametrosActivity extends AppCompatActivity {
 
         LinearLayout btnIcp = findViewById(R.id.btnIcp);
         LinearLayout btnDate = findViewById(R.id.btnDate);
+        LinearLayout btnScreen = findViewById(R.id.btnScreen);
 
         btnIcp.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -39,6 +40,14 @@ public class ParametrosActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(ParametrosActivity.this, DateActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        btnScreen.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(ParametrosActivity.this, PantallaActivity.class);
                 startActivity(intent);
             }
         });
