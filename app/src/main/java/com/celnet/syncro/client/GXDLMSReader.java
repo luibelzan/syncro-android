@@ -62,6 +62,7 @@ import gurux.dlms.objects.GXDLMSCertificateInfo;
 import gurux.dlms.objects.GXDLMSCompactData;
 import gurux.dlms.objects.GXDLMSData;
 import gurux.dlms.objects.GXDLMSDemandRegister;
+import gurux.dlms.objects.GXDLMSLimiter;
 import gurux.dlms.objects.GXDLMSObject;
 import gurux.dlms.objects.GXDLMSObjectCollection;
 import gurux.dlms.objects.GXDLMSProfileGeneric;
@@ -102,6 +103,22 @@ public class GXDLMSReader {
             System.out.println("ClientAddress: 0x" + Integer.toHexString(dlms.getClientAddress()));
             System.out.println("ServerAddress: 0x" + Integer.toHexString(dlms.getServerAddress()));
         }
+    }
+
+    public void reconnect() throws Exception {
+        AppLogger.i("DLMS", "Reconnecting DLMS session...");
+        disconnect();
+        initializeConnectionBluetooth();
+        AppLogger.i("DLMS", "Reconnected OK");
+    }
+
+    // En GXDLMSReader.java
+    public Object readRawAttribute(String obis, int classId, int attribute) throws Exception {
+        byte[][] data = dlms.read(obis,
+                gurux.dlms.enums.ObjectType.forValue(classId), attribute);
+        GXReplyData reply = new GXReplyData();
+        readDataBlock(data, reply);
+        return reply.getValue();
     }
 
     public void setContext(Context context) {

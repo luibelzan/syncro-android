@@ -8,12 +8,11 @@ import java.util.List;
 
 import gurux.dlms.GXDateTime;
 import gurux.dlms.objects.GXDLMSActivityCalendar;
-import gurux.dlms.objects.GXDLMSClock;
 import gurux.dlms.objects.GXDLMSData;
 import gurux.dlms.objects.GXDLMSDayProfile;
 import gurux.dlms.objects.GXDLMSDayProfileAction;
+import gurux.dlms.objects.GXDLMSLimiter;
 import gurux.dlms.objects.GXDLMSRegister;
-import gurux.dlms.objects.GXDLMSScheduleEntry;
 import gurux.dlms.objects.GXDLMSSeasonProfile;
 import gurux.dlms.objects.GXDLMSSpecialDay;
 import gurux.dlms.objects.GXDLMSSpecialDaysTable;
@@ -108,58 +107,48 @@ public class ViewContract {
             sb.append(" N/A\n");
         }
 
+        // ── Fecha de activación activa: atributo 10 del ActivityCalendar ──────
+        // ── Activado ──────────────────────────────────────────────────────────
         sb.append("Activado:\n");
         try {
-            GXDLMSData activationData = new GXDLMSData("0.1.94.34.130.255");
+            // 0.1.94.34.130.255 atributo 1 devuelve array de 3 datetimes:
+            // [0] = activación actual, [1] = anterior, [2] = sin programar (FF)
+            GXDLMSData activationData = new GXDLMSData("1.0.94.34.130.255");
             reader.read(activationData, 2);
             Object raw = activationData.getValue();
-            Object[] arr = null;
-            if (raw instanceof Object[]) arr = (Object[]) raw;
-            else if (raw instanceof java.util.List) arr = ((java.util.List<?>) raw).toArray();
 
-            if (arr != null && arr.length > 0 && arr[0] instanceof byte[]) {
-                GXDateTime dt = (GXDateTime) gurux.dlms.GXDLMSClient
-                        .changeType((byte[]) arr[0], gurux.dlms.enums.DataType.DATETIME);
-                sb.append("  ").append(formatDateTime(dt)).append("\n \n");
-            } else if (arr != null && arr.length > 0 && arr[0] instanceof GXDateTime) {
-                sb.append("  ").append(formatDateTime((GXDateTime) arr[0])).append("\n \n");
-            } else {
-                sb.append("  FFFFFFFFFFFFFFFFFW\n \n");
+            Object[] arr = null;
+            if (raw instanceof Object[])  arr = (Object[]) raw;
+            else if (raw instanceof List) arr = ((List<?>) raw).toArray();
+
+            GXDateTime dt = null;
+            if (arr != null && arr.length > 0) {
+                Object first = arr[0];
+                if (first instanceof byte[]) {
+                    dt = (GXDateTime) gurux.dlms.GXDLMSClient
+                            .changeType((byte[]) first, gurux.dlms.enums.DataType.DATETIME);
+                } else if (first instanceof GXDateTime) {
+                    dt = (GXDateTime) first;
+                }
             }
+
+            String formatted = formatDateTime(dt);
+            if ("FFFFFFFFFFFFFFFFFW".equals(formatted)) {
+                sb.append("  Activado (inmediato)\n \n");
+            } else {
+                sb.append("  ").append(formatted).append("\n \n");
+            }
+
         } catch (Exception e) {
-            sb.append("  FFFFFFFFFFFFFFFFFW\n \n");
+            // Este contador no tiene 0.1.94.34.130.255 → sin registro
+            sb.append("  Sin registro\n \n");
         }
 
+        // ── Cierre de facturación activo ──────────────────────────────────────
         sb.append("Cierre de facturación periodo 1\n");
         try {
-            gurux.dlms.objects.GXDLMSSchedule schedule = new gurux.dlms.objects.GXDLMSSchedule(
-                    String.format("0.0.15.1.%d.255", contract));
-
-            try {
-                java.lang.reflect.Field f = schedule.getClass().getSuperclass().getDeclaredField("objectType");
-                f.setAccessible(true);
-                f.set(schedule, gurux.dlms.enums.ObjectType.SCHEDULE);
-                AppLogger.i(TAG, "objectType forzado: " + schedule.getObjectType());
-            } catch (Exception ex) {
-                AppLogger.e(TAG, "No se pudo forzar objectType: " + ex.getMessage());
-            }
-
-            reader.read(schedule, 4);
-            List<GXDLMSScheduleEntry> entries = schedule.getEntries();
-            if (entries != null && !entries.isEmpty()) {
-                GXDLMSScheduleEntry entry = entries.get(0);
-                for (java.lang.reflect.Method m : entry.getClass().getMethods()) {
-                    if (m.getName().startsWith("get") && m.getParameterCount() == 0) {
-                        try {
-                            Object val = m.invoke(entry);
-                            AppLogger.i(TAG, "  " + m.getName() + " => " + val);
-                        } catch (Exception ignored) {}
-                    }
-                }
-                sb.append("  N/A (ver log)\n");
-            } else {
-                sb.append("  N/A\n");
-            }
+            Object raw = reader.readRawAttribute("0.0.15.1.1.255", 22, 4);
+            sb.append("  ").append(extraerFechaCierreActivo(raw)).append("\n");
         } catch (Exception e) {
             AppLogger.e(TAG, "Error cierre activo: " + e.getMessage());
             sb.append("  N/A\n");
@@ -245,24 +234,38 @@ public class ViewContract {
             sb.append(" N/A\n");
         }
 
+        // ── Fecha pasiva de activación ────────────────────────────────────────
         sb.append("Fecha pasiva de activación:\n");
         try {
+            // cal ya tiene cargados los atributos 6-9 del pasivo arriba
+            // Ahora leemos el 10 que es la fecha de activación pendiente
             Object raw = reader.read(cal, 10);
+            GXDateTime dt = null;
             if (raw instanceof GXDateTime) {
-                sb.append("  ").append(formatDateTime((GXDateTime) raw)).append("\n \n");
+                dt = (GXDateTime) raw;
+            } else if (raw instanceof byte[]) {
+                dt = (GXDateTime) gurux.dlms.GXDLMSClient
+                        .changeType((byte[]) raw, gurux.dlms.enums.DataType.DATETIME);
+            }
+            String formatted = formatDateTime(dt);
+            if ("FFFFFFFFFFFFFFFFFW".equals(formatted)) {
+                sb.append("  Sin fecha programada\n \n");
             } else {
-                sb.append("  FFFFFFFFFFFFFFFFFW\n \n");
+                sb.append("  ").append(formatted).append("\n \n");
             }
         } catch (Exception e) {
-            sb.append("  FFFFFFFFFFFFFFFFFW\n \n");
+            AppLogger.e(TAG, "Error leyendo activación pasiva: " + e.getMessage());
+            sb.append("  Sin fecha programada\n \n");
         }
 
+        // ── Cierre de facturación pasivo: GXDLMSData OBIS 0.0.94.34.41.255 ───
         sb.append("Cierre de facturación periodo 1\n");
         try {
             GXDLMSData endBillingPassive = new GXDLMSData("0.0.94.34.41.255");
             reader.read(endBillingPassive, 2);
             sb.append("  ").append(formatBillingDate(endBillingPassive.getValue())).append("\n");
         } catch (Exception e) {
+            AppLogger.e(TAG, "Error cierre pasivo: " + e.getMessage());
             sb.append("  N/A\n");
         }
 
@@ -286,15 +289,38 @@ public class ViewContract {
     private static String formatDateTime(GXDateTime dt) {
         if (dt == null) return "FFFFFFFFFFFFFFFFFW";
         try {
+            // Si todos los campos son wildcard, es una fecha nula
+            java.util.Set<gurux.dlms.enums.DateTimeSkips> skips = dt.getSkip();
+            boolean allSkipped = skips.contains(gurux.dlms.enums.DateTimeSkips.YEAR)
+                    && skips.contains(gurux.dlms.enums.DateTimeSkips.MONTH)
+                    && skips.contains(gurux.dlms.enums.DateTimeSkips.DAY)
+                    && skips.contains(gurux.dlms.enums.DateTimeSkips.HOUR)
+                    && skips.contains(gurux.dlms.enums.DateTimeSkips.MINUTE)
+                    && skips.contains(gurux.dlms.enums.DateTimeSkips.SECOND);
+            if (allSkipped) return "FFFFFFFFFFFFFFFFFW";
+
             Calendar c = dt.getMeterCalendar();
             if (c == null) return "FFFFFFFFFFFFFFFFFW";
-            return String.format("%04d/%02d/%02d %02d:%02d:%02d.000W",
+
+            // Detectar si el clock status indica Summer (S) o Winter (W)
+            String status = "W";
+            try {
+                java.lang.reflect.Field f = dt.getClass().getDeclaredField("status");
+                f.setAccessible(true);
+                Object statusObj = f.get(dt);
+                if (statusObj != null && statusObj.toString().contains("DAYLIGHT")) {
+                    status = "S";
+                }
+            } catch (Exception ignored) {}
+
+            return String.format("%04d/%02d/%02d %02d:%02d:%02d.000%s",
                     c.get(Calendar.YEAR),
                     c.get(Calendar.MONTH) + 1,
                     c.get(Calendar.DAY_OF_MONTH),
                     c.get(Calendar.HOUR_OF_DAY),
                     c.get(Calendar.MINUTE),
-                    c.get(Calendar.SECOND));
+                    c.get(Calendar.SECOND),
+                    status);
         } catch (Exception e) {
             return "FFFFFFFFFFFFFFFFFW";
         }
@@ -319,12 +345,15 @@ public class ViewContract {
                 GXDateTime dt = (GXDateTime) value;
                 java.util.Set<gurux.dlms.enums.DateTimeSkips> skips = dt.getSkip();
 
-                int year  = skips.contains(gurux.dlms.enums.DateTimeSkips.YEAR)  ? 0xFFFF : dt.getMeterCalendar().get(Calendar.YEAR);
-                int month = skips.contains(gurux.dlms.enums.DateTimeSkips.MONTH) ? 0xFF   : dt.getMeterCalendar().get(Calendar.MONTH) + 1;
-                int day   = skips.contains(gurux.dlms.enums.DateTimeSkips.DAY)   ? 0xFF   : dt.getMeterCalendar().get(Calendar.DAY_OF_MONTH);
+                int year  = skips.contains(gurux.dlms.enums.DateTimeSkips.YEAR)  ? 0xFFFF
+                        : dt.getMeterCalendar().get(Calendar.YEAR);
+                int month = skips.contains(gurux.dlms.enums.DateTimeSkips.MONTH) ? 0xFF
+                        : dt.getMeterCalendar().get(Calendar.MONTH) + 1;
+                int day   = skips.contains(gurux.dlms.enums.DateTimeSkips.DAY)   ? 0xFF
+                        : dt.getMeterCalendar().get(Calendar.DAY_OF_MONTH);
 
                 String y = (year  == 0xFFFF) ? "FFFF" : String.format("%04d", year);
-                String m = (month == 0xFF)   ? "FF"   : String.format("%02d", month);
+                String m = (month == 0xFF)   ? "FF"   : String.format("%02X", month); // hex para mes
                 String d = (day   == 0xFF)   ? "FF"   : String.format("%02d", day);
                 return y + "/" + m + "/" + d;
             }
@@ -335,7 +364,7 @@ public class ViewContract {
                     int month = bytes[2] & 0xFF;
                     int day   = bytes[3] & 0xFF;
                     String y = (year  == 0xFFFF) ? "FFFF" : String.format("%04d", year);
-                    String m = (month == 0xFF)   ? "FF"   : String.format("%02d", month);
+                    String m = (month == 0xFF)   ? "FF"   : String.format("%02X", month); // hex para mes
                     String d = (day   == 0xFF)   ? "FF"   : String.format("%02d", day);
                     return y + "/" + m + "/" + d;
                 }
@@ -346,32 +375,6 @@ public class ViewContract {
         }
     }
 
-    private static byte[] gxDateTimeToBytes(GXDateTime dt) {
-        try {
-            Object raw = dt.getValue();
-            if (raw instanceof byte[]) return (byte[]) raw;
-        } catch (Exception ignored) {}
-
-        try {
-            java.lang.reflect.Field f = GXDateTime.class.getDeclaredField("value");
-            f.setAccessible(true);
-            Object v = f.get(dt);
-            if (v instanceof byte[]) return (byte[]) v;
-        } catch (Exception ignored) {}
-
-        try {
-            gurux.dlms.GXByteBuffer bb = new gurux.dlms.GXByteBuffer();
-            gurux.dlms.internal.GXCommon.setData(null, bb,
-                    gurux.dlms.enums.DataType.DATETIME, dt);
-            byte[] all = bb.array();
-            byte[] result = new byte[12];
-            System.arraycopy(all, 2, result, 0, 12);
-            return result;
-        } catch (Exception ignored) {}
-
-        return null;
-    }
-
     private static String weekByteToString(byte[] name) {
         if (name == null || name.length == 0) return "";
         if (name.length == 1) return String.valueOf(name[0] & 0xFF);
@@ -379,44 +382,54 @@ public class ViewContract {
         return s.replaceAll("[^\\x20-\\x7E]", "").trim();
     }
 
-    private static String extraerFechaCierre(Object val) {
+    private static String extraerFechaCierreActivo(Object val) {
+        if (val == null) return "N/A";
         try {
+            // Gurux parsea la respuesta como Object[] → Object[] → [byte[4], byte[5]]
             Object[] arr = null;
-            if (val instanceof Object[])         arr = (Object[]) val;
-            else if (val instanceof List)        arr = ((List<?>) val).toArray();
-            else if (val instanceof byte[])      return formatBillingDate(val);
-            else if (val instanceof GXDateTime)  return formatBillingDate(val);
+            if (val instanceof Object[])        arr = (Object[]) val;
+            else if (val instanceof List)       arr = ((List<?>) val).toArray();
+            else if (val instanceof byte[]) {
+                // Vino como bytes raw, buscar secuencia de 5 bytes
+                byte[] b = (byte[]) val;
+                if (b.length >= 5) {
+                    int year  = ((b[0] & 0xFF) << 8) | (b[1] & 0xFF);
+                    int month = b[2] & 0xFF;
+                    int day   = b[3] & 0xFF;
+                    String y = (year  == 0xFFFF) ? "FFFF" : String.format("%04d", year);
+                    String m = (month == 0xFF)   ? "FF"   : String.format("%02X", month);
+                    String d = (day   == 0xFF)   ? "FF"   : String.format("%02d", day);
+                    return y + "/" + m + "/" + d;
+                }
+                return "N/A";
+            }
 
             if (arr == null || arr.length == 0) return "N/A";
 
+            // Primer elemento es la estructura {time(4 bytes), date(5 bytes)}
             Object first = arr[0];
             Object[] entry = null;
-            if (first instanceof Object[])        entry = (Object[]) first;
-            else if (first instanceof List)       entry = ((List<?>) first).toArray();
-            else if (first instanceof byte[])     return formatBillingDate(first);
-            else if (first instanceof GXDateTime) return formatBillingDate(first);
+            if (first instanceof Object[])  entry = (Object[]) first;
+            else if (first instanceof List) entry = ((List<?>) first).toArray();
 
             if (entry == null || entry.length == 0) return "N/A";
 
-            byte[] candidate4 = null;
-            byte[] candidate5 = null;
-
+            // Buscar el campo de 5 bytes (date: FF FF mes dia FF)
             for (Object field : entry) {
                 if (field instanceof byte[]) {
                     byte[] b = (byte[]) field;
-                    if (b.length == 5)      candidate5 = b;
-                    else if (b.length == 4) candidate4 = b;
-                    else if (b.length == 12) return formatBillingDate(b);
-                } else if (field instanceof GXDateTime) {
-                    return formatBillingDate(field);
+                    if (b.length == 5) {
+                        int year  = ((b[0] & 0xFF) << 8) | (b[1] & 0xFF);
+                        int month = b[2] & 0xFF;
+                        int day   = b[3] & 0xFF;
+                        String y = (year  == 0xFFFF) ? "FFFF" : String.format("%04d", year);
+                        String m = (month == 0xFF)   ? "FF"   : String.format("%02X", month);
+                        String d = (day   == 0xFF)   ? "FF"   : String.format("%02d", day);
+                        return y + "/" + m + "/" + d;
+                    }
                 }
             }
-
-            if (candidate5 != null) return formatBillingDate(candidate5);
-            if (candidate4 != null) return formatBillingDate(candidate4);
-
             return "N/A";
-
         } catch (Exception e) {
             return "N/A";
         }
