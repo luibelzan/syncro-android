@@ -263,9 +263,11 @@ public class ProgramContract {
         AppLogger.i(TAG, "Writing passive end of billing " + contract);
         GXDLMSData endOfBilling = new GXDLMSData(OBIS_END_OF_BILLING);
         String[] parts = cierreMes.split("/");
+
         int year  = parts[0].equalsIgnoreCase("FFFF") ? 0xFFFF : Integer.parseInt(parts[0]);
-        int month = Integer.parseInt(parts[1]);
-        int day   = Integer.parseInt(parts[2]);
+        int month = parseHexOrDec(parts[1]);
+        int day   = parseHexOrDec(parts[2]);
+
         byte[] dt = new byte[12];
         dt[0]  = (byte) ((year >> 8) & 0xFF);
         dt[1]  = (byte) (year & 0xFF);
@@ -283,6 +285,19 @@ public class ProgramContract {
         endOfBilling.setValue(dt);
         reader.writeObject(endOfBilling, 2);
         AppLogger.i(TAG, "End of billing updated");
+    }
+
+    private static int parseHexOrDec(String value) {
+        if (value == null || value.isEmpty()) return 0xFF;
+        try {
+            // Si contiene letras A-F es hex (FD, FE, FF)
+            if (value.matches(".*[A-Fa-f].*")) {
+                return Integer.parseInt(value, 16);
+            }
+            return Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            return 0xFF; // fallback wildcard
+        }
     }
 
     private static void escribirUmbralesPotencia(

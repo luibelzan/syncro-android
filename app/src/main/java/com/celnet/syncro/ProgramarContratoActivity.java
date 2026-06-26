@@ -10,6 +10,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.Spinner;
 import android.widget.Toast;
@@ -61,6 +62,8 @@ public class ProgramarContratoActivity extends AppCompatActivity {
     // Fecha facturación
     private EditText editFechaFactMonth;
     private EditText editFechaFactDay;
+    private FrameLayout progressOverlay;
+
 
     private void configurarPickers() {
 
@@ -129,7 +132,11 @@ public class ProgramarContratoActivity extends AppCompatActivity {
         // Cierre facturación
         // Mes de facturación
         editFechaFactMonth.setOnClickListener(v -> {
-            String[] meses = {"01","02","03","04","05","06","07","08","09","10","11","12"};
+            String[] meses = {
+                    "01","02","03","04","05","06",
+                    "07","08","09","10","11","12",
+                    "FD","FE","FF"
+            };
             new android.app.AlertDialog.Builder(this)
                     .setTitle("Selecciona mes")
                     .setItems(meses, (dialog, which) ->
@@ -139,8 +146,14 @@ public class ProgramarContratoActivity extends AppCompatActivity {
 
         // Día de facturación
         editFechaFactDay.setOnClickListener(v -> {
-            String[] dias = new String[31];
-            for (int i = 0; i < 31; i++) dias[i] = String.format(Locale.getDefault(), "%02d", i + 1);
+            String[] dias = new String[34];
+            for (int i = 0; i < 31; i++) {
+                dias[i] = String.format(Locale.getDefault(), "%02d", i + 1);
+            }
+            dias[31] = "FD";
+            dias[32] = "FE";
+            dias[33] = "FF";
+
             new android.app.AlertDialog.Builder(this)
                     .setTitle("Selecciona día")
                     .setItems(dias, (dialog, which) ->
@@ -291,6 +304,7 @@ public class ProgramarContratoActivity extends AppCompatActivity {
 
             // ── Ejecutar en hilo de fondo (DLMS no puede ir en el hilo UI) ──────
             new Thread(() -> {
+                showProgress(true);
                 try {
 
                     DLMSConnection conn = (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH)
@@ -310,6 +324,7 @@ public class ProgramarContratoActivity extends AppCompatActivity {
                     );
 
                     conn.close();
+                    showProgress(false);
 
                     // Volver al hilo UI para mostrar resultado
                     runOnUiThread(() ->
@@ -355,6 +370,13 @@ public class ProgramarContratoActivity extends AppCompatActivity {
         // Fechas facturación
         editFechaFactMonth = findViewById(R.id.editFechaFactMonth);
         editFechaFactDay   = findViewById(R.id.editFechaFactDay);
+        progressOverlay = findViewById(R.id.progressOverlay);
+    }
+
+    private void showProgress(boolean show) {
+        runOnUiThread(() ->
+                progressOverlay.setVisibility(show ? View.VISIBLE : View.GONE)
+        );
     }
 
 
