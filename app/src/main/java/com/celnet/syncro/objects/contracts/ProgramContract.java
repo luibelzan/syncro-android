@@ -14,7 +14,7 @@ public class ProgramContract {
     private static final String TAG = "ProgramContract";
 
     private static final String OBIS_ACTIVITY_CALENDAR = "0.0.13.0.%d.255";
-    private static final String OBIS_SPECIAL_DAYS      = "0.0.11.0.0.255";
+    private static final String OBIS_SPECIAL_DAYS = "0.0.11.0.%d.255";
     private static final String OBIS_END_OF_BILLING    = "0.0.94.34.41.255";
     private static final String OBIS_CLOCK             = "0.0.1.0.0.255";
 
@@ -44,7 +44,7 @@ public class ProgramContract {
             }
 
             try {
-                escribirDiasEspeciales(reader);
+                escribirDiasEspeciales(reader, contract);
             } catch (Exception e) {
                 AppLogger.i(TAG, "Special Days Table no soportada, omitiendo: " + e.getMessage());
             }
@@ -61,7 +61,9 @@ public class ProgramContract {
             if (tarifa != null) {
                 AppLogger.i(TAG, "Reconnecting for activation session...");
                 reader.reconnect();
-                escribirFechaActivacion(reader, contract, activacion);
+                if(activacion != null) {
+                    escribirFechaActivacion(reader, contract, activacion);
+                }
             }
 
             AppLogger.i(TAG, "=== Contrato " + contract + " programado correctamente ===");
@@ -227,9 +229,12 @@ public class ProgramContract {
         return action;
     }
 
-    private static void escribirDiasEspeciales(GXDLMSReader reader) throws Exception {
-        AppLogger.i(TAG, "Updating Special Days Table...");
-        GXDLMSSpecialDaysTable sdt = new GXDLMSSpecialDaysTable(OBIS_SPECIAL_DAYS);
+    private static void escribirDiasEspeciales(GXDLMSReader reader, int contract) throws Exception {
+        // El contador usa 0.0.11.0.4.255 para escritura del pasivo
+        // independientemente del contrato activo
+        String obis = "0.0.11.0.4.255";
+        AppLogger.i(TAG, "Updating Special Days Table " + obis);
+        GXDLMSSpecialDaysTable sdt = new GXDLMSSpecialDaysTable(obis);
         GXDLMSSpecialDay[] specialDays = {
                 makeSpecialDay(1, -1,  1,  1, 5),
                 makeSpecialDay(2, -1,  1,  6, 5),

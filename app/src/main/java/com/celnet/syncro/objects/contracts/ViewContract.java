@@ -353,8 +353,8 @@ public class ViewContract {
                         : dt.getMeterCalendar().get(Calendar.DAY_OF_MONTH);
 
                 String y = (year  == 0xFFFF) ? "FFFF" : String.format("%04d", year);
-                String m = (month == 0xFF)   ? "FF"   : String.format("%02X", month); // hex para mes
-                String d = (day   == 0xFF)   ? "FF"   : String.format("%02d", day);
+                String m = formatBillingField(month);
+                String d = formatBillingField(day);
                 return y + "/" + m + "/" + d;
             }
             if (value instanceof byte[]) {
@@ -363,9 +363,9 @@ public class ViewContract {
                     int year  = ((bytes[0] & 0xFF) << 8) | (bytes[1] & 0xFF);
                     int month = bytes[2] & 0xFF;
                     int day   = bytes[3] & 0xFF;
-                    String y = (year  == 0xFFFF) ? "FFFF" : String.format("%04d", year);
-                    String m = (month == 0xFF)   ? "FF"   : String.format("%02X", month); // hex para mes
-                    String d = (day   == 0xFF)   ? "FF"   : String.format("%02d", day);
+                    String y = (year == 0xFFFF) ? "FFFF" : String.format("%04d", year);
+                    String m = formatBillingField(month);
+                    String d = formatBillingField(day);
                     return y + "/" + m + "/" + d;
                 }
             }
@@ -373,6 +373,13 @@ public class ViewContract {
         } catch (Exception e) {
             return "FFFF/FF/FF";
         }
+    }
+
+    // Valores especiales DLMS: 0xFD=last day of month, 0xFE=2nd last, 0xFF=wildcard
+    private static String formatBillingField(int value) {
+        if (value >= 0xFD) return String.format("%02X", value); // FD, FE, FF → hex
+        if (value == 0xFF) return "FF";
+        return String.format("%02d", value); // valores normales → decimal
     }
 
     private static String weekByteToString(byte[] name) {
