@@ -58,12 +58,10 @@ public class ProgramContract {
             }
 
             // ── SESIÓN 2: activación ────────────────────────────────────────
-            if (tarifa != null) {
+            if (activacion != null) {
                 AppLogger.i(TAG, "Reconnecting for activation session...");
                 reader.reconnect();
-                if(activacion != null) {
-                    escribirFechaActivacion(reader, contract, activacion);
-                }
+                escribirFechaActivacion(reader, contract, activacion);
             }
 
             AppLogger.i(TAG, "=== Contrato " + contract + " programado correctamente ===");
