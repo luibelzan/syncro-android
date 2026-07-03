@@ -110,20 +110,20 @@ public class MonthlyBillingS04 {
                                 fechaFin,
                                 contract,
                                 p,
-                                parsearMaximetroValor(fila[idxValMax]),
+                                parsearMaximetroValor(fila[idxValMax]),   // se deja en Wh, sin tocar
                                 parsearFechaMaximetro(fila[idxFechaMax]),
-                                String.valueOf(fila[2  + p]),
-                                String.valueOf(fila[9  + p]),
-                                String.valueOf(fila[16 + p]),
-                                String.valueOf(fila[23 + p]),
-                                String.valueOf(fila[30 + p]),
-                                String.valueOf(fila[37 + p]),
-                                String.valueOf(fila[44 + p]),
-                                String.valueOf(fila[51 + p]),
-                                String.valueOf(fila[58 + p]),
-                                String.valueOf(fila[65 + p]),
-                                String.valueOf(fila[72 + p]),
-                                String.valueOf(fila[79 + p])
+                                wattsAKilowatts(fila[2  + p]),
+                                wattsAKilowatts(fila[9  + p]),
+                                wattsAKilowatts(fila[16 + p]),
+                                wattsAKilowatts(fila[23 + p]),
+                                wattsAKilowatts(fila[30 + p]),
+                                wattsAKilowatts(fila[37 + p]),
+                                wattsAKilowatts(fila[44 + p]),
+                                wattsAKilowatts(fila[51 + p]),
+                                wattsAKilowatts(fila[58 + p]),
+                                wattsAKilowatts(fila[65 + p]),
+                                wattsAKilowatts(fila[72 + p]),
+                                wattsAKilowatts(fila[79 + p])
                         ));
                     }
                 }
@@ -139,6 +139,16 @@ public class MonthlyBillingS04 {
         }
 
         return result;
+    }
+
+    private static String wattsAKilowatts(Object valorWh) {
+        try {
+            double wh = Double.parseDouble(valorWh.toString());
+            long kwh = Math.round(wh / 1000.0);
+            return String.valueOf(kwh);
+        } catch (Exception e) {
+            return String.valueOf(valorWh);
+        }
     }
 
     /**
@@ -235,21 +245,24 @@ public class MonthlyBillingS04 {
                     int idxFechaMax = 87 + (p * 2);
 
                     result.add(new CierreMensualFila(
-                            fechaInicio, fechaFin, contract, p,
-                            parsearMaximetroValor(fila[idxValMax]),
+                            fechaInicio,
+                            fechaFin,
+                            contract,
+                            p,
+                            parsearMaximetroValor(fila[idxValMax]),   // se deja en Wh, sin tocar
                             parsearFechaMaximetro(fila[idxFechaMax]),
-                            String.valueOf(fila[2  + p]),
-                            String.valueOf(fila[9  + p]),
-                            String.valueOf(fila[16 + p]),
-                            String.valueOf(fila[23 + p]),
-                            String.valueOf(fila[30 + p]),
-                            String.valueOf(fila[37 + p]),
-                            String.valueOf(fila[44 + p]),
-                            String.valueOf(fila[51 + p]),
-                            String.valueOf(fila[58 + p]),
-                            String.valueOf(fila[65 + p]),
-                            String.valueOf(fila[72 + p]),
-                            String.valueOf(fila[79 + p])
+                            wattsAKilowatts(fila[2  + p]),
+                            wattsAKilowatts(fila[9  + p]),
+                            wattsAKilowatts(fila[16 + p]),
+                            wattsAKilowatts(fila[23 + p]),
+                            wattsAKilowatts(fila[30 + p]),
+                            wattsAKilowatts(fila[37 + p]),
+                            wattsAKilowatts(fila[44 + p]),
+                            wattsAKilowatts(fila[51 + p]),
+                            wattsAKilowatts(fila[58 + p]),
+                            wattsAKilowatts(fila[65 + p]),
+                            wattsAKilowatts(fila[72 + p]),
+                            wattsAKilowatts(fila[79 + p])
                     ));
                 }
             }

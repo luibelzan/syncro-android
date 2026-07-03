@@ -76,12 +76,12 @@ public class DailyBillingS05 {
                                 fechaFormateada,
                                 contract,
                                 p,
-                                String.valueOf(fila[1  + p]),
-                                String.valueOf(fila[8  + p]),
-                                String.valueOf(fila[15 + p]),
-                                String.valueOf(fila[22 + p]),
-                                String.valueOf(fila[29 + p]),
-                                String.valueOf(fila[36 + p])
+                                wattsAKilowatts(fila[1  + p]),
+                                wattsAKilowatts(fila[8  + p]),
+                                wattsAKilowatts(fila[15 + p]),
+                                wattsAKilowatts(fila[22 + p]),
+                                wattsAKilowatts(fila[29 + p]),
+                                wattsAKilowatts(fila[36 + p])
                         ));
                     }
                 }
@@ -96,6 +96,16 @@ public class DailyBillingS05 {
         }
 
         return result;
+    }
+
+    private static String wattsAKilowatts(Object valorWh) {
+        try {
+            double wh = Double.parseDouble(valorWh.toString());
+            long kwh = Math.round(wh / 1000.0);
+            return String.valueOf(kwh);
+        } catch (Exception e) {
+            return String.valueOf(valorWh);
+        }
     }
 
     /**
