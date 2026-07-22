@@ -131,6 +131,7 @@
             android:exported="false" />
         <activity
             android:name=".CurvasActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden"
             android:exported="false" />
         <activity
             android:name=".ReadsActivity"
