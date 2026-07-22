@@ -81,14 +81,16 @@ public class IcpExecuteActivity extends AppCompatActivity {
             String operacion = spinnerOperacion.getSelectedItem().toString();
             ConnectionConfig config = SessionManager.getInstance().getConnectionConfig();
 
-            // Mostrar valores en Toast de depuración
             Toast.makeText(IcpExecuteActivity.this,
                     "Conexión: " + config.getType() + "\n",
                     Toast.LENGTH_LONG).show();
 
+            // Bloquear interacción mientras carga
+            btnNext.setEnabled(false);
+            spinnerTipoOperacion.setEnabled(false);
+            spinnerOperacion.setEnabled(false);
             progressBar.setVisibility(View.VISIBLE);
 
-            // 🔹 Hilo secundario para evitar NetworkOnMainThreadException
             new Thread(() -> {
                 try {
                     DLMSConnection conn = (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH)
@@ -97,12 +99,10 @@ public class IcpExecuteActivity extends AppCompatActivity {
 
                     DLMSConnection.ConnectionResult res = conn.connectWithAutoDetect(IcpExecuteActivity.this);
 
-
                     ControlModeResult result;
 
-                    // Ejecutar operacion
-                    if(operacion.equals("Connect")) {
-                         result = ControlDisconnectMode.setControlDisconnectMode(res.reader, conn.getClient(), true);
+                    if (operacion.equals("Connect")) {
+                        result = ControlDisconnectMode.setControlDisconnectMode(res.reader, conn.getClient(), true);
                     } else {
                         result = ControlDisconnectMode.setControlDisconnectMode(res.reader, conn.getClient(), false);
                     }
@@ -110,6 +110,9 @@ public class IcpExecuteActivity extends AppCompatActivity {
 
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);
+                        btnNext.setEnabled(true);
+                        spinnerTipoOperacion.setEnabled(true);
+                        spinnerOperacion.setEnabled(true);
 
                         Intent intent = new Intent(IcpExecuteActivity.this, ResultadosIcpActivity.class);
                         intent.putExtra("success", result.success);
@@ -118,14 +121,15 @@ public class IcpExecuteActivity extends AppCompatActivity {
                         intent.putExtra("mensaje", result.mensaje);
 
                         startActivity(intent);
-
                     });
 
                 } catch (Exception e) {
                     e.printStackTrace();
-                    // Toda actualización de UI dentro de runOnUiThread
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);
+                        btnNext.setEnabled(true);
+                        spinnerTipoOperacion.setEnabled(true);
+                        spinnerOperacion.setEnabled(true);
                         Toast.makeText(IcpExecuteActivity.this,
                                 "Error de conexión: " + e.getClass().getSimpleName() +
                                         " - " + e.getMessage(), Toast.LENGTH_LONG).show();

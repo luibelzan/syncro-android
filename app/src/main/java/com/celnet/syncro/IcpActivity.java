@@ -34,11 +34,14 @@ public class IcpActivity extends AppCompatActivity {
 
         LinearLayout btnIcpStatus = findViewById(R.id.btnIcpStatus);
         LinearLayout btnIcpExecute = findViewById(R.id.btnIcpExecute);
-        LinearLayout btnIcpMode = findViewById(R.id.btnIcpMode);
-        //LinearLayout progressBar = findViewById(R.id.progressContainer);
+        LinearLayout progressBar = findViewById(R.id.progressContainer);
 
         btnIcpStatus.setOnClickListener(v -> {
             ConnectionConfig config = SessionManager.getInstance().getConnectionConfig();
+
+            // Bloquear interacción mientras carga
+            btnIcpStatus.setEnabled(false);
+            progressBar.setVisibility(View.VISIBLE);
 
             new Thread(() -> {
                 try {
@@ -48,12 +51,13 @@ public class IcpActivity extends AppCompatActivity {
 
                     DLMSConnection.ConnectionResult res = conn.connectWithAutoDetect(IcpActivity.this);
 
-
                     ControlModeResult result = ControlDisconnectMode.readControlDisconnectMode(res.reader, conn.getClient());
 
                     conn.close();
 
                     runOnUiThread(() -> {
+                        progressBar.setVisibility(View.GONE);
+                        btnIcpStatus.setEnabled(true);
 
                         Intent intent = new Intent(IcpActivity.this, ResultadosIcpActivity.class);
 
@@ -64,11 +68,11 @@ public class IcpActivity extends AppCompatActivity {
 
                         startActivity(intent);
                     });
-            } catch (Exception e) {
+                } catch (Exception e) {
                     e.printStackTrace();
-                    // Toda actualización de UI dentro de runOnUiThread
                     runOnUiThread(() -> {
-                        //progressBar.setVisibility(View.GONE);
+                        progressBar.setVisibility(View.GONE);
+                        btnIcpStatus.setEnabled(true);
                         Toast.makeText(IcpActivity.this,
                                 "Error de conexión: " + e.getClass().getSimpleName() +
                                         " - " + e.getMessage(), Toast.LENGTH_LONG).show();
@@ -80,10 +84,6 @@ public class IcpActivity extends AppCompatActivity {
         btnIcpExecute.setOnClickListener(v -> {
             Intent intent = new Intent(IcpActivity.this, IcpExecuteActivity.class);
             startActivity(intent);
-        });
-
-        btnIcpMode.setOnClickListener(v -> {
-
         });
     }
 }

@@ -30,7 +30,7 @@
                 android:id="@+id/tvVersion"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Syncro Ver. 1.0.4 - Android"
+                android:text="Syncro Ver. 1.0.6 - Android"
                 android:textColor="#666666"
                 android:textSize="16sp" />
 

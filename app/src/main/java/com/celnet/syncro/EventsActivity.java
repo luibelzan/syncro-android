@@ -111,7 +111,6 @@ public class EventsActivity extends BaseActivity {
             String fechaFin = editFechaFin.getText().toString();
             ConnectionConfig config = SessionManager.getInstance().getConnectionConfig();
 
-            // Mostrar valores en Toast de depuración
             Toast.makeText(EventsActivity.this,
                     "Conexión: " + config.getType() + "\n" +
                             "IP: " + config.getIp() + "\n" +
@@ -121,9 +120,10 @@ public class EventsActivity extends BaseActivity {
                             "Fecha Fin: " + fechaFin,
                     Toast.LENGTH_LONG).show();
 
+            // Bloquear interacción mientras carga
+            btnNext.setEnabled(false);
             progressBar.setVisibility(View.VISIBLE);
 
-            // 🔹 Hilo secundario para evitar NetworkOnMainThreadException
             new Thread(() -> {
                 try {
                     DLMSConnection conn = (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH)
@@ -131,7 +131,6 @@ public class EventsActivity extends BaseActivity {
                             : new DLMSConnection(config.getIp(), config.getPort());
 
                     DLMSConnection.ConnectionResult res = conn.connectWithAutoDetect(EventsActivity.this);
-
 
                     ArrayList<EventFila> datos = new ArrayList<>();
 
@@ -144,53 +143,19 @@ public class EventsActivity extends BaseActivity {
                         }
                     }
 
-                    for(Integer event : eventosSeleccionados){
-
-                        switch(event){
-
-                            case 0:
-                                datos.addAll(StandarEventLogReader.readStandardEventLog(this, res.reader, fechaInicio, fechaFin));
-                                break;
-
-                            case 1:
-                                datos.addAll(FraudEventLog.readFraudEventLog(this, res.reader, fechaInicio, fechaFin));
-                                break;
-
-                            case 2:
-                                datos.addAll(DisconnectEventLog.readDisconnectEventLog(this, res.reader, fechaInicio, fechaFin));
-                                break;
-
-                            case 3:
-                                datos.addAll(PowContractEventLog.readImpPowContractEventLog(this, res.reader, fechaInicio, fechaFin));
-                                break;
-
-                            case 4:
-                                datos.addAll(FirmwareEventLog.leerFirmwareEventLog(this, res.reader, fechaInicio, fechaFin));
-                                break;
-
-                            case 5:
-                                datos.addAll(PowerQualityEventLog.readPowerQualityEventLog(this, res.reader, fechaInicio, fechaFin));
-                                break;
-
-                            case 6:
-                                datos.addAll(DemandMgmntEventLog.readDemandMgmntEventLog(this, res.reader, fechaInicio, fechaFin));
-                                break;
-
-                            case 7:
-                                datos.addAll(CommonEventLog.leerCommonEventLog(this, res.reader, fechaInicio, fechaFin));
-                                break;
-
-                            case 8:
-                                datos.addAll(SyncEventLog.readSyncEventLog(this, res.reader, fechaInicio, fechaFin));
-                                break;
-
-                            case 9:
-                                datos.addAll(FinishedPQEventLog.readFinishedPQEventLog(this, res.reader, fechaInicio, fechaFin));
-                                break;
-
-                            case 10:
-                                datos.addAll(ExpPowContractEventLog.readExpPowContractEventLog(this, res.reader, fechaInicio, fechaFin));
-                                break;
+                    for (Integer event : eventosSeleccionados) {
+                        switch (event) {
+                            case 0: datos.addAll(StandarEventLogReader.readStandardEventLog(this, res.reader, fechaInicio, fechaFin)); break;
+                            case 1: datos.addAll(FraudEventLog.readFraudEventLog(this, res.reader, fechaInicio, fechaFin)); break;
+                            case 2: datos.addAll(DisconnectEventLog.readDisconnectEventLog(this, res.reader, fechaInicio, fechaFin)); break;
+                            case 3: datos.addAll(PowContractEventLog.readImpPowContractEventLog(this, res.reader, fechaInicio, fechaFin)); break;
+                            case 4: datos.addAll(FirmwareEventLog.leerFirmwareEventLog(this, res.reader, fechaInicio, fechaFin)); break;
+                            case 5: datos.addAll(PowerQualityEventLog.readPowerQualityEventLog(this, res.reader, fechaInicio, fechaFin)); break;
+                            case 6: datos.addAll(DemandMgmntEventLog.readDemandMgmntEventLog(this, res.reader, fechaInicio, fechaFin)); break;
+                            case 7: datos.addAll(CommonEventLog.leerCommonEventLog(this, res.reader, fechaInicio, fechaFin)); break;
+                            case 8: datos.addAll(SyncEventLog.readSyncEventLog(this, res.reader, fechaInicio, fechaFin)); break;
+                            case 9: datos.addAll(FinishedPQEventLog.readFinishedPQEventLog(this, res.reader, fechaInicio, fechaFin)); break;
+                            case 10: datos.addAll(ExpPowContractEventLog.readExpPowContractEventLog(this, res.reader, fechaInicio, fechaFin)); break;
                         }
                     }
 
@@ -198,19 +163,19 @@ public class EventsActivity extends BaseActivity {
 
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);
+                        btnNext.setEnabled(true);
 
                         Intent intent = new Intent(EventsActivity.this, ResultadosEventsActivity.class);
                         intent.putParcelableArrayListExtra("datos_event_tabla", datos);
                         intent.putExtra("cntId", res.serialNumber);
                         startActivity(intent);
-
                     });
 
                 } catch (Exception e) {
                     e.printStackTrace();
-                    // Toda actualización de UI dentro de runOnUiThread
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);
+                        btnNext.setEnabled(true);
                         Toast.makeText(EventsActivity.this,
                                 "Error de conexión: " + e.getClass().getSimpleName() +
                                         " - " + e.getMessage(), Toast.LENGTH_LONG).show();

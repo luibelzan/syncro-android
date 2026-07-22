@@ -74,36 +74,10 @@
             android:hint="@string/dateInput" />
     </LinearLayout>
 
-    <!-- Contenedor para ProgressBar y texto (overlay a pantalla completa) -->
-    <LinearLayout
+    <!-- Contenedor para ProgressBar y texto -->
+    <include
         android:id="@+id/progressContainer"
-        android:orientation="vertical"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:gravity="center"
-        android:background="#AAFFFFFF"
-        android:visibility="gone"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
-        <ProgressBar
-            android:id="@+id/progressBar"
-            style="?android:attr/progressBarStyleLarge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:indeterminate="true"/>
-
-        <TextView
-            android:id="@+id/textCargando"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/loading"
-            android:textColor="@color/gris_texto"
-            android:textSize="18sp"
-            android:layout_marginTop="12dp"/>
-    </LinearLayout>
+        layout="@layout/overlay_progress" />
 
     <ImageButton
         android:id="@+id/btnNext"

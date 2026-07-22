@@ -34,34 +34,9 @@
     </LinearLayout>
 
     <!-- Contenedor para ProgressBar y texto -->
-    <LinearLayout
+    <include
         android:id="@+id/progressContainer"
-        android:orientation="vertical"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/layoutBluetooth"
-        app:layout_constraintBottom_toTopOf="@id/btnNextLayout"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
-        <ProgressBar
-            android:id="@+id/progressBar"
-            style="?android:attr/progressBarStyleLarge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:indeterminate="true"/>
-
-        <TextView
-            android:id="@+id/textCargando"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/loading"
-            android:textColor="@color/gris_texto"
-            android:textSize="18sp"
-            android:layout_marginTop="12dp"/>
-    </LinearLayout>
+        layout="@layout/overlay_progress" />
 
     <LinearLayout
         android:id="@+id/btnNextLayout"

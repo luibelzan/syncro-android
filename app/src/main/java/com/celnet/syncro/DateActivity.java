@@ -14,8 +14,6 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.celnet.syncro.client.DLMSConnection;
 import com.celnet.syncro.client.GXDLMSReader;
-import com.celnet.syncro.models.ControlModeResult;
-import com.celnet.syncro.objects.params.ControlDisconnectMode;
 import com.celnet.syncro.objects.params.DateReader;
 import com.celnet.syncro.session.ConnectionConfig;
 import com.celnet.syncro.session.SessionManager;
@@ -35,6 +33,7 @@ public class DateActivity extends AppCompatActivity {
 
         LinearLayout btnReadDate = findViewById(R.id.btnReadDate);
         LinearLayout btnSyncDate = findViewById(R.id.btnSyncDate);
+        LinearLayout progressBar = findViewById(R.id.progressContainer);
 
         btnSyncDate.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -46,6 +45,12 @@ public class DateActivity extends AppCompatActivity {
 
         btnReadDate.setOnClickListener(v -> {
             ConnectionConfig config = SessionManager.getInstance().getConnectionConfig();
+
+            // Bloquear interacción mientras carga
+            btnReadDate.setEnabled(false);
+            btnSyncDate.setEnabled(false);
+            progressBar.setVisibility(View.VISIBLE);
+
             new Thread(() -> {
                 try {
                     DLMSConnection conn = (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH)
@@ -54,21 +59,25 @@ public class DateActivity extends AppCompatActivity {
 
                     DLMSConnection.ConnectionResult res = conn.connectWithAutoDetect(DateActivity.this);
 
-
                     String date = DateReader.readDate(res.reader);
 
                     conn.close();
 
                     runOnUiThread(() -> {
+                        progressBar.setVisibility(View.GONE);
+                        btnReadDate.setEnabled(true);
+                        btnSyncDate.setEnabled(true);
+
                         Intent intent = new Intent(DateActivity.this, ResultadosDateActivity.class);
                         intent.putExtra("date", date);
                         startActivity(intent);
                     });
                 } catch (Exception e) {
                     e.printStackTrace();
-                    // Toda actualización de UI dentro de runOnUiThread
                     runOnUiThread(() -> {
-                        //progressBar.setVisibility(View.GONE);
+                        progressBar.setVisibility(View.GONE);
+                        btnReadDate.setEnabled(true);
+                        btnSyncDate.setEnabled(true);
                         Toast.makeText(DateActivity.this,
                                 "Error de conexión: " + e.getClass().getSimpleName() +
                                         " - " + e.getMessage(), Toast.LENGTH_LONG).show();

@@ -93,4 +93,9 @@
         </LinearLayout>
     </ScrollView>
 
+    <!-- Contenedor para ProgressBar y texto -->
+    <include
+        android:id="@+id/progressContainer"
+        layout="@layout/overlay_progress" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

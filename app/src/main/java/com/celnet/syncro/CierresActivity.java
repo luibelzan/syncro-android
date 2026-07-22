@@ -150,6 +150,12 @@ public class CierresActivity extends BaseActivity {
                             "Fecha Fin: " + fechaFin,
                     Toast.LENGTH_LONG).show();
 
+            // Bloquear interacción mientras carga
+            btnNext.setEnabled(false);
+            spinnerTipoCierre.setEnabled(false);
+            spinnerContrato.setEnabled(false);
+            editFechaInicio.setEnabled(false);
+            editFechaFin.setEnabled(false);
             progressBar.setVisibility(View.VISIBLE);
 
             // 🔹 Hilo secundario para evitar NetworkOnMainThreadException
@@ -161,13 +167,11 @@ public class CierresActivity extends BaseActivity {
 
                     DLMSConnection.ConnectionResult res = conn.connectWithAutoDetect(CierresActivity.this);
 
-
                     // Leer curvas
                     if (tipoCierre.equals("Diarios (S05)")) {
                         ArrayList<CierreFila> datos;
 
                         if (spinnerContrato.getSelectedItemPosition() == 3) {
-                            // Posición 3 = "Todos los contratos"
                             datos = DailyBillingS05.leerS05Todos(res.reader, fechaInicio, fechaFin);
                         } else {
                             datos = DailyBillingS05.leerS05(res.reader, fechaInicio, fechaFin, contrato);
@@ -175,6 +179,7 @@ public class CierresActivity extends BaseActivity {
 
                         runOnUiThread(() -> {
                             progressBar.setVisibility(View.GONE);
+                            reactivarControles(btnNext, spinnerTipoCierre, spinnerContrato, editFechaInicio, editFechaFin);
                             Intent intent = new Intent(CierresActivity.this,
                                     ResultadosCierresActivity.class);
                             intent.putParcelableArrayListExtra("datos_cierres_tabla", datos);
@@ -192,44 +197,40 @@ public class CierresActivity extends BaseActivity {
 
                         runOnUiThread(() -> {
                             progressBar.setVisibility(View.GONE);
+                            reactivarControles(btnNext, spinnerTipoCierre, spinnerContrato, editFechaInicio, editFechaFin);
                             Intent intent = new Intent(CierresActivity.this,
                                     ResultadosCierresMensualesActivity.class);
                             intent.putParcelableArrayListExtra("datos_cierres_tabla", datos);
                             intent.putExtra("cntId", res.serialNumber);
                             startActivity(intent);
                         });
-                    } else if(tipoCierre.equals("Actuales (S27)")) {
+                    } else if (tipoCierre.equals("Actuales (S27)")) {
                         int posicion = spinnerContrato.getSelectedItemPosition();
                         ArrayList<CierreEnCursoFila> datos;
 
                         if (posicion == 3) {
-                            // Leer los 3 contratos
                             datos = CurrentBillingReader.readCurrentBilling(res.reader);
                         } else {
-                            // Leer solo el contrato seleccionado
                             datos = CurrentBillingReader.readCurrentBilling(res.reader, contrato);
                         }
 
                         runOnUiThread(() -> {
                             progressBar.setVisibility(View.GONE);
-
+                            reactivarControles(btnNext, spinnerTipoCierre, spinnerContrato, editFechaInicio, editFechaFin);
                             Intent intent = new Intent(CierresActivity.this, ResultadosCierresEnCursoActivity.class);
                             intent.putParcelableArrayListExtra("datos_cierres_tabla", datos);
                             intent.putExtra("cntId", res.serialNumber);
                             startActivity(intent);
-
                         });
                     }
 
                     conn.close();
 
-
-
                 } catch (Exception e) {
                     e.printStackTrace();
-                    // Toda actualización de UI dentro de runOnUiThread
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);
+                        reactivarControles(btnNext, spinnerTipoCierre, spinnerContrato, editFechaInicio, editFechaFin);
                         Toast.makeText(CierresActivity.this,
                                 "Error de conexión: " + e.getClass().getSimpleName() +
                                         " - " + e.getMessage(), Toast.LENGTH_LONG).show();
@@ -238,8 +239,18 @@ public class CierresActivity extends BaseActivity {
             }).start();
 
         });
+    }
 
-
+    private void reactivarControles(ImageButton btnNext,
+                                    Spinner spinnerTipoCierre,
+                                    Spinner spinnerContrato,
+                                    EditText editFechaInicio,
+                                    EditText editFechaFin) {
+        btnNext.setEnabled(true);
+        spinnerTipoCierre.setEnabled(true);
+        spinnerContrato.setEnabled(true);
+        editFechaInicio.setEnabled(true);
+        editFechaFin.setEnabled(true);
     }
 
     private boolean validarFechasCierre(String tipoCierre,

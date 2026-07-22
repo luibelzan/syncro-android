@@ -103,6 +103,10 @@ public class CurvasActivity extends BaseActivity {
                             "Fecha Fin: " + fechaFin,
                     Toast.LENGTH_LONG).show();
 
+            // Bloquear interacción mientras carga
+            btnNext.setEnabled(false);
+            editFechaInicio.setEnabled(false);
+            editFechaFin.setEnabled(false);
             progressBar.setVisibility(View.VISIBLE);
 
             // 🔹 Hilo secundario para evitar NetworkOnMainThreadException
@@ -120,19 +124,23 @@ public class CurvasActivity extends BaseActivity {
 
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);
+                        btnNext.setEnabled(true);
+                        editFechaInicio.setEnabled(true);
+                        editFechaFin.setEnabled(true);
 
                         Intent intent = new Intent(CurvasActivity.this, ResultadosCurvasActivity.class);
                         intent.putParcelableArrayListExtra("datos_curva_tabla", datos);
                         intent.putExtra("cntId", res.serialNumber);
                         startActivity(intent);
-
                     });
 
                 } catch (Exception e) {
                     e.printStackTrace();
-                    // Toda actualización de UI dentro de runOnUiThread
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);
+                        btnNext.setEnabled(true);
+                        editFechaInicio.setEnabled(true);
+                        editFechaFin.setEnabled(true);
                         Toast.makeText(CurvasActivity.this,
                                 "Error de conexión: " + e.getClass().getSimpleName() +
                                         " - " + e.getMessage(), Toast.LENGTH_LONG).show();

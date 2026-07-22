@@ -71,7 +71,7 @@ public class SyncDateActivity extends BaseActivity {
             int utcOffsetMinutes;
 
             try {
-                dateTime = sdf.parse(dateTimeStr); // <-- reutiliza el sdf de arriba, sin redeclarar
+                dateTime = sdf.parse(dateTimeStr);
             } catch (Exception e) {
                 Toast.makeText(this, "Formato de fecha incorrecto (yyyy/MM/dd HH:mm)", Toast.LENGTH_SHORT).show();
                 return;
@@ -84,15 +84,15 @@ public class SyncDateActivity extends BaseActivity {
                 return;
             }
 
-            // 2. Deshabilitar botón mientras se ejecuta
+            // Bloquear interacción mientras se ejecuta
             btnNext.setEnabled(false);
+            checkBoxManual.setEnabled(false);
 
             final Date finalDateTime = dateTime;
             final int finalOffset = utcOffsetMinutes;
 
             progressBar.setVisibility(View.VISIBLE);
 
-            // 3. Ejecutar en hilo secundario (DLMS bloquea la UI)
             new Thread(() -> {
                 try {
                     DLMSConnection conn = (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH)
@@ -100,7 +100,6 @@ public class SyncDateActivity extends BaseActivity {
                             : new DLMSConnection(config.getIp(), config.getPort());
 
                     DLMSConnection.ConnectionResult res = conn.connectWithAutoDetect(SyncDateActivity.this);
-
 
                     GXDLMSSecureClient2 client = conn.getClient();
 
@@ -110,6 +109,7 @@ public class SyncDateActivity extends BaseActivity {
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);
                         btnNext.setEnabled(true);
+                        checkBoxManual.setEnabled(true);
 
                         Toast.makeText(SyncDateActivity.this,
                                 "Fecha y hora sincronizada correctamente",
@@ -118,9 +118,10 @@ public class SyncDateActivity extends BaseActivity {
 
                 } catch (Exception e) {
                     e.printStackTrace();
-                    // Toda actualización de UI dentro de runOnUiThread
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);
+                        btnNext.setEnabled(true);
+                        checkBoxManual.setEnabled(true);
                         Toast.makeText(SyncDateActivity.this,
                                 "Error de conexión: " + e.getClass().getSimpleName() +
                                         " - " + e.getMessage(), Toast.LENGTH_LONG).show();

@@ -70,6 +70,9 @@ public class VerContratoActivity extends AppCompatActivity {
             // ── Contrato ────────────────────────────────────────────────────────
             int contract = spinnerContrato.getSelectedItemPosition() + 1;
 
+            // Bloquear interacción mientras carga
+            btnNext.setEnabled(false);
+            spinnerContrato.setEnabled(false);
             progressBar.setVisibility(View.VISIBLE);
 
             // ── Ejecutar en hilo de fondo (DLMS no puede ir en el hilo UI) ──────
@@ -81,27 +84,29 @@ public class VerContratoActivity extends AppCompatActivity {
 
                     DLMSConnection.ConnectionResult res = conn.connectWithAutoDetect(VerContratoActivity.this);
 
-
                     String datos = ViewContract.leerContrato(res.reader, contract);
-                    //Log.d("CONTRATO", datos);
 
                     conn.close();
 
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);
+                        btnNext.setEnabled(true);
+                        spinnerContrato.setEnabled(true);
 
                         Intent intent = new Intent(VerContratoActivity.this, ResultadosVerContratoActivity.class);
                         intent.putExtra("datos_contrato", datos);
                         startActivity(intent);
-
                     });
 
                 } catch (Exception e) {
-                    runOnUiThread(() ->
-                            Toast.makeText(this,
-                                    "Error al programar contrato: " + e.getMessage(),
-                                    Toast.LENGTH_LONG).show()
-                    );
+                    runOnUiThread(() -> {
+                        progressBar.setVisibility(View.GONE);
+                        btnNext.setEnabled(true);
+                        spinnerContrato.setEnabled(true);
+                        Toast.makeText(this,
+                                "Error al programar contrato: " + e.getMessage(),
+                                Toast.LENGTH_LONG).show();
+                    });
                 }
             }).start();
         });

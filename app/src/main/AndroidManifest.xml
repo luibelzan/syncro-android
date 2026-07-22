@@ -32,9 +32,11 @@
             android:exported="false" />
         <activity
             android:name=".PantallaActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden"
             android:exported="false" />
         <activity
             android:name=".ParametersActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden"
             android:exported="false" />
         <activity
             android:name=".AppLogActivity"
@@ -59,6 +61,7 @@
             android:exported="false" />
         <activity
             android:name=".SyncDateActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden"
             android:exported="false" />
         <activity
             android:name=".ConfigContadorActivity"
@@ -68,9 +71,11 @@
             android:exported="false" />
         <activity
             android:name=".VerContratoActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden"
             android:exported="false" />
         <activity
             android:name=".ProgramarContratoActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden"
             android:exported="false" />
         <activity
             android:name=".ContratosActivity"
@@ -83,15 +88,18 @@
             android:exported="false" />
         <activity
             android:name=".DateActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden"
             android:exported="false" />
         <activity
             android:name=".ResultadosIcpActivity"
             android:exported="false" />
         <activity
             android:name=".IcpExecuteActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden"
             android:exported="false" />
         <activity
             android:name=".IcpActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden"
             android:exported="false" />
         <activity
             android:name=".ParametrosActivity"
@@ -110,21 +118,25 @@
             android:exported="false" />
         <activity
             android:name=".ValoresInstantaneosActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden"
             android:exported="false" />
         <activity
             android:name=".IdsActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden"
             android:exported="false" />
         <activity
             android:name=".ResultadosEventsActivity"
             android:exported="false" />
         <activity
             android:name=".EventsActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden"
             android:exported="false" />
         <activity
             android:name=".ResultadosCierresActivity"
             android:exported="false" />
         <activity
             android:name=".CierresActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden"
             android:exported="false" />
         <activity
             android:name=".ResultadosCurvasActivity"
