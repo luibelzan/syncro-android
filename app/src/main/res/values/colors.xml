@@ -3,4 +3,31 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="gris_texto">#757575</color>
+
+    <!-- ===== Paleta base del sistema de diseño =====
+         Añade estos colores a tu colors.xml existente
+         (mantén gris_texto y el resto de colores que ya uses en otras pantallas). -->
+
+    <!-- Marca / acción principal -->
+    <color name="primary">#2E5AAC</color>
+    <color name="primary_dark">#1E3F7A</color>
+    <color name="primary_light">#E8EEF9</color>
+
+    <!-- Superficies -->
+    <color name="background">#F7F8FA</color>
+    <color name="surface">#FFFFFF</color>
+
+    <!-- Texto / iconos -->
+    <color name="on_surface">#1C1B1F</color>
+    <color name="on_surface_variant">#5F6368</color>
+
+    <!-- Bordes y separadores -->
+    <color name="outline">#D8DCE3</color>
+
+    <!-- Estado -->
+    <color name="error">#D32F2F</color>
+    <color name="success">#2E7D32</color>
+
+    <color name="surface_alt">#F2F4F8</color>
+
 </resources>

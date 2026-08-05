@@ -3,7 +3,12 @@
     android:orientation="horizontal"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="4dp">
+    android:background="@drawable/bg_row_fila"
+    android:gravity="center_vertical"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
+    android:paddingTop="12dp"
+    android:paddingBottom="12dp">
 
     <TextView
         android:id="@+id/tvFecha"
@@ -11,7 +16,8 @@
         android:layout_weight="2"
         android:layout_height="wrap_content"
         android:text="Fecha"
-        android:textSize="14sp"/>
+        android:textSize="13sp"
+        android:textColor="@color/on_surface" />
 
     <TextView
         android:id="@+id/tvContrato"
@@ -19,7 +25,9 @@
         android:layout_weight="1.5"
         android:layout_height="wrap_content"
         android:text="Contrato"
-        android:textSize="14sp"/>
+        android:textSize="13sp"
+        android:textColor="@color/on_surface_variant"
+        android:gravity="center" />
 
     <TextView
         android:id="@+id/tvPeriodo"
@@ -27,7 +35,9 @@
         android:layout_weight="1.5"
         android:layout_height="wrap_content"
         android:text="Periodo"
-        android:textSize="14sp"/>
+        android:textSize="13sp"
+        android:textColor="@color/on_surface_variant"
+        android:gravity="center" />
 
     <TextView
         android:id="@+id/tvActivaImport"
@@ -35,7 +45,9 @@
         android:layout_weight="1"
         android:layout_height="wrap_content"
         android:text="Act+"
-        android:textSize="14sp"/>
+        android:textSize="13sp"
+        android:textColor="@color/on_surface"
+        android:gravity="end" />
 
     <TextView
         android:id="@+id/tvActivaExport"
@@ -43,7 +55,9 @@
         android:layout_weight="1"
         android:layout_height="wrap_content"
         android:text="Act-"
-        android:textSize="14sp"/>
+        android:textSize="13sp"
+        android:textColor="@color/on_surface"
+        android:gravity="end" />
 
     <TextView
         android:id="@+id/tvR1"
@@ -51,7 +65,9 @@
         android:layout_weight="1"
         android:layout_height="wrap_content"
         android:text="R1"
-        android:textSize="14sp"/>
+        android:textSize="13sp"
+        android:textColor="@color/on_surface_variant"
+        android:gravity="end" />
 
     <TextView
         android:id="@+id/tvR2"
@@ -59,7 +75,9 @@
         android:layout_weight="1"
         android:layout_height="wrap_content"
         android:text="R2"
-        android:textSize="14sp"/>
+        android:textSize="13sp"
+        android:textColor="@color/on_surface_variant"
+        android:gravity="end" />
 
     <TextView
         android:id="@+id/tvR3"
@@ -67,7 +85,9 @@
         android:layout_weight="1"
         android:layout_height="wrap_content"
         android:text="R3"
-        android:textSize="14sp"/>
+        android:textSize="13sp"
+        android:textColor="@color/on_surface_variant"
+        android:gravity="end" />
 
     <TextView
         android:id="@+id/tvR4"
@@ -75,6 +95,8 @@
         android:layout_weight="1"
         android:layout_height="wrap_content"
         android:text="R4"
-        android:textSize="14sp"/>
+        android:textSize="13sp"
+        android:textColor="@color/on_surface_variant"
+        android:gravity="end" />
 
 </LinearLayout>

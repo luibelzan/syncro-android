@@ -4,40 +4,34 @@ import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.celnet.syncro.client.DLMSConnection;
-import com.celnet.syncro.client.GXDLMSReader;
 import com.celnet.syncro.models.CierreEnCursoFila;
 import com.celnet.syncro.models.CierreFila;
 import com.celnet.syncro.models.CierreMensualFila;
-import com.celnet.syncro.models.CurvaFila;
-import com.celnet.syncro.objects.loadProfiles.LoadProfileReader;
-import com.celnet.syncro.objects.params.SerialNumberReader;
-import com.celnet.syncro.objects.pricing.BillingDataReader;
 import com.celnet.syncro.objects.pricing.CurrentBillingReader;
 import com.celnet.syncro.objects.pricing.DailyBillingS05;
 import com.celnet.syncro.objects.pricing.MonthlyBillingS04;
 import com.celnet.syncro.session.ConnectionConfig;
 import com.celnet.syncro.session.SessionManager;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
+import com.google.android.material.textfield.TextInputLayout;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 
 public class CierresActivity extends BaseActivity {
@@ -52,12 +46,20 @@ public class CierresActivity extends BaseActivity {
                 this,
                 (view, selectedYear, selectedMonth, selectedDay) -> {
                     String date = selectedYear + "/" +
-                            String.format(Locale.US,"%02d", selectedMonth + 1) + "/" +
-                            String.format(Locale.US,"%02d", selectedDay);
+                            String.format(Locale.US, "%02d", selectedMonth + 1) + "/" +
+                            String.format(Locale.US, "%02d", selectedDay);
                     editText.setText(date);
                 },
                 year, month, day);
         datePickerDialog.show();
+    }
+
+    private void actualizarVisibilidadFechas(String tipo,
+                                             TextInputLayout layoutFechaInicio,
+                                             TextInputLayout layoutFechaFin) {
+        boolean esEnCurso = tipo.equals("Actuales (S27)");
+        layoutFechaInicio.setVisibility(esEnCurso ? View.GONE : View.VISIBLE);
+        layoutFechaFin.setVisibility(esEnCurso ? View.GONE : View.VISIBLE);
     }
 
     @Override
@@ -71,61 +73,49 @@ public class CierresActivity extends BaseActivity {
             return insets;
         });
 
-        // Spinner de tipo de curva
-        Spinner spinnerTipoCierre = findViewById(R.id.spinnerTipoCierre);
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
-                this,
-                R.array.cierres_array,
-                android.R.layout.simple_spinner_item
-        );
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        TextInputLayout layoutFechaInicio = findViewById(R.id.layoutFechaInicio);
+        TextInputLayout layoutFechaFin = findViewById(R.id.layoutFechaFin);
+
+        // Desplegable de tipo de cierre
+        AutoCompleteTextView spinnerTipoCierre = findViewById(R.id.spinnerTipoCierre);
+        String[] tiposCierre = getResources().getStringArray(R.array.cierres_array);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                this, android.R.layout.simple_dropdown_item_1line, tiposCierre);
         spinnerTipoCierre.setAdapter(adapter);
-        spinnerTipoCierre.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String tipo = parent.getItemAtPosition(position).toString();
-                boolean esEnCurso = tipo.equals("Actuales (S27)");
 
-                findViewById(R.id.textFechaInicio).setVisibility(esEnCurso ? View.GONE : View.VISIBLE);
-                findViewById(R.id.editFechaInicio).setVisibility(esEnCurso ? View.GONE : View.VISIBLE);
-                findViewById(R.id.textFechaFin).setVisibility(esEnCurso ? View.GONE : View.VISIBLE);
-                findViewById(R.id.editFechaFin).setVisibility(esEnCurso ? View.GONE : View.VISIBLE);
-            }
+        // Selección por defecto (equivalente al comportamiento del Spinner original)
+        if (tiposCierre.length > 0) {
+            spinnerTipoCierre.setText(tiposCierre[0], false);
+            actualizarVisibilidadFechas(tiposCierre[0], layoutFechaInicio, layoutFechaFin);
+        }
 
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
+        spinnerTipoCierre.setOnItemClickListener((parent, view, position, id) -> {
+            String tipo = parent.getItemAtPosition(position).toString();
+            actualizarVisibilidadFechas(tipo, layoutFechaInicio, layoutFechaFin);
         });
 
-        // Spinner de contratos
-        Spinner spinnerContrato = findViewById(R.id.spinnerContrato);
-        ArrayAdapter<CharSequence> adapter2 = ArrayAdapter.createFromResource(
-                this,
-                R.array.contratos_array,
-                android.R.layout.simple_spinner_item
-        );
-        adapter2.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        // Desplegable de contratos
+        AutoCompleteTextView spinnerContrato = findViewById(R.id.spinnerContrato);
+        String[] contratosArray = getResources().getStringArray(R.array.contratos_array);
+        ArrayAdapter<String> adapter2 = new ArrayAdapter<>(
+                this, android.R.layout.simple_dropdown_item_1line, contratosArray);
         spinnerContrato.setAdapter(adapter2);
-        spinnerContrato.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {}
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
-        });
+        if (contratosArray.length > 0) {
+            spinnerContrato.setText(contratosArray[0], false);
+        }
 
         EditText editFechaInicio = findViewById(R.id.editFechaInicio);
         EditText editFechaFin = findViewById(R.id.editFechaFin);
         editFechaInicio.setOnClickListener(v -> showDatePicker(editFechaInicio));
         editFechaFin.setOnClickListener(v -> showDatePicker(editFechaFin));
 
-
         LinearLayout progressBar = findViewById(R.id.progressContainer);
 
-        ImageButton btnNext = findViewById(R.id.btnNext);
+        ExtendedFloatingActionButton btnNext = findViewById(R.id.btnNext);
 
         btnNext.setOnClickListener(v -> {
 
-            String tipoCierre =
-                    spinnerTipoCierre.getSelectedItem().toString();
+            String tipoCierre = spinnerTipoCierre.getText().toString();
 
             if (!validarFechasCierre(
                     tipoCierre,
@@ -137,7 +127,10 @@ public class CierresActivity extends BaseActivity {
 
             String fechaInicio = editFechaInicio.getText().toString();
             String fechaFin = editFechaFin.getText().toString();
-            int contrato = spinnerContrato.getSelectedItemPosition() + 1;
+
+            int posicionContrato = Arrays.asList(contratosArray).indexOf(spinnerContrato.getText().toString());
+            int contrato = posicionContrato + 1;
+
             ConnectionConfig config = SessionManager.getInstance().getConnectionConfig();
 
             // Mostrar valores en Toast de depuración
@@ -158,6 +151,9 @@ public class CierresActivity extends BaseActivity {
             editFechaFin.setEnabled(false);
             progressBar.setVisibility(View.VISIBLE);
 
+            int contratoFinal = contrato;
+            int posicionContratoFinal = posicionContrato;
+
             // 🔹 Hilo secundario para evitar NetworkOnMainThreadException
             new Thread(() -> {
                 try {
@@ -171,10 +167,10 @@ public class CierresActivity extends BaseActivity {
                     if (tipoCierre.equals("Diarios (S05)")) {
                         ArrayList<CierreFila> datos;
 
-                        if (spinnerContrato.getSelectedItemPosition() == 3) {
+                        if (posicionContratoFinal == 3) {
                             datos = DailyBillingS05.leerS05Todos(res.reader, fechaInicio, fechaFin);
                         } else {
-                            datos = DailyBillingS05.leerS05(res.reader, fechaInicio, fechaFin, contrato);
+                            datos = DailyBillingS05.leerS05(res.reader, fechaInicio, fechaFin, contratoFinal);
                         }
 
                         runOnUiThread(() -> {
@@ -189,10 +185,10 @@ public class CierresActivity extends BaseActivity {
                     } else if (tipoCierre.equals("Mensuales (S04)")) {
                         ArrayList<CierreMensualFila> datos;
 
-                        if (spinnerContrato.getSelectedItemPosition() == 3) {
+                        if (posicionContratoFinal == 3) {
                             datos = MonthlyBillingS04.leerS04Todos(res.reader, fechaInicio, fechaFin);
                         } else {
-                            datos = MonthlyBillingS04.leerS04(res.reader, fechaInicio, fechaFin, contrato);
+                            datos = MonthlyBillingS04.leerS04(res.reader, fechaInicio, fechaFin, contratoFinal);
                         }
 
                         runOnUiThread(() -> {
@@ -205,13 +201,12 @@ public class CierresActivity extends BaseActivity {
                             startActivity(intent);
                         });
                     } else if (tipoCierre.equals("Actuales (S27)")) {
-                        int posicion = spinnerContrato.getSelectedItemPosition();
                         ArrayList<CierreEnCursoFila> datos;
 
-                        if (posicion == 3) {
+                        if (posicionContratoFinal == 3) {
                             datos = CurrentBillingReader.readCurrentBilling(res.reader);
                         } else {
-                            datos = CurrentBillingReader.readCurrentBilling(res.reader, contrato);
+                            datos = CurrentBillingReader.readCurrentBilling(res.reader, contratoFinal);
                         }
 
                         runOnUiThread(() -> {
@@ -241,9 +236,9 @@ public class CierresActivity extends BaseActivity {
         });
     }
 
-    private void reactivarControles(ImageButton btnNext,
-                                    Spinner spinnerTipoCierre,
-                                    Spinner spinnerContrato,
+    private void reactivarControles(ExtendedFloatingActionButton btnNext,
+                                    AutoCompleteTextView spinnerTipoCierre,
+                                    AutoCompleteTextView spinnerContrato,
                                     EditText editFechaInicio,
                                     EditText editFechaFin) {
         btnNext.setEnabled(true);

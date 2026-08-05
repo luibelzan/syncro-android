@@ -12,7 +12,7 @@ import com.celnet.syncro.models.CierreFila;
 
 import java.util.List;
 
-public class CierreAdapter extends RecyclerView.Adapter<CierreAdapter.ViewHolder>{
+public class CierreAdapter extends RecyclerView.Adapter<CierreAdapter.ViewHolder> {
 
     private final List<CierreFila> datos;
 
@@ -41,6 +41,11 @@ public class CierreAdapter extends RecyclerView.Adapter<CierreAdapter.ViewHolder
         holder.tvR2.setText(fila.r2);
         holder.tvR3.setText(fila.r3);
         holder.tvR4.setText(fila.r4);
+
+        // Filas alternas (zebra striping) para facilitar la lectura de la tabla
+        boolean esPar = position % 2 == 0;
+        holder.itemView.setBackgroundResource(
+                esPar ? R.drawable.bg_row_fila : R.drawable.bg_row_fila_alt);
     }
 
     @Override
@@ -66,5 +71,4 @@ public class CierreAdapter extends RecyclerView.Adapter<CierreAdapter.ViewHolder
             tvR4 = itemView.findViewById(R.id.tvR4);
         }
     }
-
 }

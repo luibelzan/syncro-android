@@ -1,7 +1,5 @@
 package com.celnet.syncro.adapters;
 
-import android.graphics.Color;
-import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -107,7 +105,7 @@ public class CierreEnCursoAdapter extends RecyclerView.Adapter<CierreEnCursoAdap
             rows.add(new Row(
                     "Fecha/hora max = " + f.maxDates[6], false));
 
-            // ── Separador visual ─────────────────────────────────────────
+            // ── Separador visual entre bloques de contrato ────────────────
             rows.add(new Row("", false));
         }
     }
@@ -129,20 +127,9 @@ public class CierreEnCursoAdapter extends RecyclerView.Adapter<CierreEnCursoAdap
 
     @Override
     public void onBindViewHolder(@NonNull VH h, int position) {
-        Row row = rows.get(position);
-        h.tv.setText(row.text);
-
-        if (row.isHeader) {
-            h.itemView.setBackgroundColor(Color.parseColor("#3F51B5"));
-            h.tv.setTextColor(Color.WHITE);
-            h.tv.setTypeface(null, Typeface.BOLD);
-            h.tv.setTextSize(14f);
-        } else {
-            h.itemView.setBackgroundColor(Color.WHITE);
-            h.tv.setTextColor(Color.BLACK);
-            h.tv.setTypeface(Typeface.MONOSPACE, Typeface.NORMAL);
-            h.tv.setTextSize(13f);
-        }
+        // El color, la tipografía y el tamaño ya están definidos en el XML
+        // de cada tipo de item (header vs. line), no hace falta tocarlos aquí.
+        h.tv.setText(rows.get(position).text);
     }
 
     @Override
