@@ -87,12 +87,13 @@ public class FtpActivity extends BaseActivity {
     private void cargarConfiguracion() {
         SharedPreferences prefs = getSharedPreferences("ftp_config", MODE_PRIVATE);
 
-        String protocolo = prefs.getString("protocolo", "");
-        String dir = prefs.getString("dir", "");
+        // Valores por defecto
+        String protocolo = prefs.getString("protocolo", "SFTP");
+        String dir = prefs.getString("dir", "thoth.estabanell.cat");
         String port = prefs.getString("port", "22");
-        String folder = prefs.getString("folder", "/");
-        String user = prefs.getString("user", "");
-        String pass = prefs.getString("pass", "");
+        String folder = prefs.getString("folder", "/sftp/syncro/data");
+        String user = prefs.getString("user", "syncro");
+        String pass = prefs.getString("pass", "LHd4NhuePmGbxNGeWEAh");
 
         editDirFtp.setText(dir);
         editPortFtp.setText(port);
@@ -100,8 +101,8 @@ public class FtpActivity extends BaseActivity {
         editUserFtp.setText(user);
         editPassFtp.setText(pass);
 
-        // Seleccionar protocolo en spinner
-        ArrayAdapter adapter = (ArrayAdapter) spinnerProtocolo.getAdapter();
+        // Seleccionar protocolo en el Spinner
+        ArrayAdapter<CharSequence> adapter = (ArrayAdapter<CharSequence>) spinnerProtocolo.getAdapter();
         int position = adapter.getPosition(protocolo);
         if (position >= 0) {
             spinnerProtocolo.setSelection(position);
