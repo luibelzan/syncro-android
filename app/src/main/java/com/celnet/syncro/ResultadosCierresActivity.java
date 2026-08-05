@@ -3,12 +3,9 @@ package com.celnet.syncro;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Environment;
-import android.util.Log;
-import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -17,8 +14,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.celnet.syncro.adapters.CierreAdapter;
 import com.celnet.syncro.models.CierreFila;
-import com.celnet.syncro.models.CurvaFila;
 import com.celnet.syncro.utils.Utils;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -78,9 +75,9 @@ public class ResultadosCierresActivity extends BaseActivity {
 
         ArrayList<CierreFila> datos = getIntent().getParcelableArrayListExtra("datos_cierres_tabla");
         String cntId = getIntent().getStringExtra("cntId");
-        LinearLayout btnExport = findViewById(R.id.btnExport);
+        ExtendedFloatingActionButton btnExport = findViewById(R.id.btnExport);
 
-        if(datos != null) {
+        if (datos != null) {
             CierreAdapter adapter = new CierreAdapter(datos);
             rv.setAdapter(adapter);
         }

@@ -5,29 +5,22 @@ import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
-import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.celnet.syncro.client.DLMSConnection;
-import com.celnet.syncro.client.GXDLMSReader;
 import com.celnet.syncro.models.CurvaFila;
 import com.celnet.syncro.objects.loadProfiles.LoadProfileReader;
-import com.celnet.syncro.objects.params.SerialNumberReader;
 import com.celnet.syncro.session.ConnectionConfig;
 import com.celnet.syncro.session.SessionManager;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -48,8 +41,8 @@ public class CurvasActivity extends BaseActivity {
                 this,
                 (view, selectedYear, selectedMonth, selectedDay) -> {
                     String date = selectedYear + "/" +
-                            String.format(Locale.US,"%02d", selectedMonth + 1) + "/" +
-                            String.format(Locale.US,"%02d", selectedDay);
+                            String.format(Locale.US, "%02d", selectedMonth + 1) + "/" +
+                            String.format(Locale.US, "%02d", selectedDay);
                     editText.setText(date);
                 },
                 year, month, day);
@@ -81,7 +74,7 @@ public class CurvasActivity extends BaseActivity {
 
         LinearLayout progressBar = findViewById(R.id.progressContainer);
 
-        ImageButton btnNext = findViewById(R.id.btnNext);
+        ExtendedFloatingActionButton btnNext = findViewById(R.id.btnNext);
 
         btnNext.setOnClickListener(v -> {
 
@@ -111,11 +104,11 @@ public class CurvasActivity extends BaseActivity {
 
             // 🔹 Hilo secundario para evitar NetworkOnMainThreadException
             new Thread(() -> {
-                try {
-                    DLMSConnection conn = (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH)
-                            ? new DLMSConnection(config.getBluetoothDeviceName())
-                            : new DLMSConnection(config.getIp(), config.getPort());
+                DLMSConnection conn = (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH)
+                        ? new DLMSConnection(config.getBluetoothDeviceName())
+                        : new DLMSConnection(config.getIp(), config.getPort());
 
+                try {
                     DLMSConnection.ConnectionResult res = conn.connectWithAutoDetect(CurvasActivity.this);
 
                     // Leer curvas
@@ -139,12 +132,17 @@ public class CurvasActivity extends BaseActivity {
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);
                         btnNext.setEnabled(true);
-                        editFechaInicio.setEnabled(true);
-                        editFechaFin.setEnabled(true);
-                        Toast.makeText(CurvasActivity.this,
-                                "Error de conexión: " + e.getClass().getSimpleName() +
-                                        " - " + e.getMessage(), Toast.LENGTH_LONG).show();
+
+                        new androidx.appcompat.app.AlertDialog.Builder(CurvasActivity.this)
+                                .setTitle("Error de lectura")
+                                .setMessage("No se pudieron leer las curvas de carga.\n\n"
+                                        + e.getMessage())
+                                .setPositiveButton("Aceptar", null)
+                                .setCancelable(true)
+                                .show();
                     });
+                } finally {
+                    conn.close();   // SIEMPRE se ejecuta, haya éxito o excepción
                 }
             }).start();
 

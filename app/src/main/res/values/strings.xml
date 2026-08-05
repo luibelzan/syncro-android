@@ -203,5 +203,17 @@
     <string name="editTiempoDesplazamiento">Tiempo desplazamiento en segundos</string>
     <string name="editModoDesplazamiento">Modo de pantalla</string>
 
+    <!-- PRIME SEGURIDAD -->
+    <string name="prime">PRIME</string>
+    <string name="primeSeguridad">Seguridad PRIME</string>
+    <string name="guardar">Guardar</string>
+    <string-array name="dual_stack_prime_version_array">
+        <item>1: Communications in Prime 1.3.6 mode</item>
+        <item>2: Communications in Prime 1.4 mode</item>
+        <item>3: Dynamic communications - 1.3.6 or 1.4</item>
+    </string-array>
+
+
+
 
 </resources>

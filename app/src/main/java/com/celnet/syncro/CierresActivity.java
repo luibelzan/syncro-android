@@ -156,11 +156,11 @@ public class CierresActivity extends BaseActivity {
 
             // 🔹 Hilo secundario para evitar NetworkOnMainThreadException
             new Thread(() -> {
-                try {
-                    DLMSConnection conn = (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH)
-                            ? new DLMSConnection(config.getBluetoothDeviceName())
-                            : new DLMSConnection(config.getIp(), config.getPort());
+                DLMSConnection conn = (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH)
+                        ? new DLMSConnection(config.getBluetoothDeviceName())
+                        : new DLMSConnection(config.getIp(), config.getPort());
 
+                try {
                     DLMSConnection.ConnectionResult res = conn.connectWithAutoDetect(CierresActivity.this);
 
                     // Leer curvas
@@ -218,21 +218,24 @@ public class CierresActivity extends BaseActivity {
                             startActivity(intent);
                         });
                     }
-
-                    conn.close();
-
                 } catch (Exception e) {
                     e.printStackTrace();
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);
                         reactivarControles(btnNext, spinnerTipoCierre, spinnerContrato, editFechaInicio, editFechaFin);
-                        Toast.makeText(CierresActivity.this,
-                                "Error de conexión: " + e.getClass().getSimpleName() +
-                                        " - " + e.getMessage(), Toast.LENGTH_LONG).show();
+
+                        new androidx.appcompat.app.AlertDialog.Builder(CierresActivity.this)
+                                .setTitle("Error de lectura")
+                                .setMessage("No se pudieron leer los cierres del contador.\n\n"
+                                        + e.getMessage())
+                                .setPositiveButton("Aceptar", null)
+                                .setCancelable(true)
+                                .show();
                     });
+                } finally {
+                    conn.close();
                 }
             }).start();
-
         });
     }
 

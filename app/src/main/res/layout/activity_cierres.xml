@@ -165,10 +165,16 @@
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- Overlay de progreso -->
+    <!-- Overlay de progreso: elevación mayor que la tarjeta y el FAB para que
+         siempre se dibuje por encima, y anclado a los 4 lados para cubrir toda la pantalla -->
     <include
         android:id="@+id/progressContainer"
-        layout="@layout/overlay_progress" />
+        layout="@layout/overlay_progress"
+        android:elevation="24dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- Botón siguiente -->
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton

@@ -3,8 +3,6 @@ package com.celnet.syncro;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Environment;
-import android.util.Log;
-import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -16,9 +14,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.celnet.syncro.adapters.CierreMensualAdapter;
-import com.celnet.syncro.models.CierreFila;
 import com.celnet.syncro.models.CierreMensualFila;
 import com.celnet.syncro.utils.Utils;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -92,15 +90,15 @@ public class ResultadosCierresMensualesActivity extends AppCompatActivity {
 
         ArrayList<CierreMensualFila> datos = getIntent().getParcelableArrayListExtra("datos_cierres_tabla");
         String cntId = getIntent().getStringExtra("cntId");
-        LinearLayout btnExport = findViewById(R.id.btnExport);
+        ExtendedFloatingActionButton btnExport = findViewById(R.id.btnExport);
 
-        if(datos != null) {
+        if (datos != null) {
             CierreMensualAdapter adapter = new CierreMensualAdapter(datos);
             rv.setAdapter(adapter);
         }
 
         btnExport.setOnClickListener(v -> {
-            if(datos != null && !datos.isEmpty()) {
+            if (datos != null && !datos.isEmpty()) {
                 SharedPreferences prefs = getSharedPreferences("ftp_config", MODE_PRIVATE);
                 String cncName = prefs.getString("cncName", "Syncro");
 
