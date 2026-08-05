@@ -15,10 +15,10 @@ import gurux.dlms.objects.GXDLMSProfileGeneric;
 
 public class LoadProfileReader {
 
-    public static ArrayList<CurvaFila> leerCurvaCarga(GXDLMSReader reader, String fechaInicio, String fechaFin) {
+    public static ArrayList<CurvaFila> leerCurvaCarga(GXDLMSReader reader, String fechaInicio, String fechaFin) throws Exception {
         AppLogger.w("Syncro", "Leyendo Curvas Horarias");
         ArrayList<CurvaFila> resultados = new ArrayList<>();
-        try {
+
             GXDLMSProfileGeneric lp1 = new GXDLMSProfileGeneric("1.0.99.1.0.255");
 
             reader.read(lp1, 3);
@@ -88,9 +88,6 @@ public class LoadProfileReader {
                 AppLogger.w("LoadProfile", "Buffer vacío: no se recibieron filas.");
             }
 
-        } catch (Exception e) {
-            AppLogger.e("LoadProfile", "Error crítico: " + e.getMessage());
-        }
         return resultados;
     }
 

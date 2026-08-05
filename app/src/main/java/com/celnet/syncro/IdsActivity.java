@@ -50,17 +50,16 @@ public class IdsActivity extends BaseActivity {
 
         // 🔹 Hilo secundario para evitar NetworkOnMainThreadException
         new Thread(() -> {
-            try {
-                DLMSConnection conn = (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH)
-                        ? new DLMSConnection(config.getBluetoothDeviceName())
-                        : new DLMSConnection(config.getIp(), config.getPort());
+            DLMSConnection conn = (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH)
+                    ? new DLMSConnection(config.getBluetoothDeviceName())
+                    : new DLMSConnection(config.getIp(), config.getPort());
 
+            try {
                 DLMSConnection.ConnectionResult res = conn.connectWithAutoDetect(IdsActivity.this);
 
 
                 // Leer Identificadores
                 MeterInfo datos = MeterInfoReader.leerIdentificadores(res.reader);
-                conn.close();
 
                 runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);
@@ -78,10 +77,16 @@ public class IdsActivity extends BaseActivity {
                 // Toda actualización de UI dentro de runOnUiThread
                 runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);
-                    Toast.makeText(IdsActivity.this,
-                            "Error de conexión: " + e.getClass().getSimpleName() +
-                                    " - " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    new androidx.appcompat.app.AlertDialog.Builder(IdsActivity.this)
+                            .setTitle("Error de lectura")
+                            .setMessage("No se pudieron leer los identificadores del contador.\n\n"
+                                    + e.getMessage())
+                            .setPositiveButton("Aceptar", null)
+                            .setCancelable(true)
+                            .show();
                 });
+            } finally {
+                conn.close();
             }
         }).start();
 

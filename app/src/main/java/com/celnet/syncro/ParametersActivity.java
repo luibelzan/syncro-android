@@ -201,11 +201,11 @@ public class ParametersActivity extends BaseActivity {
         });
 
         new Thread(() -> {
-            try {
-                DLMSConnection conn = (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH)
-                        ? new DLMSConnection(config.getBluetoothDeviceName())
-                        : new DLMSConnection(config.getIp(), config.getPort());
+            DLMSConnection conn = (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH)
+                    ? new DLMSConnection(config.getBluetoothDeviceName())
+                    : new DLMSConnection(config.getIp(), config.getPort());
 
+            try {
                 DLMSConnection.ConnectionResult res = conn.connectWithAutoDetect(ParametersActivity.this);
                 String cntId = res.serialNumber;
 
@@ -228,10 +228,16 @@ public class ParametersActivity extends BaseActivity {
                 e.printStackTrace();
                 runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);
-                    Toast.makeText(ParametersActivity.this,
-                            "Error de conexión: " + e.getClass().getSimpleName() +
-                                    " - " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    new androidx.appcompat.app.AlertDialog.Builder(ParametersActivity.this)
+                            .setTitle("Error de lectura")
+                            .setMessage("No se pudieron leer los parametros del contador.\n\n"
+                                    + e.getMessage())
+                            .setPositiveButton("Aceptar", null)
+                            .setCancelable(true)
+                            .show();
                 });
+            } finally {
+                conn.close();
             }
         }).start();
     }

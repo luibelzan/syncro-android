@@ -91,7 +91,7 @@ public class DLMSConnection {
         }
 
         throw new Exception(
-                "No se pudo conectar con ningún addressSize." +
+                "No se pudo conectar con el addressSize seleccionado." +
                         (lastException != null ? " Último error: " + lastException.getMessage() : ""),
                 lastException
         );

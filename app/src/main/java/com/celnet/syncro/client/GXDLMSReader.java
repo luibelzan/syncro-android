@@ -812,6 +812,9 @@ public class GXDLMSReader {
         GXReplyData reply = new GXReplyData();
         byte[][] data = dlms.readRowsByRange(pg, start, end);
         readDataBlock(data, reply);
+        if (reply.getValue() == null) {
+            throw new Exception("El contador no devolvió datos");
+        }
         return (Object[]) dlms.updateValue(pg, 2, reply.getValue());
     }
 

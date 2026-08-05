@@ -46,17 +46,16 @@ public class ValoresInstantaneosActivity extends BaseActivity {
 
         // 🔹 Hilo secundario para evitar NetworkOnMainThreadException
         new Thread(() -> {
-            try {
-                DLMSConnection conn = (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH)
-                        ? new DLMSConnection(config.getBluetoothDeviceName())
-                        : new DLMSConnection(config.getIp(), config.getPort());
+            DLMSConnection conn = (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH)
+                    ? new DLMSConnection(config.getBluetoothDeviceName())
+                    : new DLMSConnection(config.getIp(), config.getPort());
 
+            try {
                 DLMSConnection.ConnectionResult res = conn.connectWithAutoDetect(ValoresInstantaneosActivity.this);
 
 
                 // Leer Identificadores
                 String datos = InstantaneousValuesReader.leerValores(res.reader);
-                conn.close();
                 //Log.d("VALORES", datos);
 
                 runOnUiThread(() -> {
@@ -70,10 +69,16 @@ public class ValoresInstantaneosActivity extends BaseActivity {
                 // Toda actualización de UI dentro de runOnUiThread
                 runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);
-                    Toast.makeText(ValoresInstantaneosActivity.this,
-                            "Error de conexión: " + e.getClass().getSimpleName() +
-                                    " - " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    new androidx.appcompat.app.AlertDialog.Builder(ValoresInstantaneosActivity.this)
+                            .setTitle("Error de lectura")
+                            .setMessage("No se pudieron leer los valores instantaneos del contador.\n\n"
+                                    + e.getMessage())
+                            .setPositiveButton("Aceptar", null)
+                            .setCancelable(true)
+                            .show();
                 });
+            } finally {
+                conn.close();
             }
         }).start();
 

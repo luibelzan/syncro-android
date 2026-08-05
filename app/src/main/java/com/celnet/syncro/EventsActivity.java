@@ -176,9 +176,14 @@ public class EventsActivity extends BaseActivity {
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);
                         btnNext.setEnabled(true);
-                        Toast.makeText(EventsActivity.this,
-                                "Error de conexión: " + e.getClass().getSimpleName() +
-                                        " - " + e.getMessage(), Toast.LENGTH_LONG).show();
+
+                        new androidx.appcompat.app.AlertDialog.Builder(EventsActivity.this)
+                                .setTitle("Error de lectura")
+                                .setMessage("No se pudieron leer los eventos del contador.\n\n"
+                                        + e.getMessage())
+                                .setPositiveButton("Aceptar", null)
+                                .setCancelable(true)
+                                .show();
                     });
                 }
             }).start();

@@ -32,9 +32,8 @@ public class CommonEventLog {
     private static final String TAG = "CommonEventLog";
     private static Map<String, EventInfo> eventMap = new HashMap<>();
 
-    public static List<EventFila> leerCommonEventLog(Context context, GXDLMSReader reader, String from, String to) {
+    public static List<EventFila> leerCommonEventLog(Context context, GXDLMSReader reader, String from, String to) throws Exception {
         List<EventFila> result = new ArrayList<>();
-        try {
             String obisCommon = "0.0.99.98.7.255";
             GXDLMSProfileGeneric commonLog = new GXDLMSProfileGeneric(obisCommon);
 
@@ -103,9 +102,6 @@ public class CommonEventLog {
             } else {
                 AppLogger.i(TAG, "No se encontraron eventos comunes.");
             }
-        } catch (Exception e) {
-            AppLogger.e(TAG, "Error en Common Log: " + e.getMessage());
-        }
         return result;
     }
 
