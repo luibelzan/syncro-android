@@ -1,5 +1,6 @@
 package com.celnet.syncro;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -13,9 +14,19 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.celnet.syncro.client.DLMSConnection;
+import com.celnet.syncro.models.CurvaFila;
+import com.celnet.syncro.models.PrimeSecurityData;
+import com.celnet.syncro.models.prime.PrimeSecurityInfo;
+import com.celnet.syncro.objects.loadProfiles.LoadProfileReader;
+import com.celnet.syncro.objects.prime.PrimeSecurityReader;
+import com.celnet.syncro.session.ConnectionConfig;
+import com.celnet.syncro.session.SessionManager;
+import com.celnet.syncro.utils.AppLogger;
 import com.google.android.material.checkbox.MaterialCheckBox;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -103,11 +114,44 @@ public class PrimeSeguridadActivity extends BaseActivity {
                 }
             }
             String versionSeleccionada = spinnerDualStackVersion.getText().toString();
+            ConnectionConfig config = SessionManager.getInstance().getConnectionConfig();
 
-            // TODO: sustituir por la escritura real sobre el objeto DLMS correspondiente
-            Toast.makeText(this,
-                    "Máscara constelación: " + mascara + "\nVersión: " + versionSeleccionada,
-                    Toast.LENGTH_LONG).show();
+            // 🔹 Hilo secundario para evitar NetworkOnMainThreadException
+            new Thread(() -> {
+                DLMSConnection conn = (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH)
+                        ? new DLMSConnection(config.getBluetoothDeviceName())
+                        : new DLMSConnection(config.getIp(), config.getPort());
+
+                try {
+                    DLMSConnection.ConnectionResult res = conn.connectWithAutoDetect(PrimeSeguridadActivity.this);
+
+                    PrimeSecurityInfo datos = PrimeSecurityReader.leerSeguridadPrime(res.reader);
+                    AppLogger.i("PrimeSeguridad", "Resultado lectura seguridad PRIME:\n" + datos.toString());
+
+                    runOnUiThread(() -> {
+                        progressBar.setVisibility(View.GONE);
+                        btnGuardar.setEnabled(true);
+
+                    });
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    runOnUiThread(() -> {
+                        progressBar.setVisibility(View.GONE);
+                        btnGuardar.setEnabled(true);
+
+                        new androidx.appcompat.app.AlertDialog.Builder(PrimeSeguridadActivity.this)
+                                .setTitle("Error de lectura")
+                                .setMessage("No se pudieron leer las curvas de carga.\n\n"
+                                        + e.getMessage())
+                                .setPositiveButton("Aceptar", null)
+                                .setCancelable(true)
+                                .show();
+                    });
+                } finally {
+                    conn.close();   // SIEMPRE se ejecuta, haya éxito o excepción
+                }
+            }).start();
         });
     }
 
