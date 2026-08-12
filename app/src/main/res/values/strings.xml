@@ -202,6 +202,15 @@
     <string name="screenParams">Parametros de Pantalla</string>
     <string name="editTiempoDesplazamiento">Tiempo desplazamiento en segundos</string>
     <string name="editModoDesplazamiento">Modo de pantalla</string>
+    <string name="output_led">Output Led</string>
+    <string-array name="output_led_array">
+        <item>0: Active Energy: OFF with no load and ON (blinking) with load</item>
+        <item>1: Reactive Energy OFF with no load and ON (blinking) with load</item>
+        <item>2: Active Energy: ON with no load and ON (blinking) with load</item>
+        <item>3: Reactive Energy: ON with no load and ON (blinking) with load</item>
+        <item>4: ON all LEDs on (meters with 2 LEDs)</item>
+        <item>5: OFF all LEDs off (meters with 2 LEDs)</item>
+    </string-array>
 
     <!-- PRIME SEGURIDAD -->
     <string name="prime">PRIME</string>
