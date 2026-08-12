@@ -110,6 +110,10 @@ public class PrimeSecurityReader {
 
     private static String parseDualStackVersion(int v) {
         switch (v) {
+            case 1: return "(1) Communications in Prime 1.3.6";
+
+            case 2: return "(2) Communications in Prime 1.4";
+
             case 3: return "(3) Dynamic communications 1.3.6 or 1.4";
             // TODO: completar con el resto de valores si el fabricante los documenta
             default: return "(" + v + ") Valor no mapeado";

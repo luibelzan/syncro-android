@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     android:background="@color/background"
     android:fitsSystemWindows="true"
-    tools:context=".PrimerSeguridadActivity">
+    tools:context=".PrimeSeguridadActivity">
 
     <!-- Cabecera -->
     <TextView
@@ -327,19 +327,40 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Botón guardar -->
-    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
-        android:id="@+id/btnGuardar"
+    <!-- Botones de acción -->
+    <LinearLayout
+        android:id="@+id/botonera"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="24dp"
         android:layout_marginBottom="24dp"
-        android:text="@string/guardar"
-        android:textColor="@color/white"
-        app:icon="@android:drawable/ic_menu_save"
-        app:iconTint="@color/white"
-        app:backgroundTint="@color/primary"
+        android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+            android:id="@+id/btnLeerActual"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="12dp"
+            android:text="@string/leer_actual"
+            android:textColor="@color/primary"
+            app:backgroundTint="@color/surface"
+            app:icon="@android:drawable/ic_menu_view"
+            app:iconTint="@color/primary"
+            app:strokeColor="@color/primary"
+            app:strokeWidth="1dp" />
+
+        <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+            android:id="@+id/btnProgramar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/programar"
+            android:textColor="@color/white"
+            app:backgroundTint="@color/primary"
+            app:icon="@android:drawable/ic_menu_save"
+            app:iconTint="@color/white" />
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

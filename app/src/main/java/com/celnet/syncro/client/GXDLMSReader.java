@@ -750,6 +750,23 @@ public class GXDLMSReader {
         readDLMSPacket(data);
     }
 
+    /**
+     * Invoca un método (ACTION-request) sobre un objeto DLMS.
+     *
+     * @param item            Objeto sobre el que se invoca el método (p.ej. GXDLMSScriptTable)
+     * @param methodIndex     Índice del método a invocar (1 = execute, en Script Table)
+     * @param value           Parámetro del método
+     * @param type            Tipo de dato del parámetro
+     * @return                Valor devuelto por el medidor, si lo hay
+     * @throws Exception
+     */
+    public Object method(GXDLMSObject item, int methodIndex, Object value, DataType type) throws Exception {
+        byte[][] data = dlms.method(item, methodIndex, value, type);
+        GXReplyData reply = new GXReplyData();
+        readDataBlock(data, reply);
+        return reply.getValue();
+    }
+
     /*
      * Returns columns of profile Generic.
      */

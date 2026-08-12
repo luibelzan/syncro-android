@@ -6,6 +6,7 @@ public class PrimeSecurityInfo {
     private String sarSize;
     private boolean arqEnabled;
     private String dualStackVersion;
+    private int dualStackVersionCode;   // 👈 nuevo
 
     public ConstellationCoding getConstellationCoding() { return constellationCoding; }
     public void setConstellationCoding(ConstellationCoding constellationCoding) { this.constellationCoding = constellationCoding; }
@@ -18,6 +19,9 @@ public class PrimeSecurityInfo {
 
     public String getDualStackVersion() { return dualStackVersion; }
     public void setDualStackVersion(String dualStackVersion) { this.dualStackVersion = dualStackVersion; }
+
+    public int getDualStackVersionCode() { return dualStackVersionCode; }
+    public void setDualStackVersionCode(int dualStackVersionCode) { this.dualStackVersionCode = dualStackVersionCode; }
 
     @Override
     public String toString() {

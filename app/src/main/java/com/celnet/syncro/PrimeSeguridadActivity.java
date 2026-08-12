@@ -17,9 +17,11 @@ import androidx.core.view.WindowInsetsCompat;
 import com.celnet.syncro.client.DLMSConnection;
 import com.celnet.syncro.models.CurvaFila;
 import com.celnet.syncro.models.PrimeSecurityData;
+import com.celnet.syncro.models.prime.ConstellationCoding;
 import com.celnet.syncro.models.prime.PrimeSecurityInfo;
 import com.celnet.syncro.objects.loadProfiles.LoadProfileReader;
 import com.celnet.syncro.objects.prime.PrimeSecurityReader;
+import com.celnet.syncro.objects.prime.PrimeSecurityWriter;
 import com.celnet.syncro.session.ConnectionConfig;
 import com.celnet.syncro.session.SessionManager;
 import com.celnet.syncro.utils.AppLogger;
@@ -40,11 +42,7 @@ public class PrimeSeguridadActivity extends BaseActivity {
 
     private final CompoundButton.OnCheckedChangeListener listenerMaster =
             (buttonView, isChecked) -> {
-                actualizandoDesdeMaster = true;
-                for (MaterialCheckBox cb : bitCheckBoxes) {
-                    cb.setChecked(isChecked);
-                }
-                actualizandoDesdeMaster = false;
+                actualizarHabilitacionHijos(isChecked);
             };
 
     @Override
@@ -79,20 +77,24 @@ public class PrimeSeguridadActivity extends BaseActivity {
                 (MaterialCheckBox) findViewById(R.id.cbBit15)
         );
 
-        actualizarEstadoMaster();
+        //actualizarEstadoMaster();
+
+        // Bits marcados por defecto: 0,1,2,4,5,6,12,13
+        int[] bitsPorDefecto = {0, 1, 2, 4, 5, 6, 12, 13};
+        boolean[] estadoInicial = new boolean[bitCheckBoxes.size()];
+        for (int bit : bitsPorDefecto) {
+            estadoInicial[bit] = true;
+        }
+        for (int i = 0; i < bitCheckBoxes.size(); i++) {
+            bitCheckBoxes.get(i).setChecked(estadoInicial[i]);
+        }
+
+        // El maestro empieza activado: se enviará esta configuración por defecto al programar
+        cbMaster.setChecked(true);
+        actualizarHabilitacionHijos(true);
 
         // El maestro marca/desmarca todos los hijos
         cbMaster.setOnCheckedChangeListener(listenerMaster);
-
-        // Cada hijo, al cambiar, recalcula el estado del maestro
-        CompoundButton.OnCheckedChangeListener listenerHijo = (buttonView, isChecked) -> {
-            if (!actualizandoDesdeMaster) {
-                actualizarEstadoMaster();
-            }
-        };
-        for (MaterialCheckBox cb : bitCheckBoxes) {
-            cb.setOnCheckedChangeListener(listenerHijo);
-        }
 
         // Desplegable de versión Dual Stack Prime
         AutoCompleteTextView spinnerDualStackVersion = findViewById(R.id.spinnerDualStackVersion);
@@ -104,55 +106,151 @@ public class PrimeSeguridadActivity extends BaseActivity {
         spinnerDualStackVersion.setText(opcionesDualStack[2], false);
 
         LinearLayout progressBar = findViewById(R.id.progressContainer);
-        ExtendedFloatingActionButton btnGuardar = findViewById(R.id.btnGuardar);
+        ExtendedFloatingActionButton btnLeerActual = findViewById(R.id.btnLeerActual);
+        ExtendedFloatingActionButton btnProgramar = findViewById(R.id.btnProgramar);
 
-        btnGuardar.setOnClickListener(v -> {
-            int mascara = 0;
-            for (int i = 0; i < bitCheckBoxes.size(); i++) {
-                if (bitCheckBoxes.get(i).isChecked()) {
-                    mascara |= (1 << i);
-                }
-            }
-            String versionSeleccionada = spinnerDualStackVersion.getText().toString();
-            ConnectionConfig config = SessionManager.getInstance().getConnectionConfig();
+        btnLeerActual.setOnClickListener(v -> leerActual(progressBar, btnLeerActual, btnProgramar,
+                spinnerDualStackVersion, opcionesDualStack));
 
-            // 🔹 Hilo secundario para evitar NetworkOnMainThreadException
-            new Thread(() -> {
-                DLMSConnection conn = (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH)
+        btnProgramar.setOnClickListener(v -> programar(progressBar, btnLeerActual, btnProgramar,
+                spinnerDualStackVersion));
+    }
+
+    private void leerActual(LinearLayout progressBar,
+                            ExtendedFloatingActionButton btnLeerActual,
+                            ExtendedFloatingActionButton btnProgramar,
+                            AutoCompleteTextView spinnerDualStackVersion,
+                            String[] opcionesDualStack) {
+
+        progressBar.setVisibility(View.VISIBLE);
+        btnLeerActual.setEnabled(false);
+        btnProgramar.setEnabled(false);
+
+        ConnectionConfig config = SessionManager.getInstance().getConnectionConfig();
+
+        new Thread(() -> {
+            DLMSConnection conn = null;
+            try {
+                conn = (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH)
                         ? new DLMSConnection(config.getBluetoothDeviceName())
                         : new DLMSConnection(config.getIp(), config.getPort());
 
-                try {
-                    DLMSConnection.ConnectionResult res = conn.connectWithAutoDetect(PrimeSeguridadActivity.this);
+                DLMSConnection.ConnectionResult res = conn.connectWithAutoDetect(this);
+                PrimeSecurityInfo datos = PrimeSecurityReader.leerSeguridadPrime(res.reader);
 
-                    PrimeSecurityInfo datos = PrimeSecurityReader.leerSeguridadPrime(res.reader);
-                    AppLogger.i("PrimeSeguridad", "Resultado lectura seguridad PRIME:\n" + datos.toString());
+                AppLogger.i("PrimeSeguridad", "Resultado lectura seguridad PRIME:\n" + datos.toString());
 
-                    runOnUiThread(() -> {
-                        progressBar.setVisibility(View.GONE);
-                        btnGuardar.setEnabled(true);
+                runOnUiThread(() -> {
+                    progressBar.setVisibility(View.GONE);
+                    btnLeerActual.setEnabled(true);
+                    btnProgramar.setEnabled(true);
+                    volcarEnFormulario(datos, spinnerDualStackVersion, opcionesDualStack);
+                });
 
-                    });
+            } catch (Exception e) {
+                e.printStackTrace();
+                DLMSConnection finalConn = conn;
+                runOnUiThread(() -> {
+                    progressBar.setVisibility(View.GONE);
+                    btnLeerActual.setEnabled(true);
+                    btnProgramar.setEnabled(true);
+                    mostrarError("No se pudo leer la seguridad PRIME.", e);
+                });
+            } finally {
+                if (conn != null) conn.close();
+            }
+        }).start();
+    }
 
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    runOnUiThread(() -> {
-                        progressBar.setVisibility(View.GONE);
-                        btnGuardar.setEnabled(true);
+    private void programar(LinearLayout progressBar,
+                           ExtendedFloatingActionButton btnLeerActual,
+                           ExtendedFloatingActionButton btnProgramar,
+                           AutoCompleteTextView spinnerDualStackVersion) {
 
-                        new androidx.appcompat.app.AlertDialog.Builder(PrimeSeguridadActivity.this)
-                                .setTitle("Error de lectura")
-                                .setMessage("No se pudieron leer las curvas de carga.\n\n"
-                                        + e.getMessage())
-                                .setPositiveButton("Aceptar", null)
-                                .setCancelable(true)
-                                .show();
-                    });
-                } finally {
-                    conn.close();   // SIEMPRE se ejecuta, haya éxito o excepción
-                }
-            }).start();
-        });
+        boolean enviarConstellationCoding = cbMaster.isChecked();
+
+        boolean[] bits = new boolean[bitCheckBoxes.size()];
+        for (int i = 0; i < bitCheckBoxes.size(); i++) {
+            bits[i] = bitCheckBoxes.get(i).isChecked();
+        }
+        ConstellationCoding constellation = ConstellationCoding.fromBitArray(bits);
+
+        String versionSeleccionada = spinnerDualStackVersion.getText().toString();
+        int opcionDualStack;
+        try {
+            opcionDualStack = Integer.parseInt(versionSeleccionada.split(":")[0].trim());
+        } catch (Exception e) {
+            mostrarError("Selecciona una versión de Dual Stack válida.", e);
+            return;
+        }
+
+        ConnectionConfig config = SessionManager.getInstance().getConnectionConfig();
+
+        progressBar.setVisibility(View.VISIBLE);
+        btnLeerActual.setEnabled(false);
+        btnProgramar.setEnabled(false);
+
+        new Thread(() -> {
+            DLMSConnection conn = null;
+            try {
+                conn = (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH)
+                        ? new DLMSConnection(config.getBluetoothDeviceName())
+                        : new DLMSConnection(config.getIp(), config.getPort());
+
+                DLMSConnection.ConnectionResult res = conn.connectWithAutoDetect(this);
+
+                PrimeSecurityWriter.programarSeguridadPrime(
+                        res.reader, constellation, enviarConstellationCoding, opcionDualStack);
+
+                runOnUiThread(() -> {
+                    progressBar.setVisibility(View.GONE);
+                    btnLeerActual.setEnabled(true);
+                    btnProgramar.setEnabled(true);
+                    Toast.makeText(this, "Seguridad PRIME programada correctamente", Toast.LENGTH_SHORT).show();
+                });
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                runOnUiThread(() -> {
+                    progressBar.setVisibility(View.GONE);
+                    btnLeerActual.setEnabled(true);
+                    btnProgramar.setEnabled(true);
+                    mostrarError("No se pudo programar la seguridad PRIME.", e);
+                });
+            } finally {
+                if (conn != null) conn.close();
+            }
+        }).start();
+    }
+
+    private void mostrarError(String titulo, Exception e) {
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Error")
+                .setMessage(titulo + "\n\n" + e.getMessage())
+                .setPositiveButton("Aceptar", null)
+                .setCancelable(true)
+                .show();
+    }
+
+    /** Rellena checkboxes y spinner con lo leído del contador */
+    private void volcarEnFormulario(PrimeSecurityInfo datos,
+                                    AutoCompleteTextView spinnerDualStackVersion,
+                                    String[] opcionesDualStack) {
+
+        boolean[] bits = datos.getConstellationCoding().toBitArray();
+        for (int i = 0; i < bitCheckBoxes.size(); i++) {
+            bitCheckBoxes.get(i).setChecked(bits[i]);
+        }
+
+        cbMaster.setChecked(true);
+        actualizarHabilitacionHijos(true);
+
+        for (String opcion : opcionesDualStack) {
+            if (opcion.startsWith(datos.getDualStackVersionCode() + ":")) {
+                spinnerDualStackVersion.setText(opcion, false);
+                break;
+            }
+        }
     }
 
     private void actualizarEstadoMaster() {
@@ -166,5 +264,11 @@ public class PrimeSeguridadActivity extends BaseActivity {
         cbMaster.setOnCheckedChangeListener(null);
         cbMaster.setChecked(todosMarcados);
         cbMaster.setOnCheckedChangeListener(listenerMaster);
+    }
+
+    private void actualizarHabilitacionHijos(boolean habilitados) {
+        for (MaterialCheckBox cb : bitCheckBoxes) {
+            cb.setEnabled(habilitados);
+        }
     }
 }

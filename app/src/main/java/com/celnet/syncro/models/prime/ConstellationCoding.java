@@ -27,4 +27,32 @@ public class ConstellationCoding {
     private String b(boolean v) {
         return v ? "1" : "0";
     }
+
+    public boolean[] toBitArray() {
+        return new boolean[] {
+                dbpsk, res1, dqpsk, d8psk, res2, dbpskC, dqpskC, d8pskC,
+                res3, res4, res5, res6, rDbpsk, rDqpsk, res7, res8
+        };
+    }
+
+    public static ConstellationCoding fromBitArray(boolean[] bits) {
+        ConstellationCoding cc = new ConstellationCoding();
+        cc.dbpsk   = bits[0];
+        cc.res1    = bits[1];
+        cc.dqpsk   = bits[2];
+        cc.d8psk   = bits[3];
+        cc.res2    = bits[4];
+        cc.dbpskC  = bits[5];
+        cc.dqpskC  = bits[6];
+        cc.d8pskC  = bits[7];
+        cc.res3    = bits[8];
+        cc.res4    = bits[9];
+        cc.res5    = bits[10];
+        cc.res6    = bits[11];
+        cc.rDbpsk  = bits[12];
+        cc.rDqpsk  = bits[13];
+        cc.res7    = bits[14];
+        cc.res8    = bits[15];
+        return cc;
+    }
 }
