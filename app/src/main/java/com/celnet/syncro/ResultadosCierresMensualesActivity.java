@@ -14,7 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.celnet.syncro.adapters.CierreMensualAdapter;
-import com.celnet.syncro.models.CierreMensualFila;
+import com.celnet.syncro.models.cierres.CierreMensualFila;
 import com.celnet.syncro.utils.Utils;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 

@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -16,7 +18,9 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.celnet.syncro.client.DLMSConnection;
-import com.celnet.syncro.models.CurvaFila;
+import com.celnet.syncro.models.curvas.CurvaFila;
+import com.celnet.syncro.models.curvas.CurvaVoltajeFila;
+import com.celnet.syncro.models.curvas.TipoCurva;
 import com.celnet.syncro.objects.loadProfiles.LoadProfileReader;
 import com.celnet.syncro.session.ConnectionConfig;
 import com.celnet.syncro.session.SessionManager;
@@ -76,33 +80,37 @@ public class CurvasActivity extends BaseActivity {
 
         ExtendedFloatingActionButton btnNext = findViewById(R.id.btnNext);
 
+        AutoCompleteTextView spinnerTipoCurva = findViewById(R.id.spinnerTipoCurva);
+        TipoCurva[] tipos = TipoCurva.values();
+        ArrayAdapter<TipoCurva> adapterTipos = new ArrayAdapter<>(
+                this, android.R.layout.simple_dropdown_item_1line, tipos);
+        spinnerTipoCurva.setAdapter(adapterTipos);
+        spinnerTipoCurva.setText(tipos[0].toString(), false);
+
         btnNext.setOnClickListener(v -> {
 
             if (!validarFechas(editFechaInicio, editFechaFin)) {
                 return;
             }
 
+            TipoCurva tipoSeleccionado = tipos[0];
+            for (TipoCurva t : tipos) {
+                if (t.toString().equals(spinnerTipoCurva.getText().toString())) {
+                    tipoSeleccionado = t;
+                    break;
+                }
+            }
+            TipoCurva tipoFinal = tipoSeleccionado;
+
             String fechaInicio = editFechaInicio.getText().toString();
             String fechaFin = editFechaFin.getText().toString();
             ConnectionConfig config = SessionManager.getInstance().getConnectionConfig();
 
-            // Mostrar valores en Toast de depuración
-            Toast.makeText(CurvasActivity.this,
-                    "Conexión: " + config.getType() + "\n" +
-                            "IP: " + config.getIp() + "\n" +
-                            "Puerto: " + config.getPort() + "\n" +
-                            "Dispositivo: " + config.getBluetoothDeviceName() + "\n" +
-                            "Fecha Inicio: " + fechaInicio + "\n" +
-                            "Fecha Fin: " + fechaFin,
-                    Toast.LENGTH_LONG).show();
-
-            // Bloquear interacción mientras carga
             btnNext.setEnabled(false);
             editFechaInicio.setEnabled(false);
             editFechaFin.setEnabled(false);
             progressBar.setVisibility(View.VISIBLE);
 
-            // 🔹 Hilo secundario para evitar NetworkOnMainThreadException
             new Thread(() -> {
                 DLMSConnection conn = (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH)
                         ? new DLMSConnection(config.getBluetoothDeviceName())
@@ -111,8 +119,18 @@ public class CurvasActivity extends BaseActivity {
                 try {
                     DLMSConnection.ConnectionResult res = conn.connectWithAutoDetect(CurvasActivity.this);
 
-                    // Leer curvas
-                    ArrayList<CurvaFila> datos = LoadProfileReader.leerCurvaCarga(res.reader, fechaInicio, fechaFin);
+                    Intent intent = new Intent(CurvasActivity.this, ResultadosCurvasActivity.class);
+                    intent.putExtra("tipoCurva", tipoFinal.name());
+                    intent.putExtra("cntId", res.serialNumber);
+
+                    if (tipoFinal == TipoCurva.INCREMENTAL_S02) {
+                        ArrayList<CurvaFila> datos = LoadProfileReader.leerCurvaCarga(res.reader, fechaInicio, fechaFin);
+                        intent.putParcelableArrayListExtra("datos_curva_tabla", datos);
+                    } else {
+                        ArrayList<CurvaVoltajeFila> datos = LoadProfileReader.leerCurvaVoltaje(res.reader, fechaInicio, fechaFin);
+                        intent.putParcelableArrayListExtra("datos_curva_voltaje", datos);
+                    }
+
                     conn.close();
 
                     runOnUiThread(() -> {
@@ -120,10 +138,6 @@ public class CurvasActivity extends BaseActivity {
                         btnNext.setEnabled(true);
                         editFechaInicio.setEnabled(true);
                         editFechaFin.setEnabled(true);
-
-                        Intent intent = new Intent(CurvasActivity.this, ResultadosCurvasActivity.class);
-                        intent.putParcelableArrayListExtra("datos_curva_tabla", datos);
-                        intent.putExtra("cntId", res.serialNumber);
                         startActivity(intent);
                     });
 
@@ -132,20 +146,20 @@ public class CurvasActivity extends BaseActivity {
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);
                         btnNext.setEnabled(true);
+                        editFechaInicio.setEnabled(true);
+                        editFechaFin.setEnabled(true);
 
                         new androidx.appcompat.app.AlertDialog.Builder(CurvasActivity.this)
                                 .setTitle("Error de lectura")
-                                .setMessage("No se pudieron leer las curvas de carga.\n\n"
-                                        + e.getMessage())
+                                .setMessage("No se pudo leer la curva seleccionada.\n\n" + e.getMessage())
                                 .setPositiveButton("Aceptar", null)
                                 .setCancelable(true)
                                 .show();
                     });
                 } finally {
-                    conn.close();   // SIEMPRE se ejecuta, haya éxito o excepción
+                    conn.close();
                 }
             }).start();
-
         });
     }
 

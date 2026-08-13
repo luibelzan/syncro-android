@@ -1,7 +1,7 @@
 package com.celnet.syncro.objects.pricing;
 
 import com.celnet.syncro.client.GXDLMSReader;
-import com.celnet.syncro.models.CierreMensualFila;
+import com.celnet.syncro.models.cierres.CierreMensualFila;
 import com.celnet.syncro.utils.AppLogger;
 
 import java.text.SimpleDateFormat;

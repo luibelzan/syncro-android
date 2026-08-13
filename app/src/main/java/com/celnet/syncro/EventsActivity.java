@@ -5,26 +5,19 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.SparseBooleanArray;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
-import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.celnet.syncro.client.DLMSConnection;
-import com.celnet.syncro.client.GXDLMSReader;
-import com.celnet.syncro.models.CurvaFila;
 import com.celnet.syncro.models.EventFila;
 import com.celnet.syncro.objects.events.CommonEventLog;
 import com.celnet.syncro.objects.events.DemandMgmntEventLog;
@@ -37,8 +30,6 @@ import com.celnet.syncro.objects.events.PowContractEventLog;
 import com.celnet.syncro.objects.events.PowerQualityEventLog;
 import com.celnet.syncro.objects.events.StandarEventLogReader;
 import com.celnet.syncro.objects.events.SyncEventLog;
-import com.celnet.syncro.objects.loadProfiles.LoadProfileReader;
-import com.celnet.syncro.objects.params.SerialNumberReader;
 import com.celnet.syncro.session.ConnectionConfig;
 import com.celnet.syncro.session.SessionManager;
 

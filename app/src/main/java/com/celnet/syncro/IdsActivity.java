@@ -1,28 +1,20 @@
 package com.celnet.syncro;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.celnet.syncro.client.DLMSConnection;
-import com.celnet.syncro.client.GXDLMSReader;
-import com.celnet.syncro.models.CurvaFila;
 import com.celnet.syncro.models.MeterInfo;
 import com.celnet.syncro.objects.ids.MeterInfoReader;
-import com.celnet.syncro.objects.loadProfiles.LoadProfileReader;
 import com.celnet.syncro.session.ConnectionConfig;
 import com.celnet.syncro.session.SessionManager;
-
-import java.util.ArrayList;
 
 public class IdsActivity extends BaseActivity {
 

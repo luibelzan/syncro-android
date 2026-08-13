@@ -9,7 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.celnet.syncro.R;
-import com.celnet.syncro.models.CierreEnCursoFila;
+import com.celnet.syncro.models.cierres.CierreEnCursoFila;
 
 import java.util.ArrayList;
 import java.util.List;

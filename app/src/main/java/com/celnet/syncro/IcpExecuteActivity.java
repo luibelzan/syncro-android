@@ -17,16 +17,10 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.celnet.syncro.client.DLMSConnection;
-import com.celnet.syncro.client.GXDLMSReader;
 import com.celnet.syncro.models.ControlModeResult;
-import com.celnet.syncro.models.CurvaFila;
-import com.celnet.syncro.objects.loadProfiles.LoadProfileReader;
 import com.celnet.syncro.objects.params.ControlDisconnectMode;
-import com.celnet.syncro.objects.params.SerialNumberReader;
 import com.celnet.syncro.session.ConnectionConfig;
 import com.celnet.syncro.session.SessionManager;
-
-import java.util.ArrayList;
 
 public class IcpExecuteActivity extends AppCompatActivity {
 

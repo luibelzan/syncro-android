@@ -58,6 +58,27 @@
             android:orientation="vertical"
             android:padding="24dp">
 
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/layoutTipoCurva"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                app:boxCornerRadiusBottomEnd="12dp"
+                app:boxCornerRadiusBottomStart="12dp"
+                app:boxCornerRadiusTopEnd="12dp"
+                app:boxCornerRadiusTopStart="12dp"
+                app:boxStrokeColor="@color/primary"
+                app:hintTextColor="@color/primary">
+
+                <AutoCompleteTextView
+                    android:id="@+id/spinnerTipoCurva"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="none"
+                    android:textColor="@color/on_surface" />
+            </com.google.android.material.textfield.TextInputLayout>
+
             <!-- Fecha inicio -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/layoutFechaInicio"

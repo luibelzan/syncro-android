@@ -1,6 +1,5 @@
 package com.celnet.syncro;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -15,11 +14,8 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.celnet.syncro.client.DLMSConnection;
-import com.celnet.syncro.models.CurvaFila;
-import com.celnet.syncro.models.PrimeSecurityData;
 import com.celnet.syncro.models.prime.ConstellationCoding;
 import com.celnet.syncro.models.prime.PrimeSecurityInfo;
-import com.celnet.syncro.objects.loadProfiles.LoadProfileReader;
 import com.celnet.syncro.objects.prime.PrimeSecurityReader;
 import com.celnet.syncro.objects.prime.PrimeSecurityWriter;
 import com.celnet.syncro.session.ConnectionConfig;
@@ -28,7 +24,6 @@ import com.celnet.syncro.utils.AppLogger;
 import com.google.android.material.checkbox.MaterialCheckBox;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 

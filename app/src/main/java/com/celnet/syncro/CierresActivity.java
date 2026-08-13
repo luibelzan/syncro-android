@@ -16,9 +16,9 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.celnet.syncro.client.DLMSConnection;
-import com.celnet.syncro.models.CierreEnCursoFila;
-import com.celnet.syncro.models.CierreFila;
-import com.celnet.syncro.models.CierreMensualFila;
+import com.celnet.syncro.models.cierres.CierreEnCursoFila;
+import com.celnet.syncro.models.cierres.CierreFila;
+import com.celnet.syncro.models.cierres.CierreMensualFila;
 import com.celnet.syncro.objects.pricing.CurrentBillingReader;
 import com.celnet.syncro.objects.pricing.DailyBillingS05;
 import com.celnet.syncro.objects.pricing.MonthlyBillingS04;

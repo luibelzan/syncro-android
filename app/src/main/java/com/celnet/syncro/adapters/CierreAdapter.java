@@ -8,7 +8,7 @@ import android.widget.TextView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.celnet.syncro.R;
-import com.celnet.syncro.models.CierreFila;
+import com.celnet.syncro.models.cierres.CierreFila;
 
 import java.util.List;
 

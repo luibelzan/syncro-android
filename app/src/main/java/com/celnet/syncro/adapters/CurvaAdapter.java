@@ -8,7 +8,7 @@ import android.widget.TextView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.celnet.syncro.R;
-import com.celnet.syncro.models.CurvaFila;
+import com.celnet.syncro.models.curvas.CurvaFila;
 
 import java.util.List;
 

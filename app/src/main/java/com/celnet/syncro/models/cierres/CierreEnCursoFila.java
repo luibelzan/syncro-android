@@ -1,4 +1,4 @@
-package com.celnet.syncro.models;
+package com.celnet.syncro.models.cierres;
 
 import android.os.Parcel;
 import android.os.Parcelable;

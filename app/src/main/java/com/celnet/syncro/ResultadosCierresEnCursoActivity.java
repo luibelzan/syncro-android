@@ -1,11 +1,6 @@
 package com.celnet.syncro;
 
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.Environment;
-import android.util.Log;
-import android.widget.LinearLayout;
-import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.core.graphics.Insets;
@@ -15,16 +10,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.celnet.syncro.adapters.CierreEnCursoAdapter;
-import com.celnet.syncro.models.CierreEnCursoFila;
-import com.celnet.syncro.utils.Utils;
+import com.celnet.syncro.models.cierres.CierreEnCursoFila;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.Locale;
 
 public class ResultadosCierresEnCursoActivity extends BaseActivity {
 
