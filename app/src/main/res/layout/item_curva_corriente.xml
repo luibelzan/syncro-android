@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:background="@drawable/bg_row_fila"
+    android:gravity="center_vertical"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp">
+
+    <TextView
+        android:id="@+id/tvFechaHora"
+        android:layout_width="0dp"
+        android:layout_weight="2"
+        android:layout_height="wrap_content"
+        android:text="Fecha"
+        android:textSize="13sp"
+        android:textColor="@color/on_surface" />
+
+    <TextView android:id="@+id/tvMaxL1" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="Max L1" android:textSize="13sp" android:textColor="@color/on_surface_variant" android:gravity="end" />
+    <TextView android:id="@+id/tvMaxL2" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="Max L2" android:textSize="13sp" android:textColor="@color/on_surface_variant" android:gravity="end" />
+    <TextView android:id="@+id/tvMaxL3" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="Max L3" android:textSize="13sp" android:textColor="@color/on_surface_variant" android:gravity="end" />
+    <TextView android:id="@+id/tvMaxN" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="Max N" android:textSize="13sp" android:textColor="@color/on_surface_variant" android:gravity="end" />
+    <TextView android:id="@+id/tvAvL1" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="Av L1" android:textSize="13sp" android:textColor="@color/on_surface_variant" android:gravity="end" />
+    <TextView android:id="@+id/tvAvL2" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="Av L2" android:textSize="13sp" android:textColor="@color/on_surface_variant" android:gravity="end" />
+    <TextView android:id="@+id/tvAvL3" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="Av L3" android:textSize="13sp" android:textColor="@color/on_surface_variant" android:gravity="end" />
+    <TextView android:id="@+id/tvAvN" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="Av N" android:textSize="13sp" android:textColor="@color/on_surface_variant" android:gravity="end" />
+    <TextView android:id="@+id/tvMinL1" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="Min L1" android:textSize="13sp" android:textColor="@color/on_surface_variant" android:gravity="end" />
+    <TextView android:id="@+id/tvMinL2" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="Min L2" android:textSize="13sp" android:textColor="@color/on_surface_variant" android:gravity="end" />
+    <TextView android:id="@+id/tvMinL3" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="Min L3" android:textSize="13sp" android:textColor="@color/on_surface_variant" android:gravity="end" />
+    <TextView android:id="@+id/tvMinN" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="Min N" android:textSize="13sp" android:textColor="@color/on_surface_variant" android:gravity="end" />
+    <TextView android:id="@+id/tvStatus" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="Status" android:textSize="13sp" android:textColor="@color/on_surface_variant" android:gravity="end" />
+
+</LinearLayout>

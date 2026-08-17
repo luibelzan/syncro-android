@@ -18,6 +18,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.celnet.syncro.client.DLMSConnection;
+import com.celnet.syncro.models.curvas.CurvaCorrienteFila;
 import com.celnet.syncro.models.curvas.CurvaFila;
 import com.celnet.syncro.models.curvas.CurvaVoltajeFila;
 import com.celnet.syncro.models.curvas.TipoCurva;
@@ -126,9 +127,12 @@ public class CurvasActivity extends BaseActivity {
                     if (tipoFinal == TipoCurva.INCREMENTAL_S02) {
                         ArrayList<CurvaFila> datos = LoadProfileReader.leerCurvaCarga(res.reader, fechaInicio, fechaFin);
                         intent.putParcelableArrayListExtra("datos_curva_tabla", datos);
-                    } else {
+                    } else if (tipoFinal == TipoCurva.VOLTAGE_S44) {
                         ArrayList<CurvaVoltajeFila> datos = LoadProfileReader.leerCurvaVoltaje(res.reader, fechaInicio, fechaFin);
                         intent.putParcelableArrayListExtra("datos_curva_voltaje", datos);
+                    } else {
+                        ArrayList<CurvaCorrienteFila> datos = LoadProfileReader.leerCurvaCorriente(res.reader, fechaInicio, fechaFin);
+                        intent.putParcelableArrayListExtra("datos_curva_corriente", datos);
                     }
 
                     conn.close();
