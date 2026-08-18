@@ -98,6 +98,10 @@
     <string name="potenciaReactivaPlus">Potencia Reactiva + :</string>
     <string name="potenciaReactivaMinus">Potencia Reactiva - :</string>
     <string name="factorPotencia">Factor de Potencia :</string>
+    <string name="valoresInstantaneos">Valores Instantáneos</string>
+    <string name="tipoLectura">Tipo de lectura</string>
+    <string name="leer">Leer</string>
+    <string name="leyendoContador">Leyendo contador…</string>
 
     <!-- MENU CONFIG -->
     <string name="configMenu">Menu de Configuracion</string>

@@ -188,4 +188,10 @@ public class InstantaneousValuesReader {
         if (value instanceof Number) return ((Number) value).doubleValue();
         return Double.parseDouble(value.toString());
     }
+
+    public static String leerValoresS29(GXDLMSReader reader) throws Exception {
+        AppLogger.i("InstantValues", "Leyendo valores instantáneos S29...");
+        // TODO: pendiente de documentación/log de S29 para implementar.
+        throw new UnsupportedOperationException("Lectura S29 aún no implementada.");
+    }
 }
