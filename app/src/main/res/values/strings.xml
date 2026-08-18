@@ -76,6 +76,7 @@
         <item>Finished PQ Event Log</item>
         <item>Exp Pow Contract Event Log</item>
     </string-array>
+    <string name="expandir">Desplegar categoría</string>
 
     <!-- VALORES INSTANTANEOS -->
     <string name="instantValues">Valores Instantaneos</string>

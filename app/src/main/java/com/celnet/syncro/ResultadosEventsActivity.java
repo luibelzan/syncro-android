@@ -3,16 +3,19 @@ package com.celnet.syncro;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Environment;
-import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.celnet.syncro.adapters.EventAdapter;
 import com.celnet.syncro.models.EventFila;
 import com.celnet.syncro.utils.Utils;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -50,15 +53,20 @@ public class ResultadosEventsActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_resultados_events);
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
 
         RecyclerView rv = findViewById(R.id.rvResultados);
         rv.setLayoutManager(new LinearLayoutManager(this));
 
-        LinearLayout btnExport = findViewById(R.id.btnExport);
+        ExtendedFloatingActionButton btnExport = findViewById(R.id.btnExport);
         String cntId = getIntent().getStringExtra("cntId");
         ArrayList<EventFila> datos = getIntent().getParcelableArrayListExtra("datos_event_tabla");
 
-        if(datos != null) {
+        if (datos != null) {
             EventAdapter adapter = new EventAdapter(datos);
             rv.setAdapter(adapter);
         }

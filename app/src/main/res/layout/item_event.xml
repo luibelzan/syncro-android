@@ -1,40 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="horizontal"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="4dp">
+    android:orientation="horizontal"
+    android:background="@drawable/bg_row_fila"
+    android:gravity="center_vertical"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp">
 
+    <!-- Fecha / Hora -->
     <TextView
         android:id="@+id/tvFh"
         android:layout_width="0dp"
-        android:layout_weight="1"
-        android:layout_height="wrap_content"
-        android:text="Fecha"
-        android:textSize="14sp"/>
-
-    <TextView
-        android:id="@+id/tvId"
-        android:layout_width="0dp"
-        android:layout_weight="0.2"
-        android:layout_height="wrap_content"
-        android:text="ID"
-        android:textSize="14sp"/>
-
-    <TextView
-        android:id="@+id/tvDescription"
-        android:layout_width="0dp"
         android:layout_weight="2"
         android:layout_height="wrap_content"
-        android:text="Descripcion"
-        android:textSize="14sp"/>
+        android:text="Fecha"
+        android:textSize="13sp"
+        android:textColor="@color/on_surface" />
 
+    <!-- Grupo (antes "Cod") -->
     <TextView
         android:id="@+id/tvCod"
         android:layout_width="0dp"
-        android:layout_weight="0.3"
+        android:layout_weight="0.7"
         android:layout_height="wrap_content"
-        android:text="Cod"
-        android:textSize="14sp"/>
+        android:text="Grupo"
+        android:textSize="13sp"
+        android:textColor="@color/on_surface_variant"
+        android:gravity="center" />
+
+    <!-- Id -->
+    <TextView
+        android:id="@+id/tvId"
+        android:layout_width="0dp"
+        android:layout_weight="0.5"
+        android:layout_height="wrap_content"
+        android:text="Id"
+        android:textSize="13sp"
+        android:textColor="@color/on_surface_variant"
+        android:gravity="center" />
+
+    <!-- Descripción -->
+    <TextView
+        android:id="@+id/tvDescription"
+        android:layout_width="0dp"
+        android:layout_weight="2.2"
+        android:layout_height="wrap_content"
+        android:text="Descripcion"
+        android:textSize="13sp"
+        android:textColor="@color/on_surface" />
 
 </LinearLayout>
