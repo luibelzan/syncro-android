@@ -229,6 +229,9 @@
     <string name="leer_actual">Leer actual</string>
     <string name="programar">Programar</string>
 
+    <!-- SONDA STATUS -->
+    <string name="actualizarEstado">Actualizar estado</string>
+
 
 
 
