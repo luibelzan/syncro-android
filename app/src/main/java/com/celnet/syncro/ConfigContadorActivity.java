@@ -2,21 +2,15 @@ package com.celnet.syncro;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.text.InputType;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.Spinner;
 import android.widget.Toast;
-import android.widget.Toolbar;
 
-import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
+import com.google.android.material.textfield.MaterialAutoCompleteTextView;
+
+import java.util.Arrays;
 
 import gurux.dlms.enums.Authentication;
 
@@ -41,15 +35,16 @@ public class ConfigContadorActivity extends BaseActivity {
     private static final int     DEFAULT_ADDRESS_SIZE    = 1;
     private static final int     DEFAULT_MAX_PDU         = 236;
 
-    private Spinner spinnerAuth;
-    private Spinner  spinnerAddressSize;
+    private MaterialAutoCompleteTextView spinnerAuth;
+    private MaterialAutoCompleteTextView spinnerAddressSize;
     private EditText etPassword;
     private EditText etClientAddress;
     private EditText etLogicalDevice;
     private EditText etPhysicalDevice;
-    private CheckBox cbShowPassword;
-
     private SharedPreferences prefs;
+
+    private String[] authOptions;
+    private String[] addressSizeOptions;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,10 +54,9 @@ public class ConfigContadorActivity extends BaseActivity {
         prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
 
         bindViews();
-        setupAuthSpinner();
-        setupAddressSizeSpinner();
+        setupAuthDropdown();
+        setupAddressSizeDropdown();
         loadSavedValues();
-        setupListeners();
     }
 
     private void bindViews() {
@@ -72,9 +66,7 @@ public class ConfigContadorActivity extends BaseActivity {
         etClientAddress    = findViewById(R.id.etClientAddress);
         etLogicalDevice    = findViewById(R.id.etLogicalDevice);
         etPhysicalDevice   = findViewById(R.id.etPhysicalDevice);
-        cbShowPassword     = findViewById(R.id.cbShowPassword);
-
-        Button btnSave    = findViewById(R.id.btnSave);
+        ExtendedFloatingActionButton btnSave = findViewById(R.id.btnSave);
 
         btnSave.setOnClickListener(v -> {
             if (saveConfig()) {
@@ -83,23 +75,21 @@ public class ConfigContadorActivity extends BaseActivity {
         });
     }
 
-    private void setupAuthSpinner() {
-        String[] authOptions = {
+    private void setupAuthDropdown() {
+        authOptions = new String[]{
                 Authentication.NONE.toString(),
                 Authentication.LOW.toString(),
                 Authentication.HIGH.toString()
         };
         ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                this, android.R.layout.simple_spinner_item, authOptions);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                this, android.R.layout.simple_dropdown_item_1line, authOptions);
         spinnerAuth.setAdapter(adapter);
     }
 
-    private void setupAddressSizeSpinner() {
-        String[] sizes = { "Auto (0)", "1", "2", "4" };
+    private void setupAddressSizeDropdown() {
+        addressSizeOptions = new String[]{"Auto (0)", "1", "2", "4"};
         ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                this, android.R.layout.simple_spinner_item, sizes);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                this, android.R.layout.simple_dropdown_item_1line, addressSizeOptions);
         spinnerAddressSize.setAdapter(adapter);
     }
 
@@ -109,9 +99,9 @@ public class ConfigContadorActivity extends BaseActivity {
 
         // Tipo de autenticación
         String savedAuth = prefs.getString(KEY_AUTHENTICATION, DEFAULT_AUTHENTICATION);
-        for (int i = 0; i < spinnerAuth.getCount(); i++) {
-            if (spinnerAuth.getItemAtPosition(i).toString().equalsIgnoreCase(savedAuth)) {
-                spinnerAuth.setSelection(i);
+        for (String opcion : authOptions) {
+            if (opcion.equalsIgnoreCase(savedAuth)) {
+                spinnerAuth.setText(opcion, false);
                 break;
             }
         }
@@ -127,19 +117,7 @@ public class ConfigContadorActivity extends BaseActivity {
         // Tamaño de dirección de servidor
         int savedSize = prefs.getInt(KEY_ADDRESS_SIZE, DEFAULT_ADDRESS_SIZE);
         int sizeIdx = addressSizeToIndex(savedSize);
-        spinnerAddressSize.setSelection(sizeIdx);
-
-    }
-
-    private void setupListeners() {
-        cbShowPassword.setOnCheckedChangeListener((btn, isChecked) -> {
-            if (isChecked) {
-                etPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
-            } else {
-                etPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-            }
-            etPassword.setSelection(etPassword.getText().length());
-        });
+        spinnerAddressSize.setText(addressSizeOptions[sizeIdx], false);
     }
 
     /**
@@ -155,7 +133,7 @@ public class ConfigContadorActivity extends BaseActivity {
             return false;
         }
 
-        int clientAddress, logicalDevice, physicalDevice, maxPdu;
+        int clientAddress, logicalDevice, physicalDevice;
         try {
             clientAddress  = Integer.parseInt(etClientAddress.getText().toString().trim());
             logicalDevice  = Integer.parseInt(etLogicalDevice.getText().toString().trim());
@@ -166,8 +144,11 @@ public class ConfigContadorActivity extends BaseActivity {
         }
 
         // -- Persistencia --
-        String selectedAuth    = spinnerAuth.getSelectedItem().toString();
-        int    selectedAddrSize = indexToAddressSize(spinnerAddressSize.getSelectedItemPosition());
+        String selectedAuth = spinnerAuth.getText().toString();
+
+        int posicionAddrSize = Arrays.asList(addressSizeOptions)
+                .indexOf(spinnerAddressSize.getText().toString());
+        int selectedAddrSize = indexToAddressSize(posicionAddrSize);
 
         prefs.edit()
                 .putString(KEY_PASSWORD,        password)
@@ -181,7 +162,7 @@ public class ConfigContadorActivity extends BaseActivity {
         return true;
     }
 
-    // --- Helpers spinner Address Size ---
+    // --- Helpers dropdown Address Size ---
     private int addressSizeToIndex(int size) {
         switch (size) {
             case 1:  return 1;

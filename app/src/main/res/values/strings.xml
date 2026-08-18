@@ -233,6 +233,8 @@
     <!-- SONDA STATUS -->
     <string name="actualizarEstado">Actualizar estado</string>
 
+    <!-- CNT CONFIG -->
+    <string name="configuracionDlms">Configuración DLMS</string>
 
 
 

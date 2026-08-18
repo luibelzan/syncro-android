@@ -89,7 +89,6 @@ public class StandarEventLogReader {
                     String fecha = fila[0].toString();
                     int id = Integer.parseInt(fila[1].toString());
                     EventDescription info = getEventDescription(context, id, 1);
-                    AppLogger.i("DEBUG_FECHA", "fh = [" + fecha + "]");
 
                     EventFila evento = new EventFila(
                             fecha,
