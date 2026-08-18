@@ -5,7 +5,9 @@ import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Environment;
 import android.view.Gravity;
+import android.view.View;
 import android.view.ViewGroup;
+import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -19,8 +21,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.celnet.syncro.adapters.CurvaAdapter;
 import com.celnet.syncro.adapters.CurvaCorrienteAdapter;
+import com.celnet.syncro.adapters.CurvaEnergiaFaseAdapter;
 import com.celnet.syncro.adapters.CurvaVoltajeAdapter;
 import com.celnet.syncro.models.curvas.CurvaCorrienteFila;
+import com.celnet.syncro.models.curvas.CurvaEnergiaFaseFila;
 import com.celnet.syncro.models.curvas.CurvaFila;
 import com.celnet.syncro.models.curvas.CurvaVoltajeFila;
 import com.celnet.syncro.models.curvas.TipoCurva;
@@ -85,6 +89,11 @@ public class ResultadosCurvasActivity extends BaseActivity {
         LinearLayout headerLayout = findViewById(R.id.headerLayout);
         ExtendedFloatingActionButton btnExport = findViewById(R.id.btnExport);
 
+        HorizontalScrollView scrollS43 = findViewById(R.id.scrollHorizontalS43);
+        RecyclerView rvS43 = findViewById(R.id.rvResultadosS43);
+        rvS43.setLayoutManager(new LinearLayoutManager(this));
+        LinearLayout headerLayoutS43 = findViewById(R.id.headerLayoutS43);
+
         String tipoCurvaStr = getIntent().getStringExtra("tipoCurva");
         TipoCurva tipoCurva = tipoCurvaStr != null ? TipoCurva.valueOf(tipoCurvaStr) : TipoCurva.INCREMENTAL_S02;
         String cntId = getIntent().getStringExtra("cntId");
@@ -105,6 +114,18 @@ public class ResultadosCurvasActivity extends BaseActivity {
                 if (datosS45 != null) rv.setAdapter(new CurvaCorrienteAdapter(datosS45));
                 break;
             case INCREMENTAL_S02:
+                datosS02 = getIntent().getParcelableArrayListExtra("datos_curva_tabla");
+                construirCabeceraS02(headerLayout);
+                if (datosS02 != null) rv.setAdapter(new CurvaAdapter(datosS02));
+                break;
+            case ENERGY_PHASE_S43:
+                rv.setVisibility(View.GONE);
+                headerLayout.setVisibility(View.GONE);
+                scrollS43.setVisibility(View.VISIBLE);
+                ArrayList<CurvaEnergiaFaseFila> datosS43 = getIntent().getParcelableArrayListExtra("datos_curva_energia_fase");
+                construirCabeceraS43(headerLayoutS43);
+                if (datosS43 != null) rvS43.setAdapter(new CurvaEnergiaFaseAdapter(datosS43));
+                break;
             default:
                 datosS02 = getIntent().getParcelableArrayListExtra("datos_curva_tabla");
                 construirCabeceraS02(headerLayout);
@@ -245,6 +266,35 @@ public class ResultadosCurvasActivity extends BaseActivity {
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, peso);
         tv.setLayoutParams(lp);
         if (alinearFin) tv.setGravity(Gravity.END);
+        header.addView(tv);
+    }
+
+    private void construirCabeceraS43(LinearLayout header) {
+        header.removeAllViews();
+        addHeaderCellFixed(header, "Fecha/Hora", 130);
+        addHeaderCellFixed(header, "EA+ R", 80); addHeaderCellFixed(header, "EA- R", 80);
+        addHeaderCellFixed(header, "Q1 R", 80); addHeaderCellFixed(header, "Q2 R", 80);
+        addHeaderCellFixed(header, "Q3 R", 80); addHeaderCellFixed(header, "Q4 R", 80);
+        addHeaderCellFixed(header, "EA+ S", 80); addHeaderCellFixed(header, "EA- S", 80);
+        addHeaderCellFixed(header, "Q1 S", 80); addHeaderCellFixed(header, "Q2 S", 80);
+        addHeaderCellFixed(header, "Q3 S", 80); addHeaderCellFixed(header, "Q4 S", 80);
+        addHeaderCellFixed(header, "EA+ T", 80); addHeaderCellFixed(header, "EA- T", 80);
+        addHeaderCellFixed(header, "Q1 T", 80); addHeaderCellFixed(header, "Q2 T", 80);
+        addHeaderCellFixed(header, "Q3 T", 80); addHeaderCellFixed(header, "Q4 T", 80);
+        addHeaderCellFixed(header, "Status", 80);
+    }
+
+    private void addHeaderCellFixed(LinearLayout header, String texto, int widthDp) {
+        TextView tv = new TextView(this);
+        tv.setText(texto);
+        tv.setAllCaps(true);
+        tv.setTypeface(tv.getTypeface(), Typeface.BOLD);
+        tv.setTextSize(12);
+        tv.setTextColor(getResources().getColor(R.color.primary_dark, getTheme()));
+        float density = getResources().getDisplayMetrics().density;
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams((int) (widthDp * density), ViewGroup.LayoutParams.WRAP_CONTENT);
+        tv.setLayoutParams(lp);
+        tv.setGravity(Gravity.END);
         header.addView(tv);
     }
 }

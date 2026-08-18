@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:background="@drawable/bg_row_fila"
+    android:gravity="center_vertical"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp">
+
+    <TextView android:id="@+id/tvFechaHora" android:layout_width="130dp" android:layout_height="wrap_content" android:text="Fecha" android:textSize="13sp" android:textColor="@color/on_surface" />
+
+    <TextView android:id="@+id/tvEaPosR" android:layout_width="80dp" android:layout_height="wrap_content" android:text="EA+ R" android:textSize="13sp" android:textColor="@color/on_surface_variant" android:gravity="end" />
+    <TextView android:id="@+id/tvEaNegR" android:layout_width="80dp" android:layout_height="wrap_content" android:text="EA- R" android:textSize="13sp" android:textColor="@color/on_surface_variant" android:gravity="end" />
+    <TextView android:id="@+id/tvQ1R" android:layout_width="80dp" android:layout_height="wrap_content" android:text="Q1 R" android:textSize="13sp" android:textColor="@color/on_surface_variant" android:gravity="end" />
+    <TextView android:id="@+id/tvQ2R" android:layout_width="80dp" android:layout_height="wrap_content" android:text="Q2 R" android:textSize="13sp" android:textColor="@color/on_surface_variant" android:gravity="end" />
+    <TextView android:id="@+id/tvQ3R" android:layout_width="80dp" android:layout_height="wrap_content" android:text="Q3 R" android:textSize="13sp" android:textColor="@color/on_surface_variant" android:gravity="end" />
+    <TextView android:id="@+id/tvQ4R" android:layout_width="80dp" android:layout_height="wrap_content" android:text="Q4 R" android:textSize="13sp" android:textColor="@color/on_surface_variant" android:gravity="end" />
+
+    <TextView android:id="@+id/tvEaPosS" android:layout_width="80dp" android:layout_height="wrap_content" android:text="EA+ S" android:textSize="13sp" android:textColor="@color/on_surface_variant" android:gravity="end" />
+    <TextView android:id="@+id/tvEaNegS" android:layout_width="80dp" android:layout_height="wrap_content" android:text="EA- S" android:textSize="13sp" android:textColor="@color/on_surface_variant" android:gravity="end" />
+    <TextView android:id="@+id/tvQ1S" android:layout_width="80dp" android:layout_height="wrap_content" android:text="Q1 S" android:textSize="13sp" android:textColor="@color/on_surface_variant" android:gravity="end" />
+    <TextView android:id="@+id/tvQ2S" android:layout_width="80dp" android:layout_height="wrap_content" android:text="Q2 S" android:textSize="13sp" android:textColor="@color/on_surface_variant" android:gravity="end" />
+    <TextView android:id="@+id/tvQ3S" android:layout_width="80dp" android:layout_height="wrap_content" android:text="Q3 S" android:textSize="13sp" android:textColor="@color/on_surface_variant" android:gravity="end" />
+    <TextView android:id="@+id/tvQ4S" android:layout_width="80dp" android:layout_height="wrap_content" android:text="Q4 S" android:textSize="13sp" android:textColor="@color/on_surface_variant" android:gravity="end" />
+
+    <TextView android:id="@+id/tvEaPosT" android:layout_width="80dp" android:layout_height="wrap_content" android:text="EA+ T" android:textSize="13sp" android:textColor="@color/on_surface_variant" android:gravity="end" />
+    <TextView android:id="@+id/tvEaNegT" android:layout_width="80dp" android:layout_height="wrap_content" android:text="EA- T" android:textSize="13sp" android:textColor="@color/on_surface_variant" android:gravity="end" />
+    <TextView android:id="@+id/tvQ1T" android:layout_width="80dp" android:layout_height="wrap_content" android:text="Q1 T" android:textSize="13sp" android:textColor="@color/on_surface_variant" android:gravity="end" />
+    <TextView android:id="@+id/tvQ2T" android:layout_width="80dp" android:layout_height="wrap_content" android:text="Q2 T" android:textSize="13sp" android:textColor="@color/on_surface_variant" android:gravity="end" />
+    <TextView android:id="@+id/tvQ3T" android:layout_width="80dp" android:layout_height="wrap_content" android:text="Q3 T" android:textSize="13sp" android:textColor="@color/on_surface_variant" android:gravity="end" />
+    <TextView android:id="@+id/tvQ4T" android:layout_width="80dp" android:layout_height="wrap_content" android:text="Q4 T" android:textSize="13sp" android:textColor="@color/on_surface_variant" android:gravity="end" />
+
+    <TextView android:id="@+id/tvStatus" android:layout_width="80dp" android:layout_height="wrap_content" android:text="Status" android:textSize="13sp" android:textColor="@color/on_surface_variant" android:gravity="end" />
+
+</LinearLayout>
