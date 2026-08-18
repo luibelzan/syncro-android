@@ -1,4 +1,4 @@
-package com.celnet.syncro.models;
+package com.celnet.syncro.models.events;
 
 public class EventInfo {
     public int grp;

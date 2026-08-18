@@ -8,7 +8,7 @@ import android.widget.TextView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.celnet.syncro.R;
-import com.celnet.syncro.models.EventFila;
+import com.celnet.syncro.models.events.EventFila;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;

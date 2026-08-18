@@ -3,9 +3,9 @@ package com.celnet.syncro.objects.events;
 import android.content.Context;
 
 import com.celnet.syncro.client.GXDLMSReader;
-import com.celnet.syncro.models.EventDescription;
-import com.celnet.syncro.models.EventFila;
-import com.celnet.syncro.models.EventInfo;
+import com.celnet.syncro.models.events.EventDescription;
+import com.celnet.syncro.models.events.EventFila;
+import com.celnet.syncro.models.events.EventInfo;
 import com.celnet.syncro.utils.AppLogger;
 
 import org.json.JSONArray;

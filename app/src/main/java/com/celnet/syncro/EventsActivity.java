@@ -19,7 +19,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.celnet.syncro.client.DLMSConnection;
-import com.celnet.syncro.models.EventFila;
+import com.celnet.syncro.models.events.EventFila;
 import com.celnet.syncro.objects.events.CommonEventLog;
 import com.celnet.syncro.objects.events.DemandMgmntEventLog;
 import com.celnet.syncro.objects.events.DisconnectEventLog;
