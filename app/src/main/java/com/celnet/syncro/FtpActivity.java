@@ -2,24 +2,23 @@ package com.celnet.syncro;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
-import android.widget.ImageButton;
-import android.widget.Spinner;
 
 import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
+import com.google.android.material.textfield.MaterialAutoCompleteTextView;
+
 public class FtpActivity extends BaseActivity {
 
-    private Spinner spinnerProtocolo;
+    private AutoCompleteTextView spinnerProtocolo;
     private EditText editDirFtp, editPortFtp, editFolderFtp, editUserFtp, editPassFtp;
-    private ImageButton btnNext;
+    private ExtendedFloatingActionButton btnNext;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,24 +40,13 @@ public class FtpActivity extends BaseActivity {
         editPassFtp = findViewById(R.id.editPassFtp);
         btnNext = findViewById(R.id.btnNext);
 
-        // Configurar Spinner
+        // Configurar desplegable de protocolo
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
                 this,
                 R.array.protocolo_array,
-                android.R.layout.simple_spinner_item
+                android.R.layout.simple_dropdown_item_1line
         );
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerProtocolo.setAdapter(adapter);
-
-        spinnerProtocolo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                // opcional: manejar cambios
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
-        });
 
         // 🔹 Cargar datos guardados
         cargarConfiguracion();
@@ -74,7 +62,7 @@ public class FtpActivity extends BaseActivity {
         SharedPreferences prefs = getSharedPreferences("ftp_config", MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
 
-        editor.putString("protocolo", spinnerProtocolo.getSelectedItem().toString());
+        editor.putString("protocolo", spinnerProtocolo.getText().toString());
         editor.putString("dir", editDirFtp.getText().toString());
         editor.putString("port", editPortFtp.getText().toString());
         editor.putString("folder", editFolderFtp.getText().toString());
@@ -100,11 +88,9 @@ public class FtpActivity extends BaseActivity {
         editUserFtp.setText(user);
         editPassFtp.setText(pass);
 
-        // Seleccionar protocolo en spinner
-        ArrayAdapter adapter = (ArrayAdapter) spinnerProtocolo.getAdapter();
-        int position = adapter.getPosition(protocolo);
-        if (position >= 0) {
-            spinnerProtocolo.setSelection(position);
+        // Seleccionar protocolo en el desplegable
+        if (!protocolo.isEmpty()) {
+            spinnerProtocolo.setText(protocolo, false);
         }
     }
 }

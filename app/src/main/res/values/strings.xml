@@ -120,7 +120,7 @@
     <string name="portFtp">Puerto</string>
     <string name="folderFtp">Carpeta</string>
     <string name="userFtp">Usuario</string>
-    <string name="passFtp">Contrase;a</string>
+    <string name="passFtp">Contraseña</string>
     <string name="saveConfig">Guardar Configuracion</string>
     <string-array name="protocolo_array">
         <item>SFTP</item>
