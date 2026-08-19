@@ -46,10 +46,17 @@ public class CurvasActivity extends BaseActivity {
         DatePickerDialog datePickerDialog = new DatePickerDialog(
                 this,
                 (view, selectedYear, selectedMonth, selectedDay) -> {
-                    String date = selectedYear + "/" +
+                    // Valor interno (el que esperan los métodos de lectura DLMS): sin tocar
+                    String fechaInterna = selectedYear + "/" +
                             String.format(Locale.US, "%02d", selectedMonth + 1) + "/" +
                             String.format(Locale.US, "%02d", selectedDay);
-                    editText.setText(date);
+
+                    // Valor mostrado en pantalla: dd/MM/yyyy
+                    String fechaMostrada = String.format(Locale.US, "%02d/%02d/%04d",
+                            selectedDay, selectedMonth + 1, selectedYear);
+
+                    editText.setText(fechaMostrada);
+                    editText.setTag(fechaInterna);
                 },
                 year, month, day);
         datePickerDialog.show();
