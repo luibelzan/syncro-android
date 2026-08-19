@@ -1,7 +1,4 @@
-package com.celnet.syncro.models;
-
-import android.os.Parcel;
-import android.os.Parcelable;
+package com.celnet.syncro.models.instantvalues;
 
 import android.os.Parcel;
 import android.os.Parcelable;

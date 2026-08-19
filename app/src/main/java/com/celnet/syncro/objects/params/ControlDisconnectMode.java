@@ -1,10 +1,8 @@
 package com.celnet.syncro.objects.params;
 
-import android.util.Log;
-
 import com.celnet.syncro.client.GXDLMSReader;
 import com.celnet.syncro.client.GXDLMSSecureClient2;
-import com.celnet.syncro.models.ControlModeResult;
+import com.celnet.syncro.models.parameters.ControlModeResult;
 import com.celnet.syncro.utils.AppLogger;
 
 import gurux.dlms.GXReplyData;

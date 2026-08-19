@@ -17,7 +17,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.celnet.syncro.client.DLMSConnection;
-import com.celnet.syncro.models.ControlModeResult;
+import com.celnet.syncro.models.parameters.ControlModeResult;
 import com.celnet.syncro.objects.params.ControlDisconnectMode;
 import com.celnet.syncro.session.ConnectionConfig;
 import com.celnet.syncro.session.SessionManager;

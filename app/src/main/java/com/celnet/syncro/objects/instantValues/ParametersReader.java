@@ -1,7 +1,7 @@
 package com.celnet.syncro.objects.instantValues;
 
 import com.celnet.syncro.client.GXDLMSReader;
-import com.celnet.syncro.models.ParametrosS06;
+import com.celnet.syncro.models.parameters.ParametrosS06;
 import com.celnet.syncro.utils.AppLogger;
 
 import java.time.LocalDateTime;
@@ -13,7 +13,6 @@ import gurux.dlms.GXDateTime;
 import gurux.dlms.enums.ObjectType;
 import gurux.dlms.objects.GXDLMSClock;
 import gurux.dlms.objects.GXDLMSData;
-import gurux.dlms.objects.GXDLMSLimiter;
 import gurux.dlms.objects.GXDLMSObject;
 import gurux.dlms.objects.GXDLMSProfileGeneric;
 import gurux.dlms.objects.GXDLMSRegister;

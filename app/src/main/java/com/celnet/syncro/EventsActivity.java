@@ -21,9 +21,11 @@ import androidx.core.view.WindowInsetsCompat;
 import com.celnet.syncro.client.DLMSConnection;
 import com.celnet.syncro.models.events.EventFila;
 import com.celnet.syncro.objects.events.CommonEventLog;
+import com.celnet.syncro.objects.events.CorrectSecurityOpsEventLog;
 import com.celnet.syncro.objects.events.DemandMgmntEventLog;
 import com.celnet.syncro.objects.events.DisconnectEventLog;
 import com.celnet.syncro.objects.events.ExpPowContractEventLog;
+import com.celnet.syncro.objects.events.FailedSecurityOpsEventLog;
 import com.celnet.syncro.objects.events.FinishedPQEventLog;
 import com.celnet.syncro.objects.events.FirmwareEventLog;
 import com.celnet.syncro.objects.events.FraudEventLog;
@@ -55,13 +57,26 @@ public class EventsActivity extends BaseActivity {
         DatePickerDialog datePickerDialog = new DatePickerDialog(
                 this,
                 (view, selectedYear, selectedMonth, selectedDay) -> {
-                    String date = selectedYear + "/" +
+                    // Valor interno (el que esperan los métodos de lectura DLMS): sin tocar
+                    String fechaInterna = selectedYear + "/" +
                             String.format(Locale.US, "%02d", selectedMonth + 1) + "/" +
                             String.format(Locale.US, "%02d", selectedDay);
-                    editText.setText(date);
+
+                    // Valor mostrado en pantalla: dd/MM/yyyy
+                    String fechaMostrada = String.format(Locale.US, "%02d/%02d/%04d",
+                            selectedDay, selectedMonth + 1, selectedYear);
+
+                    editText.setText(fechaMostrada);
+                    editText.setTag(fechaInterna);
                 },
                 year, month, day);
         datePickerDialog.show();
+    }
+
+    /** Devuelve la fecha en formato interno yyyy/MM/dd guardada en el tag del EditText. */
+    private String obtenerFechaInterna(EditText editText) {
+        Object tag = editText.getTag();
+        return tag != null ? tag.toString() : "";
     }
 
     /**
@@ -149,6 +164,18 @@ public class EventsActivity extends BaseActivity {
                 alternarDespliegue(wrapperCalidad, groupCalidad, btnExpandCalidad));
         sincronizarGrupo(cbCalidad, Arrays.asList(cbPowerQuality, cbFinishedPQ));
 
+        // ===== Seguridad (desplegable) =====
+        ViewGroup wrapperSeguridad = findViewById(R.id.wrapperSeguridad);
+        MaterialCheckBox cbSeguridad = findViewById(R.id.cbSeguridad);
+        View groupSeguridad = findViewById(R.id.groupSeguridad);
+        ImageButton btnExpandSeguridad = findViewById(R.id.btnExpandSeguridad);
+        MaterialCheckBox cbSecurityCorrect = findViewById(R.id.cbSecurityCorrect);
+        MaterialCheckBox cbSecurityFailed = findViewById(R.id.cbSecurityFailed);
+
+        btnExpandSeguridad.setOnClickListener(v ->
+                alternarDespliegue(wrapperSeguridad, groupSeguridad, btnExpandSeguridad));
+        sincronizarGrupo(cbSeguridad, Arrays.asList(cbSecurityCorrect, cbSecurityFailed));
+
         // ===== Categorías simples (1 subgrupo = la propia categoría) =====
         MaterialCheckBox cbIcp = findViewById(R.id.cbIcp);
         MaterialCheckBox cbFraude = findViewById(R.id.cbFraude);
@@ -164,10 +191,11 @@ public class EventsActivity extends BaseActivity {
 
         ExtendedFloatingActionButton btnNext = findViewById(R.id.btnNext);
 
-        // Todos los checkboxes hoja (11), para validar que al menos uno esté marcado
+        // Todos los checkboxes hoja (13), para validar que al menos uno esté marcado
         List<MaterialCheckBox> checkboxesHoja = Arrays.asList(
                 cbStandard, cbFraude, cbIcp, cbImpPowContract, cbFirmware,
-                cbPowerQuality, cbDemanda, cbComunicaciones, cbSync, cbFinishedPQ, cbExpPowContract);
+                cbPowerQuality, cbDemanda, cbComunicaciones, cbSync, cbFinishedPQ, cbExpPowContract,
+                cbSecurityCorrect, cbSecurityFailed);
 
         btnNext.setOnClickListener(v -> {
 
@@ -175,8 +203,8 @@ public class EventsActivity extends BaseActivity {
                 return;
             }
 
-            String fechaInicio = editFechaInicio.getText().toString();
-            String fechaFin = editFechaFin.getText().toString();
+            String fechaInicio = obtenerFechaInterna(editFechaInicio);
+            String fechaFin = obtenerFechaInterna(editFechaFin);
             ConnectionConfig config = SessionManager.getInstance().getConnectionConfig();
 
             Toast.makeText(EventsActivity.this,
@@ -205,38 +233,53 @@ public class EventsActivity extends BaseActivity {
             if (cbSync.isChecked()) eventosSeleccionados.add(8);
             if (cbFinishedPQ.isChecked()) eventosSeleccionados.add(9);
             if (cbExpPowContract.isChecked()) eventosSeleccionados.add(10);
+            if (cbSecurityCorrect.isChecked()) eventosSeleccionados.add(11);
+            if (cbSecurityFailed.isChecked()) eventosSeleccionados.add(12);
 
             new Thread(() -> {
-                try {
-                    DLMSConnection conn = (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH)
-                            ? new DLMSConnection(config.getBluetoothDeviceName())
-                            : new DLMSConnection(config.getIp(), config.getPort());
+                DLMSConnection conn = (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH)
+                        ? new DLMSConnection(config.getBluetoothDeviceName())
+                        : new DLMSConnection(config.getIp(), config.getPort());
 
+                try {
                     DLMSConnection.ConnectionResult res = conn.connectWithAutoDetect(EventsActivity.this);
 
                     ArrayList<EventFila> datos = new ArrayList<>();
+                    List<String> tiposConError = new ArrayList<>();
 
                     for (Integer event : eventosSeleccionados) {
-                        switch (event) {
-                            case 0: datos.addAll(StandarEventLogReader.readStandardEventLog(this, res.reader, fechaInicio, fechaFin)); break;
-                            case 1: datos.addAll(FraudEventLog.readFraudEventLog(this, res.reader, fechaInicio, fechaFin)); break;
-                            case 2: datos.addAll(DisconnectEventLog.readDisconnectEventLog(this, res.reader, fechaInicio, fechaFin)); break;
-                            case 3: datos.addAll(PowContractEventLog.readImpPowContractEventLog(this, res.reader, fechaInicio, fechaFin)); break;
-                            case 4: datos.addAll(FirmwareEventLog.leerFirmwareEventLog(this, res.reader, fechaInicio, fechaFin)); break;
-                            case 5: datos.addAll(PowerQualityEventLog.readPowerQualityEventLog(this, res.reader, fechaInicio, fechaFin)); break;
-                            case 6: datos.addAll(DemandMgmntEventLog.readDemandMgmntEventLog(this, res.reader, fechaInicio, fechaFin)); break;
-                            case 7: datos.addAll(CommonEventLog.leerCommonEventLog(this, res.reader, fechaInicio, fechaFin)); break;
-                            case 8: datos.addAll(SyncEventLog.readSyncEventLog(this, res.reader, fechaInicio, fechaFin)); break;
-                            case 9: datos.addAll(FinishedPQEventLog.readFinishedPQEventLog(this, res.reader, fechaInicio, fechaFin)); break;
-                            case 10: datos.addAll(ExpPowContractEventLog.readExpPowContractEventLog(this, res.reader, fechaInicio, fechaFin)); break;
+                        try {
+                            switch (event) {
+                                case 0: datos.addAll(StandarEventLogReader.readStandardEventLog(this, res.reader, fechaInicio, fechaFin)); break;
+                                case 1: datos.addAll(FraudEventLog.readFraudEventLog(this, res.reader, fechaInicio, fechaFin)); break;
+                                case 2: datos.addAll(DisconnectEventLog.readDisconnectEventLog(this, res.reader, fechaInicio, fechaFin)); break;
+                                case 3: datos.addAll(PowContractEventLog.readImpPowContractEventLog(this, res.reader, fechaInicio, fechaFin)); break;
+                                case 4: datos.addAll(FirmwareEventLog.leerFirmwareEventLog(this, res.reader, fechaInicio, fechaFin)); break;
+                                case 5: datos.addAll(PowerQualityEventLog.readPowerQualityEventLog(this, res.reader, fechaInicio, fechaFin)); break;
+                                case 6: datos.addAll(DemandMgmntEventLog.readDemandMgmntEventLog(this, res.reader, fechaInicio, fechaFin)); break;
+                                case 7: datos.addAll(CommonEventLog.leerCommonEventLog(this, res.reader, fechaInicio, fechaFin)); break;
+                                case 8: datos.addAll(SyncEventLog.readSyncEventLog(this, res.reader, fechaInicio, fechaFin)); break;
+                                case 9: datos.addAll(FinishedPQEventLog.readFinishedPQEventLog(this, res.reader, fechaInicio, fechaFin)); break;
+                                case 10: datos.addAll(ExpPowContractEventLog.readExpPowContractEventLog(this, res.reader, fechaInicio, fechaFin)); break;
+                                case 11: datos.addAll(CorrectSecurityOpsEventLog.readCorrectSecurityEventLog(this, res.reader, fechaInicio, fechaFin)); break;
+                                case 12: datos.addAll(FailedSecurityOpsEventLog.readFailedSecurityEventLog(this, res.reader, fechaInicio, fechaFin)); break;
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            tiposConError.add(nombreTipoEvento(event) + ": " + e.getMessage());
                         }
                     }
-
-                    conn.close();
 
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);
                         btnNext.setEnabled(true);
+
+                        if (!tiposConError.isEmpty()) {
+                            Toast.makeText(EventsActivity.this,
+                                    "Algunos tipos de evento no se pudieron leer:\n"
+                                            + String.join("\n", tiposConError),
+                                    Toast.LENGTH_LONG).show();
+                        }
 
                         Intent intent = new Intent(EventsActivity.this, ResultadosEventsActivity.class);
                         intent.putParcelableArrayListExtra("datos_event_tabla", datos);
@@ -258,18 +301,39 @@ public class EventsActivity extends BaseActivity {
                                 .setCancelable(true)
                                 .show();
                     });
+                } finally {
+                    conn.close();
                 }
             }).start();
 
         });
     }
 
+    private String nombreTipoEvento(int index) {
+        switch (index) {
+            case 0: return "Estándar";
+            case 1: return "Fraude";
+            case 2: return "ICP";
+            case 3: return "Contrato de potencia (importación)";
+            case 4: return "Firmware";
+            case 5: return "Calidad de suministro";
+            case 6: return "Demanda";
+            case 7: return "Comunicaciones";
+            case 8: return "Sincronización";
+            case 9: return "Fin de evento de calidad";
+            case 10: return "Contrato de potencia (exportación)";
+            case 11: return "Operaciones de seguridad correctas";
+            case 12: return "Operaciones de seguridad fallidas";
+            default: return "Tipo de evento " + index;
+        }
+    }
+
     private boolean validarFormulario(EditText editFechaInicio,
                                       EditText editFechaFin,
                                       List<MaterialCheckBox> checkboxesHoja) {
 
-        String fechaInicio = editFechaInicio.getText().toString().trim();
-        String fechaFin = editFechaFin.getText().toString().trim();
+        String fechaInicio = obtenerFechaInterna(editFechaInicio);
+        String fechaFin = obtenerFechaInterna(editFechaFin);
 
         if (fechaInicio.isEmpty()) {
             Toast.makeText(this, "Debe seleccionar una fecha de inicio", Toast.LENGTH_SHORT).show();

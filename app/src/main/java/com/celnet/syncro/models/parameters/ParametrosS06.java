@@ -1,4 +1,4 @@
-package com.celnet.syncro.models;
+package com.celnet.syncro.models.parameters;
 
 public class ParametrosS06 {
     public String fecha                     = "N/A";

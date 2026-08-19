@@ -1,7 +1,7 @@
 package com.celnet.syncro.objects.ids;
 
 import com.celnet.syncro.client.GXDLMSReader;
-import com.celnet.syncro.models.MeterInfo;
+import com.celnet.syncro.models.parameters.MeterInfo;
 import com.celnet.syncro.utils.AppLogger;
 
 import gurux.dlms.objects.GXDLMSData;

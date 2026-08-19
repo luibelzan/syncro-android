@@ -14,11 +14,10 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.celnet.syncro.client.DLMSConnection;
-import com.celnet.syncro.models.ParametrosS06;
+import com.celnet.syncro.models.parameters.ParametrosS06;
 import com.celnet.syncro.objects.instantValues.ParametersReader;
 import com.celnet.syncro.session.ConnectionConfig;
 import com.celnet.syncro.session.SessionManager;
-import com.celnet.syncro.utils.AppLogger;
 import com.celnet.syncro.utils.Utils;
 
 import java.io.File;
