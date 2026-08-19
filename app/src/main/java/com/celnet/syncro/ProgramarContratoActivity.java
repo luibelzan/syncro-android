@@ -4,15 +4,12 @@ import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.FrameLayout;
-import android.widget.ImageButton;
-import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -22,15 +19,14 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.celnet.syncro.client.DLMSConnection;
-import com.celnet.syncro.client.GXDLMSReader;
 import com.celnet.syncro.objects.contracts.ProgramContract;
-import com.celnet.syncro.objects.contracts.ViewContract;
-import com.celnet.syncro.objects.params.SerialNumberReader;
 import com.celnet.syncro.session.ConnectionConfig;
 import com.celnet.syncro.session.SessionManager;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
@@ -43,9 +39,11 @@ public class ProgramarContratoActivity extends AppCompatActivity {
     private CheckBox checkBoxFechaAct;
     private CheckBox checkBoxFechaFact;
 
-    // Spinners
-    private Spinner spinnerContrato;
-    private Spinner spinnerTarifa;
+    // Desplegables
+    private AutoCompleteTextView spinnerContrato;
+    private AutoCompleteTextView spinnerTarifa;
+    private String[] contratosOptions;
+    private String[] tarifasOptions;
 
     // Límites de potencia
     private EditText editPowerLimitT1;
@@ -65,6 +63,12 @@ public class ProgramarContratoActivity extends AppCompatActivity {
     private FrameLayout progressOverlay;
 
 
+    /** Devuelve la fecha en formato interno yyyy/MM/dd guardada en el tag del EditText. */
+    private String obtenerFechaInterna(EditText editText) {
+        Object tag = editText.getTag();
+        return tag != null ? tag.toString() : "";
+    }
+
     private void configurarPickers() {
 
         // Fecha activación
@@ -80,7 +84,8 @@ public class ProgramarContratoActivity extends AppCompatActivity {
                     this,
                     (view, selectedYear, selectedMonth, selectedDay) -> {
 
-                        String fecha = String.format(
+                        // Valor interno (el que espera ProgramContract.programarContrato): sin tocar
+                        String fechaInterna = String.format(
                                 Locale.getDefault(),
                                 "%04d/%02d/%02d",
                                 selectedYear,
@@ -88,7 +93,17 @@ public class ProgramarContratoActivity extends AppCompatActivity {
                                 selectedDay
                         );
 
-                        editFechaAct.setText(fecha);
+                        // Valor mostrado en pantalla: dd/MM/yyyy
+                        String fechaMostrada = String.format(
+                                Locale.getDefault(),
+                                "%02d/%02d/%04d",
+                                selectedDay,
+                                selectedMonth + 1,
+                                selectedYear
+                        );
+
+                        editFechaAct.setText(fechaMostrada);
+                        editFechaAct.setTag(fechaInterna);
 
                     },
                     year,
@@ -173,54 +188,44 @@ public class ProgramarContratoActivity extends AppCompatActivity {
             return insets;
         });
 
-        //Spinner de contrato
+        // Desplegable de contrato
         spinnerContrato = findViewById(R.id.spinnerContrato);
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
-                this,
-                R.array.program_contracts_array,
-                android.R.layout.simple_spinner_item
-        );
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        contratosOptions = getResources().getStringArray(R.array.program_contracts_array);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                this, android.R.layout.simple_dropdown_item_1line, contratosOptions);
         spinnerContrato.setAdapter(adapter);
-        spinnerContrato.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {}
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
-        });
+        if (contratosOptions.length > 0) {
+            spinnerContrato.setText(contratosOptions[0], false);
+        }
 
-        //Spinner tarifa
+        // Desplegable de tarifa
         spinnerTarifa = findViewById(R.id.spinnerTarif);
-        ArrayAdapter<CharSequence> adapter2 = ArrayAdapter.createFromResource(
-                this,
-                R.array.tarifas_array,
-                android.R.layout.simple_spinner_item
-        );
-        adapter2.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        tarifasOptions = getResources().getStringArray(R.array.tarifas_array);
+        ArrayAdapter<String> adapter2 = new ArrayAdapter<>(
+                this, android.R.layout.simple_dropdown_item_1line, tarifasOptions);
         spinnerTarifa.setAdapter(adapter2);
-        spinnerTarifa.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {}
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
-        });
+        if (tarifasOptions.length > 0) {
+            spinnerTarifa.setText(tarifasOptions[0], false);
+        }
 
         initViews();
         configurarPickers();
 
-        ImageButton btnNext = findViewById(R.id.btnNext);
+        ExtendedFloatingActionButton btnNext = findViewById(R.id.btnNext);
 
         btnNext.setOnClickListener(v -> {
 
             ConnectionConfig config = SessionManager.getInstance().getConnectionConfig();
 
             // ── Contrato ────────────────────────────────────────────────────────
-            int contract = spinnerContrato.getSelectedItemPosition() + 1;
+            int posicionContrato = Arrays.asList(contratosOptions)
+                    .indexOf(spinnerContrato.getText().toString());
+            int contract = (posicionContrato >= 0 ? posicionContrato : 0) + 1;
 
             // ── Tarifa ──────────────────────────────────────────────────────────
             String tarifaSeleccionada = null;
             if (checkBoxTarif.isChecked()) {
-                tarifaSeleccionada = spinnerTarifa.getSelectedItem().toString();
+                tarifaSeleccionada = spinnerTarifa.getText().toString();
             }
 
             // ── Límites de potencia ─────────────────────────────────────────────
@@ -257,7 +262,7 @@ public class ProgramarContratoActivity extends AppCompatActivity {
             // ── Fecha de activación ─────────────────────────────────────────────
             Date fechaActivacion = null;
             if (checkBoxFechaAct.isChecked()) {
-                String fechaStr = editFechaAct.getText().toString().trim();
+                String fechaStr = obtenerFechaInterna(editFechaAct);
                 String horaStr  = editHourAct.getText().toString().trim();
 
                 if (TextUtils.isEmpty(fechaStr) || TextUtils.isEmpty(horaStr)) {
@@ -305,12 +310,11 @@ public class ProgramarContratoActivity extends AppCompatActivity {
             // ── Ejecutar en hilo de fondo (DLMS no puede ir en el hilo UI) ──────
             new Thread(() -> {
                 showProgress(true);
+                DLMSConnection conn = (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH)
+                        ? new DLMSConnection(config.getBluetoothDeviceName())
+                        : new DLMSConnection(config.getIp(), config.getPort());
+
                 try {
-
-                    DLMSConnection conn = (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH)
-                            ? new DLMSConnection(config.getBluetoothDeviceName())
-                            : new DLMSConnection(config.getIp(), config.getPort());
-
                     DLMSConnection.ConnectionResult res = conn.connectWithAutoDetect(ProgramarContratoActivity.this);
 
 
@@ -334,11 +338,14 @@ public class ProgramarContratoActivity extends AppCompatActivity {
                     );
 
                 } catch (Exception e) {
+                    showProgress(false);
                     runOnUiThread(() ->
                             Toast.makeText(this,
                                     "Error al programar contrato: " + e.getMessage(),
                                     Toast.LENGTH_LONG).show()
                     );
+                } finally {
+                    conn.close();
                 }
             }).start();
         });
@@ -351,10 +358,6 @@ public class ProgramarContratoActivity extends AppCompatActivity {
         checkBoxPowerLimit = findViewById(R.id.checkBoxPowerLimit);
         checkBoxFechaAct = findViewById(R.id.checkBoxFechaAct);
         checkBoxFechaFact = findViewById(R.id.checkBoxFechaFact);
-
-        // Spinners
-        spinnerContrato = findViewById(R.id.spinnerContrato);
-        spinnerTarifa = findViewById(R.id.spinnerTarif);
 
         // Potencias
         editPowerLimitT1 = findViewById(R.id.editPowerLimitT1);

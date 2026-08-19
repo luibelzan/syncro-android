@@ -202,6 +202,7 @@
         <item>3.0 TD</item>
     </string-array>
     <string name="verContract">Leer Actual</string>
+    <string name="programarContrato">Programar contrato</string>
 
     <!-- PANTALLA -->
     <string name="screenParams">Parametros de Pantalla</string>
