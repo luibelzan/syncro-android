@@ -4,8 +4,10 @@ import com.celnet.syncro.client.GXDLMSReader;
 import com.celnet.syncro.client.GXDLMSSecureClient2;
 import com.celnet.syncro.utils.AppLogger;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 import java.util.TimeZone;
 
 import gurux.dlms.GXDateTime;
@@ -13,6 +15,11 @@ import gurux.dlms.GXReplyData;
 import gurux.dlms.objects.GXDLMSClock;
 
 public class DateReader {
+
+    // Formato fijo y sin ambigüedad: nada de depender de GXDateTime.toString()
+    // (su formato de salida puede variar según el locale del dispositivo).
+    // ResultadosDateActivity debe parsear exactamente este mismo patrón.
+    private static final String FORMATO_SALIDA = "yyyy-MM-dd HH:mm:ss";
 
     public static String readDate(GXDLMSReader reader) throws Exception {
 
@@ -23,7 +30,11 @@ public class DateReader {
 
             if (value instanceof GXDateTime) {
                 GXDateTime dateTime = (GXDateTime) value;
-                return dateTime.toString();
+                Date fecha = dateTime.getMeterCalendar().getTime();
+                SimpleDateFormat sdf = new SimpleDateFormat(FORMATO_SALIDA, Locale.US);
+                String resultado = sdf.format(fecha);
+                AppLogger.i("Syncro", "Fecha y hora del equipo (formateada): " + resultado);
+                return resultado;
             } else {
                 return "Formato inesperado: " + value;
             }

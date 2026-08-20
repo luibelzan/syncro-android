@@ -175,6 +175,8 @@
     <string name="dateMenu">Menu de Fecha y Hora</string>
     <string name="readDate">Consultar Reloj</string>
     <string name="syncDate">Sincronizar Reloj</string>
+    <string name="fechaHora">Fecha y Hora</string>
+    <string name="sincronizarFecha">Sincronizar Fecha</string>
 
     <!-- CONTRATOS MENU -->
     <string name="contractsMenu">Menu de Contratos</string>

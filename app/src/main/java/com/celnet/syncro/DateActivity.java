@@ -52,16 +52,14 @@ public class DateActivity extends AppCompatActivity {
             progressBar.setVisibility(View.VISIBLE);
 
             new Thread(() -> {
-                try {
-                    DLMSConnection conn = (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH)
-                            ? new DLMSConnection(config.getBluetoothDeviceName())
-                            : new DLMSConnection(config.getIp(), config.getPort());
+                DLMSConnection conn = (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH)
+                        ? new DLMSConnection(config.getBluetoothDeviceName())
+                        : new DLMSConnection(config.getIp(), config.getPort());
 
+                try {
                     DLMSConnection.ConnectionResult res = conn.connectWithAutoDetect(DateActivity.this);
 
                     String date = DateReader.readDate(res.reader);
-
-                    conn.close();
 
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);
@@ -82,6 +80,8 @@ public class DateActivity extends AppCompatActivity {
                                 "Error de conexión: " + e.getClass().getSimpleName() +
                                         " - " + e.getMessage(), Toast.LENGTH_LONG).show();
                     });
+                } finally {
+                    conn.close();
                 }
             }).start();
         });

@@ -1,31 +1,41 @@
 package com.celnet.syncro;
 
+import android.app.DatePickerDialog;
+import android.app.TimePickerDialog;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.celnet.syncro.client.DLMSConnection;
-import com.celnet.syncro.client.GXDLMSReader;
 import com.celnet.syncro.client.GXDLMSSecureClient2;
 import com.celnet.syncro.objects.params.DateReader;
 import com.celnet.syncro.session.ConnectionConfig;
 import com.celnet.syncro.session.SessionManager;
+import com.google.android.material.checkbox.MaterialCheckBox;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
 public class SyncDateActivity extends BaseActivity {
+
+    // Formato solo para mostrar en pantalla. La fecha real que se envía a
+    // DateReader.syncClock es el objeto Date que va guardado en fechaSeleccionada,
+    // así que este patrón no afecta a la sincronización en ningún caso.
+    private static final SimpleDateFormat SDF =
+            new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
+
+    // Fecha/hora elegida con los pickers (o "ahora" mientras el checkbox esté desmarcado)
+    private Date fechaSeleccionada = new Date();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,43 +50,35 @@ public class SyncDateActivity extends BaseActivity {
 
         EditText editDateTime = findViewById(R.id.editDateTime);
         EditText editTimezone = findViewById(R.id.editTimezone);
-        CheckBox checkBoxManual = findViewById(R.id.checkBoxManual);
-        ImageButton btnNext = findViewById(R.id.btnNext);
+        MaterialCheckBox checkBoxManual = findViewById(R.id.checkBoxManual);
+        ExtendedFloatingActionButton btnNext = findViewById(R.id.btnNext);
         LinearLayout progressBar = findViewById(R.id.progressContainer);
 
-        // Fecha y hora actual
-        SimpleDateFormat sdf =
-                new SimpleDateFormat("yyyy/MM/dd HH:mm", Locale.getDefault());
-
-        String fechaActual = sdf.format(new Date());
-
-        // Establecer valores por defecto
-        editDateTime.setText(fechaActual);
+        // Valores por defecto
+        editDateTime.setText(SDF.format(fechaSeleccionada));
         editTimezone.setText("120");
 
         // Estado inicial (bloqueados)
         setEditable(false, editDateTime, editTimezone);
 
-        // Listener del checkbox
+        // Al marcar el checkbox se habilita poder abrir los pickers y editar el timezone
         checkBoxManual.setOnCheckedChangeListener((buttonView, isChecked) -> {
             setEditable(isChecked, editDateTime, editTimezone);
+            if (!isChecked) {
+                // Al desmarcar, se vuelve a "ahora" (comportamiento original)
+                fechaSeleccionada = new Date();
+                editDateTime.setText(SDF.format(fechaSeleccionada));
+            }
         });
 
+        // Abre DatePicker -> TimePicker encadenados y actualiza fechaSeleccionada
+        editDateTime.setOnClickListener(v -> mostrarDateTimePicker(editDateTime));
+
         btnNext.setOnClickListener(v -> {
-            String dateTimeStr = editDateTime.getText().toString().trim();
             String timezoneStr = editTimezone.getText().toString().trim();
             ConnectionConfig config = SessionManager.getInstance().getConnectionConfig();
 
-            Date dateTime;
             int utcOffsetMinutes;
-
-            try {
-                dateTime = sdf.parse(dateTimeStr);
-            } catch (Exception e) {
-                Toast.makeText(this, "Formato de fecha incorrecto (yyyy/MM/dd HH:mm)", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
             try {
                 utcOffsetMinutes = Integer.parseInt(timezoneStr);
             } catch (NumberFormatException e) {
@@ -88,23 +90,22 @@ public class SyncDateActivity extends BaseActivity {
             btnNext.setEnabled(false);
             checkBoxManual.setEnabled(false);
 
-            final Date finalDateTime = dateTime;
+            final Date finalDateTime = fechaSeleccionada;
             final int finalOffset = utcOffsetMinutes;
 
             progressBar.setVisibility(View.VISIBLE);
 
             new Thread(() -> {
-                try {
-                    DLMSConnection conn = (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH)
-                            ? new DLMSConnection(config.getBluetoothDeviceName())
-                            : new DLMSConnection(config.getIp(), config.getPort());
+                DLMSConnection conn = (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH)
+                        ? new DLMSConnection(config.getBluetoothDeviceName())
+                        : new DLMSConnection(config.getIp(), config.getPort());
 
+                try {
                     DLMSConnection.ConnectionResult res = conn.connectWithAutoDetect(SyncDateActivity.this);
 
                     GXDLMSSecureClient2 client = conn.getClient();
 
                     DateReader.syncClock(res.reader, client, finalOffset, finalDateTime);
-                    conn.close();
 
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);
@@ -126,17 +127,48 @@ public class SyncDateActivity extends BaseActivity {
                                 "Error de conexión: " + e.getClass().getSimpleName() +
                                         " - " + e.getMessage(), Toast.LENGTH_LONG).show();
                     });
+                } finally {
+                    conn.close();
                 }
             }).start();
         });
     }
 
+    private void mostrarDateTimePicker(EditText editDateTime) {
+        Calendar calInicial = Calendar.getInstance();
+        calInicial.setTime(fechaSeleccionada);
+
+        new DatePickerDialog(
+                this,
+                (dateView, year, month, day) -> {
+
+                    // Tras elegir la fecha, encadenamos el selector de hora
+                    new TimePickerDialog(
+                            this,
+                            (timeView, hour, minute) -> {
+
+                                Calendar cal = Calendar.getInstance();
+                                cal.set(year, month, day, hour, minute, 0);
+                                cal.set(Calendar.MILLISECOND, 0);
+
+                                fechaSeleccionada = cal.getTime();
+                                editDateTime.setText(SDF.format(fechaSeleccionada));
+                            },
+                            calInicial.get(Calendar.HOUR_OF_DAY),
+                            calInicial.get(Calendar.MINUTE),
+                            true
+                    ).show();
+
+                },
+                calInicial.get(Calendar.YEAR),
+                calInicial.get(Calendar.MONTH),
+                calInicial.get(Calendar.DAY_OF_MONTH)
+        ).show();
+    }
+
     private void setEditable(boolean enabled, EditText... fields) {
         for (EditText et : fields) {
             et.setEnabled(enabled);
-            et.setFocusable(enabled);
-            et.setFocusableInTouchMode(enabled);
-            et.setCursorVisible(enabled);
         }
     }
 }
