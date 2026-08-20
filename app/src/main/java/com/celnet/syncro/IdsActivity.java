@@ -2,6 +2,7 @@ package com.celnet.syncro;
 
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -12,9 +13,11 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.celnet.syncro.client.DLMSConnection;
 import com.celnet.syncro.models.parameters.MeterInfo;
+import com.celnet.syncro.models.parameters.MeterInfoDisplay;
 import com.celnet.syncro.objects.ids.MeterInfoReader;
 import com.celnet.syncro.session.ConnectionConfig;
 import com.celnet.syncro.session.SessionManager;
+import com.google.android.material.card.MaterialCardView;
 
 public class IdsActivity extends BaseActivity {
 
@@ -30,12 +33,17 @@ public class IdsActivity extends BaseActivity {
         });
 
         LinearLayout progressBar = findViewById(R.id.progressContainer);
-        LinearLayout layoutResultados = findViewById(R.id.layoutResultados);
+        MaterialCardView layoutResultados = findViewById(R.id.layoutResultados);
 
         TextView tvSerial = findViewById(R.id.tvSerial);
-        TextView tvEquipo = findViewById(R.id.tvEquipo);
-        TextView tvTipo = findViewById(R.id.tvTipo);
-        TextView tvFirmware = findViewById(R.id.tvFirmware);
+        ImageView ivFabricanteLogo = findViewById(R.id.ivFabricanteLogo);
+        TextView tvFabricante = findViewById(R.id.tvFabricante);
+        TextView tvModelo = findViewById(R.id.tvModelo);
+        TextView tvFabricadoEn = findViewById(R.id.tvFabricadoEn);
+        TextView tvFirmwareDlms = findViewById(R.id.tvFirmwareDlms);
+        TextView tvTipoEquipo = findViewById(R.id.tvTipoEquipo);
+        TextView tvCompanion = findViewById(R.id.tvCompanion);
+
         ConnectionConfig config = SessionManager.getInstance().getConnectionConfig();
 
         progressBar.setVisibility(View.VISIBLE);
@@ -49,19 +57,25 @@ public class IdsActivity extends BaseActivity {
             try {
                 DLMSConnection.ConnectionResult res = conn.connectWithAutoDetect(IdsActivity.this);
 
-
                 // Leer Identificadores
                 MeterInfo datos = MeterInfoReader.leerIdentificadores(res.reader);
+
+                MeterInfoDisplay display = MeterInfoDisplay.parse(
+                        res.serialNumber, datos.equipo, datos.tipo, datos.firmware);
 
                 runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);
                     layoutResultados.setVisibility(View.VISIBLE);
 
-                    tvSerial.setText("Número serial: " + res.serialNumber);
-                    tvEquipo.setText("Identificador equipo: " + datos.equipo);
-                    tvTipo.setText("Identificador tipo: " + datos.tipo);
-                    tvFirmware.setText("Versión firmware: " + datos.firmware);
+                    tvSerial.setText(display.numeroSerie);
+                    tvFabricante.setText(display.fabricanteNombre);
+                    tvModelo.setText(display.modelo);
+                    tvFabricadoEn.setText(display.fabricadoEn);
+                    tvFirmwareDlms.setText(display.firmwareDlms);
+                    tvTipoEquipo.setText(display.tipoEquipo);
+                    tvCompanion.setText(display.companion);
 
+                    cargarLogoFabricante(ivFabricanteLogo, display.logoResourceName());
                 });
 
             } catch (Exception e) {
@@ -81,7 +95,19 @@ public class IdsActivity extends BaseActivity {
                 conn.close();
             }
         }).start();
+    }
 
-
+    /**
+     * Busca en res/drawable un recurso con el nombre indicado (p.ej. "logo_sagemcom").
+     * Si no existe (fabricante sin logo añadido todavía), usa un icono de repuesto.
+     */
+    private void cargarLogoFabricante(ImageView imageView, String resourceName) {
+        int resId = getResources().getIdentifier(resourceName, "drawable", getPackageName());
+        if (resId != 0) {
+            imageView.setImageResource(resId);
+        } else {
+            // ⚠️ TODO: sustituye por un icono de "fabricante genérico" propio si tienes uno
+            imageView.setImageResource(android.R.drawable.ic_menu_gallery);
+        }
     }
 }

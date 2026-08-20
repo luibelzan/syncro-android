@@ -60,6 +60,8 @@
         <item>Todos los contratos</item>
     </string-array>
 
+    <!-- IDENTIFICADORES -->
+    <string name="fabricante">Fabricante:</string>
 
     <!-- EVENTOS -->
     <string name="tipoEvent">Tipo de evento:</string>
