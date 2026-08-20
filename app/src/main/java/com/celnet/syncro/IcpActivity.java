@@ -43,16 +43,14 @@ public class IcpActivity extends AppCompatActivity {
             progressBar.setVisibility(View.VISIBLE);
 
             new Thread(() -> {
-                try {
-                    DLMSConnection conn = (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH)
-                            ? new DLMSConnection(config.getBluetoothDeviceName())
-                            : new DLMSConnection(config.getIp(), config.getPort());
+                DLMSConnection conn = (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH)
+                        ? new DLMSConnection(config.getBluetoothDeviceName())
+                        : new DLMSConnection(config.getIp(), config.getPort());
 
+                try {
                     DLMSConnection.ConnectionResult res = conn.connectWithAutoDetect(IcpActivity.this);
 
                     ControlModeResult result = ControlDisconnectMode.readControlDisconnectMode(res.reader, conn.getClient());
-
-                    conn.close();
 
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);
@@ -63,6 +61,7 @@ public class IcpActivity extends AppCompatActivity {
                         intent.putExtra("success", result.success);
                         intent.putExtra("estadoInicial", result.estadoInicial);
                         intent.putExtra("estadoFinal", result.estadoFinal);
+                        intent.putExtra("modoControl", result.modoControl);
                         intent.putExtra("mensaje", result.mensaje);
 
                         startActivity(intent);
@@ -76,6 +75,8 @@ public class IcpActivity extends AppCompatActivity {
                                 "Error de conexión: " + e.getClass().getSimpleName() +
                                         " - " + e.getMessage(), Toast.LENGTH_LONG).show();
                     });
+                } finally {
+                    conn.close();
                 }
             }).start();
         });

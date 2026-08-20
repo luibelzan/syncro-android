@@ -160,6 +160,7 @@
     <string name="icpStatusTitle">Interruptor Control de Potencia</string>
     <string name="tipoOperacionIcp">Tipo de operacion:</string>
     <string name="operacionIcp">Operacion:</string>
+    <string name="estadoIcp">Estado ICP</string>
 
     <!-- ICP EJECUCION -->
     <string-array name="tipo_operaciones_array">

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="96dp"
+    android:height="96dp"
+    android:viewportWidth="96"
+    android:viewportHeight="96">
+
+    <!-- Cuerpo del contador -->
+    <path
+        android:pathData="M20,16 h56 a8,8 0 0 1 8,8 v48 a8,8 0 0 1 -8,8 h-56 a8,8 0 0 1 -8,-8 v-48 a8,8 0 0 1 8,-8 z"
+        android:fillColor="@color/surface"
+        android:strokeColor="@color/on_surface_variant"
+        android:strokeWidth="2" />
+
+    <!-- Pantalla -->
+    <path
+        android:pathData="M28,28 h40 v20 h-40 z"
+        android:fillColor="@color/on_surface" />
+
+    <!-- Texto simulado de la pantalla -->
+    <path
+        android:pathData="M32,34 h32 M32,40 h20"
+        android:strokeColor="@color/success"
+        android:strokeWidth="2" />
+
+    <!-- Indicador de estado: check circular verde -->
+    <path
+        android:pathData="M48,74 m-10,0 a10,10 0 1,0 20,0 a10,10 0 1,0 -20,0"
+        android:fillColor="@color/success" />
+    <path
+        android:pathData="M43,74 l4,4 l7,-8"
+        android:strokeColor="@color/white"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+
+</vector>

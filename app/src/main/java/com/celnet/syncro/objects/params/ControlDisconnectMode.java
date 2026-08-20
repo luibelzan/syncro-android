@@ -27,8 +27,9 @@ public class ControlDisconnectMode {
             reader.read(dc, 3); // control_state
             reader.read(dc, 4); // control_mode
 
-            String estadoInicial = dc.getOutputState() ? "Conectado" : "Desconectado";
+            String estadoInicial = outputStateToString(dc.getOutputState());
             String controlStateInicial = controlStateToString(dc.getControlState());
+            String modoControl = "Modo " + dc.getControlMode();
 
             AppLogger.i("Syncro", "Estado inicial del relé:");
             AppLogger.i("Syncro", " - Output State: " + estadoInicial);
@@ -57,7 +58,7 @@ public class ControlDisconnectMode {
             reader.read(dc, 2);
             reader.read(dc, 3);
 
-            String estadoFinal = dc.getOutputState() ? "Conectado" : "Desconectado";
+            String estadoFinal = outputStateToString(dc.getOutputState());
             String controlStateFinal = controlStateToString(dc.getControlState());
 
             AppLogger.i("Syncro", "Nuevo estado del relé:");
@@ -68,6 +69,7 @@ public class ControlDisconnectMode {
                     true,
                     estadoInicial + " (" + controlStateInicial + ")",
                     estadoFinal + " (" + controlStateFinal + ")",
+                    modoControl,
                     "Operación de " + action + " realizada correctamente"
             );
 
@@ -78,9 +80,14 @@ public class ControlDisconnectMode {
                     false,
                     "Desconocido",
                     "Desconocido",
+                    "Desconocido",
                     "Error: " + e.getMessage()
             );
         }
+    }
+
+    private static String outputStateToString(boolean outputState) {
+        return outputState ? "Cerrado" : "Abierto";
     }
 
     private static String controlStateToString(ControlState state) {
@@ -114,20 +121,21 @@ public class ControlDisconnectMode {
             reader.read(dc, 3); // control_state
             reader.read(dc, 4); // control_mode
 
-            String estado = dc.getOutputState() ? "Conectado" : "Desconectado";
+            String estado = outputStateToString(dc.getOutputState());
             String controlState = controlStateToString(dc.getControlState());
-            String controlMode = String.valueOf(dc.getControlMode());
+            String modoControl = "Modo " + dc.getControlMode();
 
             AppLogger.i("Syncro", "Estado actual del relé:");
             AppLogger.i("Syncro", " - Output State: " + estado);
             AppLogger.i("Syncro", " - Control State: " + controlState);
-            AppLogger.i("Syncro", " - Control Mode: " + controlMode);
+            AppLogger.i("Syncro", " - Control Mode: " + dc.getControlMode());
 
             return new ControlModeResult(
                     true,
                     estado + " (" + controlState + ")",
                     estado + " (" + controlState + ")",
-                    "Lectura realizada correctamente (Modo: " + controlMode + ")"
+                    modoControl,
+                    "Lectura realizada correctamente"
             );
 
         } catch (Exception e) {
@@ -135,6 +143,7 @@ public class ControlDisconnectMode {
 
             return new ControlModeResult(
                     false,
+                    "Desconocido",
                     "Desconocido",
                     "Desconocido",
                     "Error al leer estado: " + e.getMessage()
