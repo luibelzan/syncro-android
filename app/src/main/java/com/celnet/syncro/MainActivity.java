@@ -5,52 +5,44 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageButton;
+import android.widget.AutoCompleteTextView;
 import android.widget.LinearLayout;
-import android.widget.RadioButton;
 import android.widget.RadioGroup;
-import android.widget.Spinner;
-import android.widget.TextView;
-import android.widget.Toast;
 import com.celnet.syncro.client.DLMSConnection;
 
 import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
-import com.celnet.syncro.client.GXDLMSReader;
-import com.celnet.syncro.client.GXDLMSSecureClient2;
-import com.celnet.syncro.objects.events.StandarEventLogReader;
-import com.celnet.syncro.objects.instantValues.InstantaneousValuesReader;
-import com.celnet.syncro.objects.params.DateReader;
 import com.celnet.syncro.session.ConnectionConfig;
 import com.celnet.syncro.session.SessionManager;
-import com.celnet.syncro.utils.MeterData;
 import com.celnet.syncro.utils.PasswordHelper;
-
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
+import com.google.android.material.radiobutton.MaterialRadioButton;
+import com.google.android.material.textfield.TextInputEditText;
 
 public class MainActivity extends BaseActivity {
 
-    private TextView txtStatus;
-    private Button btnConnect;
     private static final int REQUEST_BLUETOOTH_PERMISSIONS = 1;
     private RadioGroup radioGroupConexion;
     private LinearLayout layoutBluetooth;
     private LinearLayout layoutTcp;
-    private String dispositivo;
-    private String ip;
-    private int port;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
+
         // En MainActivity.onCreate() o en tu clase Application:
         PasswordHelper.initDefaultPasswordIfNeeded(this);
 
@@ -84,63 +76,43 @@ public class MainActivity extends BaseActivity {
         }
 
         // Listener para cambio de selección
-        radioGroupConexion.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(RadioGroup group, int checkedId) {
+        radioGroupConexion.setOnCheckedChangeListener((group, checkedId) -> {
 
-                if (checkedId == R.id.rbBluetooth) {
+            if (checkedId == R.id.rbBluetooth) {
 
-                    layoutBluetooth.setVisibility(View.VISIBLE);
-                    layoutTcp.setVisibility(View.GONE);
+                layoutBluetooth.setVisibility(View.VISIBLE);
+                layoutTcp.setVisibility(View.GONE);
 
-                } else if (checkedId == R.id.rbTcp) {
+            } else if (checkedId == R.id.rbTcp) {
 
-                    layoutBluetooth.setVisibility(View.GONE);
-                    layoutTcp.setVisibility(View.VISIBLE);
-                }
+                layoutBluetooth.setVisibility(View.GONE);
+                layoutTcp.setVisibility(View.VISIBLE);
             }
         });
 
-        // 🔹 Inicializar Spinner AQUÍ
-        Spinner spinnerSonda = findViewById(R.id.spinnerSonda);
+        // 🔹 Desplegable de sondas
+        AutoCompleteTextView spinnerSonda = findViewById(R.id.spinnerSonda);
 
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
-                this,
-                R.array.sondas_array,
-                android.R.layout.simple_spinner_item
-        );
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-
+        String[] sondas = getResources().getStringArray(R.array.sondas_array);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                this, android.R.layout.simple_dropdown_item_1line, sondas);
         spinnerSonda.setAdapter(adapter);
+        if (sondas.length > 0) {
+            spinnerSonda.setText(sondas[0], false);
+        }
 
-        spinnerSonda.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String seleccion = parent.getItemAtPosition(position).toString();
-                // Aquí puedes usar la selección
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-                // No hacer nada
-            }
-        });
-
-        //startActivity(new Intent(this, SecondActivity.class));
-
-        ImageButton btnNext = findViewById(R.id.btnNext);
+        ExtendedFloatingActionButton btnNext = findViewById(R.id.btnNext);
 
         btnNext.setOnClickListener(v -> {
-            RadioButton rbBluetooth = findViewById(R.id.rbBluetooth);
-            EditText etIp = findViewById(R.id.etIp);
-            EditText etPort = findViewById(R.id.etPort);
-            //Spinner spinnerSonda = findViewById(R.id.spinnerSonda);
+            MaterialRadioButton rbBluetooth = findViewById(R.id.rbBluetooth);
+            TextInputEditText etIp = findViewById(R.id.etIp);
+            TextInputEditText etPort = findViewById(R.id.etPort);
 
             ConnectionConfig config;
 
             if (rbBluetooth.isChecked()) {
                 config = new ConnectionConfig(ConnectionConfig.ConnectionType.BLUETOOTH);
-                String deviceName = spinnerSonda.getSelectedItem().toString();
+                String deviceName = spinnerSonda.getText().toString();
                 config.setBluetoothDeviceName(deviceName);
             } else {
 
@@ -206,8 +178,6 @@ public class MainActivity extends BaseActivity {
             // Ir a la siguiente actividad
             startActivity(new Intent(MainActivity.this, SecondActivity.class));
         });
-
-
 
     }
 
