@@ -19,6 +19,8 @@ import com.celnet.syncro.objects.instantValues.ParametersReader;
 import com.celnet.syncro.session.ConnectionConfig;
 import com.celnet.syncro.session.SessionManager;
 import com.celnet.syncro.utils.Utils;
+import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -181,11 +183,11 @@ public class ParametersActivity extends BaseActivity {
             return insets;
         });
 
-        LinearLayout progressBar      = findViewById(R.id.progressContainer);
-        LinearLayout layoutResultados = findViewById(R.id.layoutResultados);
-        LinearLayout btnExport        = findViewById(R.id.btnExport);
-        TextView     tvResultado      = findViewById(R.id.tvResultado);
-        ConnectionConfig config       = SessionManager.getInstance().getConnectionConfig();
+        LinearLayout progressBar             = findViewById(R.id.progressContainer);
+        MaterialCardView layoutResultados    = findViewById(R.id.layoutResultados);
+        ExtendedFloatingActionButton btnExport = findViewById(R.id.btnExport);
+        LinearLayout layoutCampos            = findViewById(R.id.layoutCampos);
+        ConnectionConfig config              = SessionManager.getInstance().getConnectionConfig();
 
         progressBar.setVisibility(View.VISIBLE);
         layoutResultados.setVisibility(View.GONE);
@@ -215,12 +217,10 @@ public class ParametersActivity extends BaseActivity {
                 lastParametros = p;
                 lastCntId      = cntId;
 
-                String texto = formatResult(p);
-
                 runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);
                     layoutResultados.setVisibility(View.VISIBLE);
-                    tvResultado.setText(texto);
+                    rellenarCampos(layoutCampos, p);
                 });
 
             } catch (Exception e) {
@@ -243,33 +243,45 @@ public class ParametersActivity extends BaseActivity {
 
     // ── Format for screen display ────────────────────────────────────────────
 
-    private String formatResult(ParametrosS06 p) {
-        return "Fecha                                : " + p.fecha                                             + "\n" +
-                "Serial number                        : " + p.serialNumber                                     + "\n" +
-                "UNESA Manufacturer                   : " + p.unesaManufacturer                               + "\n" +
-                "UNESA Model Type                     : " + p.unesaModelType                                  + "\n" +
-                "Manufacturing year                   : " + p.manufacturingYear                               + "\n" +
-                "Type of equipment                    : " + p.typeOfEquipment                                 + "\n" +
-                "Firmware version                     : " + p.firmwareVersion                                 + "\n" +
-                "Prime Firmware version               : " + p.primeFirmwareVersion                            + "\n" +
-                "Protocol                             : " + p.protocol                                        + "\n" +
-                "Id. Comunic. Multicast               : " + p.idComunicMulticast                              + "\n" +
-                "Prime MAC address                    : " + p.primeMacAddress                                 + "\n" +
-                "Primary voltage [V]                  : " + String.format("%.1f", p.primaryVoltage)           + "\n" +
-                "Secondary voltage [V]                : " + String.format("%.1f", p.secondaryVoltage)         + "\n" +
-                "Primary current [A]                  : " + String.format("%.1f", p.primaryCurrent)           + "\n" +
-                "Secondary current [A]                : " + String.format("%.1f", p.secondaryCurrent)         + "\n" +
-                "Threshold Voltage sags [s]           : " + p.thresholdVoltageSags                            + "\n" +
-                "Threshold Voltage swells [s]         : " + p.thresholdVoltageSwells                          + "\n" +
-                "Load profile Period 1 [s]            : " + p.loadProfilePeriod1                              + "\n" +
-                "Demand close contracted power [%]    : " + String.format("%.2f", p.demandCloseContractedPower) + "\n" +
-                "Reference voltage [V]                : " + p.referenceVoltage                                + "\n" +
-                "Long Power Failure threshold [s]     : " + p.longPowerFailureThreshold                       + "\n" +
-                "Voltage sag threshold [%]            : " + String.format("%.2f", p.voltageSagThreshold)      + "\n" +
-                "Voltage swell threshold [%]          : " + String.format("%.2f", p.voltageSwellThreshold)    + "\n" +
-                "Voltage cut-off threshold [%]        : " + String.format("%.2f", p.voltageCutOffThreshold)   + "\n" +
-                "Automatic monthly billing            : " + p.automaticMonthlyBilling                         + "\n" +
-                "Scroll Display Mode                  : " + p.scrollDisplayMode                               + "\n" +
-                "Time for Scroll Display              : " + p.timeForScrollDisplay;
+    private void rellenarCampos(LinearLayout contenedor, ParametrosS06 p) {
+        contenedor.removeAllViews();
+
+        agregarFila(contenedor, "Fecha", p.fecha);
+        agregarFila(contenedor, "Número de serie", p.serialNumber);
+        agregarFila(contenedor, "Fabricante (UNESA)", p.unesaManufacturer);
+        agregarFila(contenedor, "Modelo (UNESA)", p.unesaModelType);
+        agregarFila(contenedor, "Año de fabricación", p.manufacturingYear);
+        agregarFila(contenedor, "Tipo de equipo", p.typeOfEquipment);
+        agregarFila(contenedor, "Versión de firmware", p.firmwareVersion);
+        agregarFila(contenedor, "Versión firmware PRIME", p.primeFirmwareVersion);
+        agregarFila(contenedor, "Protocolo", p.protocol);
+        agregarFila(contenedor, "Id. comunicación multicast", p.idComunicMulticast);
+        agregarFila(contenedor, "Dirección MAC PRIME", p.primeMacAddress);
+        agregarFila(contenedor, "Tensión primaria [V]", String.format("%.1f", p.primaryVoltage));
+        agregarFila(contenedor, "Tensión secundaria [V]", String.format("%.1f", p.secondaryVoltage));
+        agregarFila(contenedor, "Corriente primaria [A]", String.format("%.1f", p.primaryCurrent));
+        agregarFila(contenedor, "Corriente secundaria [A]", String.format("%.1f", p.secondaryCurrent));
+        agregarFila(contenedor, "Umbral huecos de tensión [s]", String.valueOf(p.thresholdVoltageSags));
+        agregarFila(contenedor, "Umbral sobretensiones [s]", String.valueOf(p.thresholdVoltageSwells));
+        agregarFila(contenedor, "Periodo 1 curva de carga [s]", String.valueOf(p.loadProfilePeriod1));
+        agregarFila(contenedor, "Cierre demanda / potencia contratada [%]",
+                String.format("%.2f", p.demandCloseContractedPower));
+        agregarFila(contenedor, "Tensión de referencia [V]", String.valueOf(p.referenceVoltage));
+        agregarFila(contenedor, "Umbral corte largo [s]", String.valueOf(p.longPowerFailureThreshold));
+        agregarFila(contenedor, "Umbral hueco de tensión [%]", String.format("%.2f", p.voltageSagThreshold));
+        agregarFila(contenedor, "Umbral sobretensión [%]", String.format("%.2f", p.voltageSwellThreshold));
+        agregarFila(contenedor, "Umbral corte de tensión [%]", String.format("%.2f", p.voltageCutOffThreshold));
+        agregarFila(contenedor, "Facturación mensual automática", p.automaticMonthlyBilling);
+        agregarFila(contenedor, "Modo de visualización rotativa", p.scrollDisplayMode);
+        agregarFila(contenedor, "Tiempo de visualización rotativa", String.valueOf(p.timeForScrollDisplay));
+    }
+
+    private void agregarFila(LinearLayout contenedor, String etiqueta, String valor) {
+        View fila = getLayoutInflater().inflate(R.layout.item_parametro_row, contenedor, false);
+        TextView tvEtiqueta = fila.findViewById(R.id.tvEtiqueta);
+        TextView tvValor = fila.findViewById(R.id.tvValor);
+        tvEtiqueta.setText(etiqueta);
+        tvValor.setText(valor != null ? valor : "-");
+        contenedor.addView(fila);
     }
 }

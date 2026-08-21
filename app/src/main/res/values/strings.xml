@@ -106,6 +106,9 @@
     <string name="leer">Leer</string>
     <string name="leyendoContador">Leyendo contador…</string>
 
+    <!-- PARAMETROS (S06) -->
+    <string name="parametros">Parámetros</string>
+
     <!-- MENU CONFIG -->
     <string name="configMenu">Menu de Configuracion</string>
     <string name="ftpStg">FTP STG</string>
