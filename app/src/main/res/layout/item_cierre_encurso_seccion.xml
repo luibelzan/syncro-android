@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/surface"
+    android:orientation="vertical"
+    android:paddingStart="12dp"
+    android:paddingEnd="12dp"
+    android:paddingTop="12dp"
+    android:paddingBottom="4dp">
+
+    <!-- Título de la sección -->
+    <TextView
+        android:id="@+id/tvTituloSeccion"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="6dp"
+        android:gravity="center"
+        android:text="Título"
+        android:textColor="@color/on_surface"
+        android:textSize="14sp"
+        android:textStyle="bold" />
+
+    <!-- Cabecera P0..P6 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/primary"
+        android:orientation="horizontal">
+
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:gravity="center" android:padding="6dp" android:text="P0"
+            android:textColor="@color/white" android:textSize="12sp" android:textStyle="bold" />
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:gravity="center" android:padding="6dp" android:text="P1"
+            android:textColor="@color/white" android:textSize="12sp" android:textStyle="bold" />
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:gravity="center" android:padding="6dp" android:text="P2"
+            android:textColor="@color/white" android:textSize="12sp" android:textStyle="bold" />
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:gravity="center" android:padding="6dp" android:text="P3"
+            android:textColor="@color/white" android:textSize="12sp" android:textStyle="bold" />
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:gravity="center" android:padding="6dp" android:text="P4"
+            android:textColor="@color/white" android:textSize="12sp" android:textStyle="bold" />
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:gravity="center" android:padding="6dp" android:text="P5"
+            android:textColor="@color/white" android:textSize="12sp" android:textStyle="bold" />
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:gravity="center" android:padding="6dp" android:text="P6"
+            android:textColor="@color/white" android:textSize="12sp" android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Fila de valores -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/surface"
+        android:orientation="horizontal">
+
+        <TextView android:id="@+id/tvVal0" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:gravity="center" android:padding="6dp" android:textColor="@color/on_surface" android:textSize="13sp" />
+        <TextView android:id="@+id/tvVal1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:gravity="center" android:padding="6dp" android:textColor="@color/on_surface" android:textSize="13sp" />
+        <TextView android:id="@+id/tvVal2" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:gravity="center" android:padding="6dp" android:textColor="@color/on_surface" android:textSize="13sp" />
+        <TextView android:id="@+id/tvVal3" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:gravity="center" android:padding="6dp" android:textColor="@color/on_surface" android:textSize="13sp" />
+        <TextView android:id="@+id/tvVal4" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:gravity="center" android:padding="6dp" android:textColor="@color/on_surface" android:textSize="13sp" />
+        <TextView android:id="@+id/tvVal5" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:gravity="center" android:padding="6dp" android:textColor="@color/on_surface" android:textSize="13sp" />
+        <TextView android:id="@+id/tvVal6" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:gravity="center" android:padding="6dp" android:textColor="@color/on_surface" android:textSize="13sp" />
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="2dp"
+        android:background="@color/outline" />
+
+    <!-- Fila de fechas (solo maxímetros; oculta en el resto) -->
+    <LinearLayout
+        android:id="@+id/rowFechas"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/surface"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <TextView android:id="@+id/tvFecha0" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:gravity="center" android:padding="4dp" android:textColor="@color/on_surface_variant" android:textSize="10sp" />
+        <TextView android:id="@+id/tvFecha1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:gravity="center" android:padding="4dp" android:textColor="@color/on_surface_variant" android:textSize="10sp" />
+        <TextView android:id="@+id/tvFecha2" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:gravity="center" android:padding="4dp" android:textColor="@color/on_surface_variant" android:textSize="10sp" />
+        <TextView android:id="@+id/tvFecha3" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:gravity="center" android:padding="4dp" android:textColor="@color/on_surface_variant" android:textSize="10sp" />
+        <TextView android:id="@+id/tvFecha4" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:gravity="center" android:padding="4dp" android:textColor="@color/on_surface_variant" android:textSize="10sp" />
+        <TextView android:id="@+id/tvFecha5" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:gravity="center" android:padding="4dp" android:textColor="@color/on_surface_variant" android:textSize="10sp" />
+        <TextView android:id="@+id/tvFecha6" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:gravity="center" android:padding="4dp" android:textColor="@color/on_surface_variant" android:textSize="10sp" />
+    </LinearLayout>
+
+</LinearLayout>

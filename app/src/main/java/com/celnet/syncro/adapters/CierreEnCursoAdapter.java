@@ -14,18 +14,36 @@ import com.celnet.syncro.models.cierres.CierreEnCursoFila;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CierreEnCursoAdapter extends RecyclerView.Adapter<CierreEnCursoAdapter.VH> {
+public class CierreEnCursoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-    private static final int TYPE_HEADER = 0;
-    private static final int TYPE_LINE   = 1;
+    private static final int TYPE_HEADER  = 0;
+    private static final int TYPE_LINE    = 1;
+    private static final int TYPE_SECCION = 2;
 
-    private static class Row {
+    private static abstract class Row {
+        abstract int type();
+    }
+
+    private static class RowTexto extends Row {
         final String text;
         final boolean isHeader;
-        Row(String text, boolean isHeader) {
-            this.text     = text;
+        RowTexto(String text, boolean isHeader) {
+            this.text = text;
             this.isHeader = isHeader;
         }
+        @Override int type() { return isHeader ? TYPE_HEADER : TYPE_LINE; }
+    }
+
+    private static class RowSeccion extends Row {
+        final String titulo;
+        final long[] valores;      // longitud 7 (P0..P6)
+        final String[] fechas;     // longitud 7, o null si esta sección no lleva fechas
+        RowSeccion(String titulo, long[] valores, String[] fechas) {
+            this.titulo = titulo;
+            this.valores = valores;
+            this.fechas = fechas;
+        }
+        @Override int type() { return TYPE_SECCION; }
     }
 
     private final List<Row> rows = new ArrayList<>();
@@ -34,112 +52,120 @@ public class CierreEnCursoAdapter extends RecyclerView.Adapter<CierreEnCursoAdap
         for (CierreEnCursoFila f : datos) {
 
             // ── Cabecera de contrato ──────────────────────────────────────
-            rows.add(new Row("Cierre contrato nº " + f.contrato, true));
-            rows.add(new Row("Timestamp " + f.fecha, false));
+            rows.add(new RowTexto("Cierre contrato nº " + f.contrato, true));
+            rows.add(new RowTexto("Timestamp " + f.fecha, false));
 
-            // ── Activa Importada ─────────────────────────────────────────
-            for (int i = 0; i < 6; i++) {
-                rows.add(new Row(
-                        "Tarifa activa Importada " + (i + 1) + " = " + f.aPlus[i] + " [kWh]",
-                        false));
-            }
-            rows.add(new Row(
-                    "Tarifa activa Importada Total = " + f.aPlus[6] + " [kWh]", false));
-
-            // ── Activa Exportada ─────────────────────────────────────────
-            for (int i = 0; i < 6; i++) {
-                rows.add(new Row(
-                        "Tarifa activa Exportada " + (i + 1) + " = " + f.aMinus[i] + " [kWh]",
-                        false));
-            }
-            rows.add(new Row(
-                    "Tarifa activa Exportada Total = " + f.aMinus[6] + " [kWh]", false));
-
-            // ── Reactiva QI ──────────────────────────────────────────────
-            for (int i = 0; i < 6; i++) {
-                rows.add(new Row(
-                        "Tarifa reactiva QI " + (i + 1) + " = " + f.qi[i] + " [kvarh]",
-                        false));
-            }
-            rows.add(new Row(
-                    "Tarifa reactiva QI Total = " + f.qi[6] + " [kvarh]", false));
-
-            // ── Reactiva QII ─────────────────────────────────────────────
-            for (int i = 0; i < 6; i++) {
-                rows.add(new Row(
-                        "Tarifa reactiva QII " + (i + 1) + " = " + f.qii[i] + " [kvarh]",
-                        false));
-            }
-            rows.add(new Row(
-                    "Tarifa reactiva QII Total = " + f.qii[6] + " [kvarh]", false));
-
-            // ── Reactiva QIII ────────────────────────────────────────────
-            for (int i = 0; i < 6; i++) {
-                rows.add(new Row(
-                        "Tarifa reactiva QIII " + (i + 1) + " = " + f.qiii[i] + " [kvarh]",
-                        false));
-            }
-            rows.add(new Row(
-                    "Tarifa reactiva QIII Total = " + f.qiii[6] + " [kvarh]", false));
-
-            // ── Reactiva QIV ─────────────────────────────────────────────
-            for (int i = 0; i < 6; i++) {
-                rows.add(new Row(
-                        "Tarifa reactiva QIV " + (i + 1) + " = " + f.qiv[i] + " [kvarh]",
-                        false));
-            }
-            rows.add(new Row(
-                    "Tarifa reactiva QIV Total = " + f.qiv[6] + " [kvarh]", false));
-
-            // ── Maxímetros ───────────────────────────────────────────────
-            for (int i = 0; i < 6; i++) {
-                rows.add(new Row(
-                        "Max periodo " + (i + 1) + " = " + f.maxDemand[i] + " [W]",
-                        false));
-                rows.add(new Row(
-                        "Fecha/hora max = " + f.maxDates[i],
-                        false));
-            }
-            rows.add(new Row(
-                    "Max Total = " + f.maxDemand[6] + " [W]", false));
-            rows.add(new Row(
-                    "Fecha/hora max = " + f.maxDates[6], false));
+            // ── Tablas P0..P6 ───────────────────────────────────────────
+            rows.add(new RowSeccion("Activa Importada", f.aPlus, null));
+            rows.add(new RowSeccion("Activa Exportada", f.aMinus, null));
+            rows.add(new RowSeccion("Reactiva QI", f.qi, null));
+            rows.add(new RowSeccion("Reactiva QII", f.qii, null));
+            rows.add(new RowSeccion("Reactiva QIII", f.qiii, null));
+            rows.add(new RowSeccion("Reactiva QIV", f.qiv, null));
+            rows.add(new RowSeccion("Maxímetros", f.maxDemand, f.maxDates));
 
             // ── Separador visual entre bloques de contrato ────────────────
-            rows.add(new Row("", false));
+            rows.add(new RowTexto("", false));
         }
     }
 
     @Override
     public int getItemViewType(int position) {
-        return rows.get(position).isHeader ? TYPE_HEADER : TYPE_LINE;
+        return rows.get(position).type();
     }
 
     @NonNull @Override
-    public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+
+        if (viewType == TYPE_SECCION) {
+            View v = inflater.inflate(R.layout.item_cierre_encurso_seccion, parent, false);
+            return new VHSeccion(v);
+        }
+
         int layout = (viewType == TYPE_HEADER)
                 ? R.layout.item_cierre_encurso_header
                 : R.layout.item_cierre_encurso_line;
-        View v = LayoutInflater.from(parent.getContext())
-                .inflate(layout, parent, false);
-        return new VH(v);
+        View v = inflater.inflate(layout, parent, false);
+        return new VHTexto(v);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull VH h, int position) {
-        // El color, la tipografía y el tamaño ya están definidos en el XML
-        // de cada tipo de item (header vs. line), no hace falta tocarlos aquí.
-        h.tv.setText(rows.get(position).text);
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+        Row row = rows.get(position);
+
+        if (row instanceof RowSeccion) {
+            RowSeccion seccion = (RowSeccion) row;
+            VHSeccion h = (VHSeccion) holder;
+
+            h.tvTitulo.setText(seccion.titulo);
+
+            for (int i = 0; i < 7; i++) {
+                h.valores[i].setText(String.valueOf(seccion.valores[i]));
+            }
+
+            if (seccion.fechas != null) {
+                h.rowFechas.setVisibility(View.VISIBLE);
+                for (int i = 0; i < 7; i++) {
+                    h.fechas[i].setText(formatearFechaCelda(seccion.fechas[i]));
+                }
+            } else {
+                h.rowFechas.setVisibility(View.GONE);
+            }
+
+        } else {
+            ((VHTexto) holder).tv.setText(((RowTexto) row).text);
+        }
+    }
+
+    /** Divide "fecha hora" en dos líneas para que quepa en la celda. */
+    private String formatearFechaCelda(String fechaHora) {
+        if (fechaHora == null || fechaHora.trim().isEmpty()) {
+            return "-";
+        }
+        int espacio = fechaHora.indexOf(' ');
+        if (espacio == -1) {
+            return fechaHora;
+        }
+        return fechaHora.substring(0, espacio) + "\n" + fechaHora.substring(espacio + 1);
     }
 
     @Override
     public int getItemCount() { return rows.size(); }
 
-    static class VH extends RecyclerView.ViewHolder {
+    static class VHTexto extends RecyclerView.ViewHolder {
         final TextView tv;
-        VH(View v) {
+        VHTexto(View v) {
             super(v);
             tv = v.findViewById(R.id.tvLine);
+        }
+    }
+
+    static class VHSeccion extends RecyclerView.ViewHolder {
+        final TextView tvTitulo;
+        final TextView[] valores = new TextView[7];
+        final TextView[] fechas = new TextView[7];
+        final View rowFechas;
+
+        VHSeccion(View v) {
+            super(v);
+            tvTitulo = v.findViewById(R.id.tvTituloSeccion);
+            valores[0] = v.findViewById(R.id.tvVal0);
+            valores[1] = v.findViewById(R.id.tvVal1);
+            valores[2] = v.findViewById(R.id.tvVal2);
+            valores[3] = v.findViewById(R.id.tvVal3);
+            valores[4] = v.findViewById(R.id.tvVal4);
+            valores[5] = v.findViewById(R.id.tvVal5);
+            valores[6] = v.findViewById(R.id.tvVal6);
+
+            rowFechas = v.findViewById(R.id.rowFechas);
+            fechas[0] = v.findViewById(R.id.tvFecha0);
+            fechas[1] = v.findViewById(R.id.tvFecha1);
+            fechas[2] = v.findViewById(R.id.tvFecha2);
+            fechas[3] = v.findViewById(R.id.tvFecha3);
+            fechas[4] = v.findViewById(R.id.tvFecha4);
+            fechas[5] = v.findViewById(R.id.tvFecha5);
+            fechas[6] = v.findViewById(R.id.tvFecha6);
         }
     }
 }
