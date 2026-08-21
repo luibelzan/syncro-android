@@ -61,6 +61,12 @@ public class CierresActivity extends BaseActivity {
         datePickerDialog.show();
     }
 
+    /** Devuelve la fecha en formato interno yyyy/MM/dd guardada en el tag del EditText. */
+    private String obtenerFechaInterna(EditText editText) {
+        Object tag = editText.getTag();
+        return tag != null ? tag.toString() : "";
+    }
+
     private void actualizarVisibilidadFechas(String tipo,
                                              TextInputLayout layoutFechaInicio,
                                              TextInputLayout layoutFechaFin) {
@@ -132,8 +138,8 @@ public class CierresActivity extends BaseActivity {
                 return;
             }
 
-            String fechaInicio = editFechaInicio.getText().toString();
-            String fechaFin = editFechaFin.getText().toString();
+            String fechaInicio = obtenerFechaInterna(editFechaInicio);
+            String fechaFin = obtenerFechaInterna(editFechaFin);
 
             int posicionContrato = Arrays.asList(contratosArray).indexOf(spinnerContrato.getText().toString());
             int contrato = posicionContrato + 1;
@@ -267,8 +273,8 @@ public class CierresActivity extends BaseActivity {
             return true;
         }
 
-        String fechaInicio = editFechaInicio.getText().toString().trim();
-        String fechaFin = editFechaFin.getText().toString().trim();
+        String fechaInicio = obtenerFechaInterna(editFechaInicio);
+        String fechaFin = obtenerFechaInterna(editFechaFin);
 
         if (fechaInicio.isEmpty()) {
             Toast.makeText(

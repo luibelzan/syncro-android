@@ -62,6 +62,12 @@ public class CurvasActivity extends BaseActivity {
         datePickerDialog.show();
     }
 
+    /** Devuelve la fecha en formato interno yyyy/MM/dd guardada en el tag del EditText. */
+    private String obtenerFechaInterna(EditText editText) {
+        Object tag = editText.getTag();
+        return tag != null ? tag.toString() : "";
+    }
+
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
@@ -111,8 +117,8 @@ public class CurvasActivity extends BaseActivity {
             }
             TipoCurva tipoFinal = tipoSeleccionado;
 
-            String fechaInicio = editFechaInicio.getText().toString();
-            String fechaFin = editFechaFin.getText().toString();
+            String fechaInicio = obtenerFechaInterna(editFechaInicio);
+            String fechaFin = obtenerFechaInterna(editFechaFin);
             ConnectionConfig config = SessionManager.getInstance().getConnectionConfig();
 
             btnNext.setEnabled(false);
@@ -181,8 +187,8 @@ public class CurvasActivity extends BaseActivity {
     private boolean validarFechas(EditText editFechaInicio,
                                   EditText editFechaFin) {
 
-        String fechaInicio = editFechaInicio.getText().toString().trim();
-        String fechaFin = editFechaFin.getText().toString().trim();
+        String fechaInicio = obtenerFechaInterna(editFechaInicio);
+        String fechaFin = obtenerFechaInterna(editFechaFin);
 
         if (fechaInicio.isEmpty()) {
             editFechaInicio.setError("Seleccione una fecha de inicio");

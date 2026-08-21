@@ -5,24 +5,25 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:gravity="center"
-    android:background="#AAFFFFFF"
+    android:background="@color/scrim"
     android:visibility="gone"
     android:clickable="true"
-    android:focusable="true">
+    android:focusable="true"
+    android:elevation="24dp">
 
     <ProgressBar
         android:id="@+id/progressBar"
-        style="?android:attr/progressBarStyleLarge"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:indeterminate="true"/>
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:indeterminate="true"
+        android:indeterminateTint="@color/primary" />
 
     <TextView
         android:id="@+id/textCargando"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/loading"
-        android:textColor="@color/gris_texto"
-        android:textSize="18sp"
-        android:layout_marginTop="12dp"/>
+        android:textColor="@color/on_surface"
+        android:textSize="14sp"
+        android:layout_marginTop="16dp"/>
 </LinearLayout>
