@@ -21,6 +21,8 @@
     <string name="firmware">Firmware</string>
     <string name="reports">Reportes</string>
     <string name="about">Acerca de</string>
+    <string name="enviarSeleccionados">Enviar seleccionados</string>
+    <string name="reportes">Reportes</string>
 
     <!-- LECTURAS -->
     <string name="readsMenu">Menu de Lecturas</string>
