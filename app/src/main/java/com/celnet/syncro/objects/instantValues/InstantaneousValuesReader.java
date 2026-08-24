@@ -4,6 +4,7 @@ import com.celnet.syncro.client.GXDLMSReader;
 import com.celnet.syncro.utils.AppLogger;
 
 import gurux.dlms.objects.GXDLMSData;
+import gurux.dlms.objects.GXDLMSProfileGeneric;
 import gurux.dlms.objects.GXDLMSRegister;
 
 public class InstantaneousValuesReader {
@@ -189,9 +190,188 @@ public class InstantaneousValuesReader {
         return Double.parseDouble(value.toString());
     }
 
+    // ── S29: buffer de valores instantáneos (Profile Generic) ──────────────────
+
+    /*
+     * Decodificado del log de referencia + documentación oficial
+     * "Instantaneous Values Profile (S29)":
+     *   class_id = 7 (Profile Generic), OBIS = 1-0:99.1.7.255, atributo = 2,
+     *   sin selector de rango (buffer completo). El cliente encadena
+     *   Get-request-next hasta el último bloque; cada bloque es una fila.
+     *   La ÚLTIMA fila del buffer es la más reciente / la que contiene los
+     *   valores actuales.
+     *
+     * Antes de leer el atributo 2 hace falta leer el atributo 3
+     * (capture_objects), o Gurux lanza "Read capture objects first."
+     *
+     * El orden de las 31 columnas (COLUMNAS_S29) viene directamente de la
+     * documentación oficial del fabricante — ver capture_objects más abajo.
+     */
+    private static final String OBIS_BUFFER_S29 = "1.0.99.1.7.255";
+
     public static String leerValoresS29(GXDLMSReader reader) throws Exception {
         AppLogger.i("InstantValues", "Leyendo valores instantáneos S29...");
-        // TODO: pendiente de documentación/log de S29 para implementar.
-        throw new UnsupportedOperationException("Lectura S29 aún no implementada.");
+
+        GXDLMSProfileGeneric buffer = new GXDLMSProfileGeneric(OBIS_BUFFER_S29);
+
+        // Gurux necesita conocer la estructura de columnas (capture_objects)
+        // ANTES de poder interpretar el buffer, o lanza
+        // "Read capture objects first." — mismo patrón que LoadProfileReader
+        // usa con reader.read(lp1, 3) antes de pedir las filas.
+        reader.read(buffer, 3);
+
+        if (buffer.getCaptureObjects() == null || buffer.getCaptureObjects().isEmpty()) {
+            throw new Exception("El contador no devolvió capture_objects para el buffer S29 "
+                    + "(OBIS " + OBIS_BUFFER_S29 + "). Sin ellos no se puede interpretar el buffer.");
+        }
+
+        AppLogger.i("InstantValues", "Buffer S29: " + buffer.getCaptureObjects().size() + " columnas definidas.");
+
+        // Buffer completo (atributo 2), sin selector de rango — igual que el log de referencia.
+        Object value = reader.read(buffer, 2);
+
+        if (!(value instanceof Object[])) {
+            throw new Exception("Formato de buffer S29 inesperado: " + value);
+        }
+
+        Object[] filas = (Object[]) value;
+        AppLogger.i("InstantValues", "Buffer S29: " + filas.length + " filas recibidas.");
+
+        if (filas.length == 0) {
+            throw new Exception("El contador no devolvió filas en el buffer S29.");
+        }
+
+        // La última fila es la más reciente (el buffer avanza cronológicamente).
+        Object ultimaFilaObj = filas[filas.length - 1];
+        if (!(ultimaFilaObj instanceof Object[])) {
+            throw new Exception("Formato de fila S29 inesperado: " + ultimaFilaObj);
+        }
+        Object[] fila = (Object[]) ultimaFilaObj;
+
+        if (fila.length != COLUMNAS_S29.length) {
+            AppLogger.w("InstantValues", "Buffer S29: se esperaban " + COLUMNAS_S29.length
+                    + " columnas y llegaron " + fila.length + ". Se etiquetará lo que se pueda.");
+        }
+
+        return formatearFilaS29(fila);
+    }
+
+    // Orden exacto de capture_objects según documentación oficial
+    // "Instantaneous Values Profile (S29)" — OBIS 1-0:99.1.7.255.
+    private static final String[] COLUMNAS_S29 = {
+            "clock",
+            "Voltage L1", "Current L1",
+            "Voltage L2", "Current L2",
+            "Voltage L3", "Current L3",
+            "Current (suma 3 fases)", "Neutral current", "I dif",
+            "Active power P (signed)", "Active power P L1", "Active power P L2", "Active power P L3",
+            "Reactive power Q (signed)", "Reactive power Q+ L1", "Reactive power Q+ L2", "Reactive power Q+ L3",
+            "Power Factor", "Power Factor L1", "Power Factor L2", "Power Factor L3",
+            "Phase sequence",
+            "FI-U1 angle", "FI-U2 angle", "FI-U3 angle",
+            "FI-I1 angle", "FI-I2 angle", "FI-I3 angle",
+            "FI-IN angle", "FI-Idif angle"
+    };
+
+    private static String formatearFilaS29(Object[] fila) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("------------------------------\n");
+
+        // ── Timestamp (columna 0, clock) ─────────────────────────────────────
+        String timestamp = "N/A";
+        try {
+            Object clockValue = fila[0];
+            if (clockValue instanceof gurux.dlms.GXDateTime) {
+                java.util.Calendar c = ((gurux.dlms.GXDateTime) clockValue).getMeterCalendar();
+                timestamp = String.format("%04d/%02d/%02d %02d:%02d:%02d",
+                        c.get(java.util.Calendar.YEAR),
+                        c.get(java.util.Calendar.MONTH) + 1,
+                        c.get(java.util.Calendar.DAY_OF_MONTH),
+                        c.get(java.util.Calendar.HOUR_OF_DAY),
+                        c.get(java.util.Calendar.MINUTE),
+                        c.get(java.util.Calendar.SECOND));
+            } else {
+                timestamp = String.valueOf(clockValue);
+            }
+        } catch (Exception ignored) {}
+        sb.append("Timestamp : ").append(timestamp).append("\n\n");
+
+        // ── Tensión / Corriente por fase (escalado confirmado con el CSV
+        //    de referencia: tensión y corriente llevan el mismo factor x0.1) ─
+        double v1 = numeroEn(fila, 1) * 0.1, i1 = numeroEn(fila, 2) * 0.1;
+        double v2 = numeroEn(fila, 3) * 0.1, i2 = numeroEn(fila, 4) * 0.1;
+        double v3 = numeroEn(fila, 5) * 0.1, i3 = numeroEn(fila, 6) * 0.1;
+        double iSuma = numeroEn(fila, 7) * 0.1;
+        double iNeutro = numeroEn(fila, 8) * 0.1;
+        double iDif = numeroEn(fila, 9) * 0.1;
+
+        // ── Potencias y factor de potencia ────────────────────────────────
+        double pTotal = numeroEn(fila, 10) * 1e-3;
+        double p1 = numeroEn(fila, 11) * 1e-3;
+        double p2 = numeroEn(fila, 12) * 1e-3;
+        double p3 = numeroEn(fila, 13) * 1e-3;
+
+        double qTotal = numeroEn(fila, 14) * 1e-3;
+        double q1 = numeroEn(fila, 15) * 1e-3;
+        double q2 = numeroEn(fila, 16) * 1e-3;
+        double q3 = numeroEn(fila, 17) * 1e-3;
+
+        double fpTotal = numeroEn(fila, 18) * 1e-3;
+        double fp1 = numeroEn(fila, 19) * 1e-3;
+        double fp2 = numeroEn(fila, 20) * 1e-3;
+        double fp3 = numeroEn(fila, 21) * 1e-3;
+
+        // ── Orden de impresión: igual que el informe de referencia
+        //    (agrupado por magnitud: tensiones, corrientes, potencias...
+        //    en vez del orden entrelazado de capture_objects) ────────────
+        sb.append(String.format("Tensión Fase 1  : %,.1f [V]%n", v1));
+        sb.append(String.format("Tensión Fase 2  : %,.1f [V]%n", v2));
+        sb.append(String.format("Tensión Fase 3  : %,.1f [V]%n%n", v3));
+
+        sb.append(String.format("Corriente Fase 1        : %,.2f [A]%n", i1));
+        sb.append(String.format("Corriente Fase 2        : %,.2f [A]%n", i2));
+        sb.append(String.format("Corriente Fase 3        : %,.2f [A]%n", i3));
+        sb.append(String.format("Corriente suma 3 fases  : %,.2f [A]%n", iSuma));
+        sb.append(String.format("Corriente de neutro     : %,.2f [A]%n", iNeutro));
+        sb.append(String.format("Corriente diferencial   : %,.2f [A]%n%n", iDif));
+
+        sb.append(String.format("Potencia activa Fase 1  : %,.3f [Kw]%n", p1));
+        sb.append(String.format("Potencia activa Fase 2  : %,.3f [Kw]%n", p2));
+        sb.append(String.format("Potencia activa Fase 3  : %,.3f [Kw]%n", p3));
+        sb.append(String.format("Potencia activa Total   : %,.3f [Kw]%n%n", pTotal));
+
+        sb.append(String.format("Potencia reactiva Fase 1 : %,.3f [Kvar]%n", q1));
+        sb.append(String.format("Potencia reactiva Fase 2 : %,.3f [Kvar]%n", q2));
+        sb.append(String.format("Potencia reactiva Fase 3 : %,.3f [Kvar]%n", q3));
+        sb.append(String.format("Potencia reactiva Total  : %,.3f [Kvar]%n%n", qTotal));
+
+        sb.append(String.format("Factor de potencia Fase 1 : %,.3f%n", fp1));
+        sb.append(String.format("Factor de potencia Fase 2 : %,.3f%n", fp2));
+        sb.append(String.format("Factor de potencia Fase 3 : %,.3f%n", fp3));
+        sb.append(String.format("Factor de potencia Total  : %,.3f%n%n", fpTotal));
+
+        // ── Secuencia de fases y ángulos (SIN escalar: unidad no documentada) ─
+        sb.append("Secuencia de fases : ").append(String.valueOf(valorEn(fila, 22))).append("\n\n");
+
+        sb.append("Ángulos (valor crudo, pendiente de confirmar escalador/unidad):\n");
+        sb.append(String.format("FI-U1 : %-8s  FI-U2 : %-8s  FI-U3 : %-8s%n",
+                valorEn(fila, 23), valorEn(fila, 24), valorEn(fila, 25)));
+        sb.append(String.format("FI-I1 : %-8s  FI-I2 : %-8s  FI-I3 : %-8s%n",
+                valorEn(fila, 26), valorEn(fila, 27), valorEn(fila, 28)));
+        sb.append(String.format("FI-IN : %-8s  FI-Idif : %-8s%n",
+                valorEn(fila, 29), valorEn(fila, 30)));
+
+        return sb.toString();
+    }
+
+    private static Object valorEn(Object[] fila, int indice) {
+        return (indice < fila.length) ? fila[indice] : "-";
+    }
+
+    private static double numeroEn(Object[] fila, int indice) {
+        if (indice >= fila.length) return 0.0;
+        Object v = fila[indice];
+        if (v instanceof Number) return ((Number) v).doubleValue();
+        try { return Double.parseDouble(String.valueOf(v)); } catch (Exception e) { return 0.0; }
     }
 }
