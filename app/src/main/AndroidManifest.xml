@@ -28,6 +28,15 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Syncro">
         <activity
+            android:name=".PrimeActivity"
+            android:exported="false" />
+        <activity
+            android:name=".PrimeCanalActivity"
+            android:exported="false" />
+        <activity
+            android:name=".CanalPrimeActivity"
+            android:exported="false" />
+        <activity
             android:name=".PrimeSeguridadActivity"
             android:exported="false" />
         <activity

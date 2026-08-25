@@ -62,7 +62,7 @@ public class SecondActivity extends BaseActivity {
         });
 
         btnPrime.setOnClickListener(v -> {
-            Intent intent = new Intent(SecondActivity.this, PrimeSeguridadActivity.class);
+            Intent intent = new Intent(SecondActivity.this, PrimeActivity.class);
             startActivity(intent);
         });
     }
