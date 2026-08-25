@@ -247,6 +247,10 @@
     <!-- CNT CONFIG -->
     <string name="configuracionDlms">Configuración DLMS</string>
 
+    <!-- PRIME CANAL -->
+    <string name="primeCanal">Canal PRIME</string>
+    <string name="primeChannel">Canal PRIME</string>
+    <string name="primeSecurity">Seguridad PRIME</string>
 
 
 </resources>
