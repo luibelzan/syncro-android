@@ -42,7 +42,7 @@ import java.util.Locale;
 public class ResultadosCurvasActivity extends BaseActivity {
 
     // =========================
-    // GENERAR XML (solo S02 por ahora)
+    // GENERAR XML (S02)
     // =========================
     private String generarCurvasXML(ArrayList<CurvaFila> datos, String cntId, String cncId) {
         StringBuilder sb = new StringBuilder();
@@ -70,8 +70,116 @@ public class ResultadosCurvasActivity extends BaseActivity {
     }
 
     // =========================
-    // ONCREATE
+    // GENERAR XML (S44)
     // =========================
+    private String generarCurvasS44XML(ArrayList<CurvaVoltajeFila> datos, String cntId, String cncId) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<Report IdRpt=\"S44\" IdPet=\"0\" Version=\"3.1.c\">\n");
+        sb.append("  <Cnc Id=\"").append(cncId).append("\">\n");
+        sb.append(" <Cnt Id=\"").append(cntId).append("\">\n");
+
+        for (CurvaVoltajeFila fila : datos) {
+            sb.append("      <S44 ")
+                    .append("Fh=\"").append(Utils.convertirFecha(fila.fechaHora)).append("\" ")
+                    .append("Bc=\"04\" ")
+                    .append("Max_L1v=\"").append(fila.maxL1).append("\" ")
+                    .append("Max_L2v=\"").append(fila.maxL2).append("\" ")
+                    .append("Max_L3v=\"").append(fila.maxL3).append("\" ")
+                    .append("Av_L1v=\"").append(fila.avL1).append("\" ")
+                    .append("Av_L2v=\"").append(fila.avL2).append("\" ")
+                    .append("Av_L3v=\"").append(fila.avL3).append("\" ")
+                    .append("Min_L1v=\"").append(fila.minL1).append("\" ")
+                    .append("Min_L2v=\"").append(fila.minL2).append("\" ")
+                    .append("Min_L3v=\"").append(fila.minL3).append("\"/>\n");
+        }
+
+        sb.append("    </Cnt>\n");
+        sb.append("  </Cnc>\n");
+        sb.append("</Report>");
+
+        return sb.toString();
+    }
+
+    // =========================
+    // GENERAR XML (S45)
+    // =========================
+    private String generarCurvasS45XML(ArrayList<CurvaCorrienteFila> datos, String cntId, String cncId) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<Report IdRpt=\"S45\" IdPet=\"0\" Version=\"3.1.c\">\n");
+        sb.append("  <Cnc Id=\"").append(cncId).append("\">\n");
+        sb.append(" <Cnt Id=\"").append(cntId).append("\">\n");
+
+        for (CurvaCorrienteFila fila : datos) {
+            sb.append("      <S45 ")
+                    .append("Fh=\"").append(Utils.convertirFecha(fila.fechaHora)).append("\" ")
+                    // El status ya viene formateado como "(8A)"; el XML necesita "8A" sin paréntesis.
+                    .append("Bc=\"").append(quitarParentesis(fila.status)).append("\" ")
+                    .append("Max_L1i=\"").append(fila.maxL1).append("\" ")
+                    .append("Max_L2i=\"").append(fila.maxL2).append("\" ")
+                    .append("Max_L3i=\"").append(fila.maxL3).append("\" ")
+                    .append("Max_IN=\"").append(fila.maxN).append("\" ")
+                    .append("Av_L1i=\"").append(fila.avL1).append("\" ")
+                    .append("Av_L2i=\"").append(fila.avL2).append("\" ")
+                    .append("Av_L3i=\"").append(fila.avL3).append("\" ")
+                    .append("Av_IN=\"").append(fila.avN).append("\" ")
+                    .append("Min_L1i=\"").append(fila.minL1).append("\" ")
+                    .append("Min_L2i=\"").append(fila.minL2).append("\" ")
+                    .append("Min_L3i=\"").append(fila.minL3).append("\" ")
+                    .append("Min_IN=\"").append(fila.minN).append("\"/>\n");
+        }
+
+        sb.append("    </Cnt>\n");
+        sb.append("  </Cnc>\n");
+        sb.append("</Report>");
+
+        return sb.toString();
+    }
+
+    private String quitarParentesis(String status) {
+        if (status == null) return "";
+        return status.replace("(", "").replace(")", "");
+    }
+
+    // =========================
+    // GENERAR XML (S43)
+    // =========================
+    private String generarCurvasS43XML(ArrayList<CurvaEnergiaFaseFila> datos, String cntId, String cncId) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<Report IdRpt=\"S43\" IdPet=\"0\" Version=\"3.1.c\">\n");
+        sb.append("  <Cnc Id=\"").append(cncId).append("\">\n");
+        sb.append(" <Cnt Id=\"").append(cntId).append("\">\n");
+
+        // Convención R/S/T -> L1/L2/L3
+        for (CurvaEnergiaFaseFila fila : datos) {
+            sb.append("      <S43 ")
+                    .append("Fh=\"").append(Utils.convertirFecha(fila.fechaHora)).append("\" ")
+                    .append("Bc=\"").append(quitarParentesis(fila.status)).append("\" ")
+                    .append("AI_L1=\"").append(fila.eaPosR).append("\" ")
+                    .append("AE_L1=\"").append(fila.eaNegR).append("\" ")
+                    .append("R1_L1=\"").append(fila.q1R).append("\" ")
+                    .append("R2_L1=\"").append(fila.q2R).append("\" ")
+                    .append("R3_L1=\"").append(fila.q3R).append("\" ")
+                    .append("R4_L1=\"").append(fila.q4R).append("\" ")
+                    .append("AI_L2=\"").append(fila.eaPosS).append("\" ")
+                    .append("AE_L2=\"").append(fila.eaNegS).append("\" ")
+                    .append("R1_L2=\"").append(fila.q1S).append("\" ")
+                    .append("R2_L2=\"").append(fila.q2S).append("\" ")
+                    .append("R3_L2=\"").append(fila.q3S).append("\" ")
+                    .append("R4_L2=\"").append(fila.q4S).append("\" ")
+                    .append("AI_L3=\"").append(fila.eaPosT).append("\" ")
+                    .append("AE_L3=\"").append(fila.eaNegT).append("\" ")
+                    .append("R1_L3=\"").append(fila.q1T).append("\" ")
+                    .append("R2_L3=\"").append(fila.q2T).append("\" ")
+                    .append("R3_L3=\"").append(fila.q3T).append("\" ")
+                    .append("R4_L3=\"").append(fila.q4T).append("\"/>\n");
+        }
+
+        sb.append("    </Cnt>\n");
+        sb.append("  </Cnc>\n");
+        sb.append("</Report>");
+
+        return sb.toString();
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -101,6 +209,7 @@ public class ResultadosCurvasActivity extends BaseActivity {
         ArrayList<CurvaFila> datosS02 = null;
         ArrayList<CurvaVoltajeFila> datosS44 = null;
         ArrayList<CurvaCorrienteFila> datosS45 = null;
+        ArrayList<CurvaEnergiaFaseFila> datosS43 = null;
 
         switch (tipoCurva) {
             case VOLTAGE_S44:
@@ -122,7 +231,7 @@ public class ResultadosCurvasActivity extends BaseActivity {
                 rv.setVisibility(View.GONE);
                 headerLayout.setVisibility(View.GONE);
                 scrollS43.setVisibility(View.VISIBLE);
-                ArrayList<CurvaEnergiaFaseFila> datosS43 = getIntent().getParcelableArrayListExtra("datos_curva_energia_fase");
+                datosS43 = getIntent().getParcelableArrayListExtra("datos_curva_energia_fase");
                 construirCabeceraS43(headerLayoutS43);
                 if (datosS43 != null) rvS43.setAdapter(new CurvaEnergiaFaseAdapter(datosS43));
                 break;
@@ -135,27 +244,69 @@ public class ResultadosCurvasActivity extends BaseActivity {
 
         TipoCurva tipoFinal = tipoCurva;
         ArrayList<CurvaFila> finalDatosS02 = datosS02;
+        ArrayList<CurvaVoltajeFila> finalDatosS44 = datosS44;
+        ArrayList<CurvaCorrienteFila> finalDatosS45 = datosS45;
+        ArrayList<CurvaEnergiaFaseFila> finalDatosS43 = datosS43;
 
         btnExport.setOnClickListener(v -> {
-            if (tipoFinal != TipoCurva.INCREMENTAL_S02) {
+
+            if (tipoFinal != TipoCurva.INCREMENTAL_S02
+                    && tipoFinal != TipoCurva.VOLTAGE_S44
+                    && tipoFinal != TipoCurva.CURRENT_S45
+                    && tipoFinal != TipoCurva.ENERGY_PHASE_S43) {
                 Toast.makeText(this, "Exportación no disponible todavía para este tipo de curva", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            if (finalDatosS02 == null || finalDatosS02.isEmpty()) {
-                Toast.makeText(this, "No hay datos para exportar", Toast.LENGTH_SHORT).show();
-                return;
+            boolean esS44 = tipoFinal == TipoCurva.VOLTAGE_S44;
+            boolean esS45 = tipoFinal == TipoCurva.CURRENT_S45;
+            boolean esS43 = tipoFinal == TipoCurva.ENERGY_PHASE_S43;
+
+            if (esS44) {
+                if (finalDatosS44 == null || finalDatosS44.isEmpty()) {
+                    Toast.makeText(this, "No hay datos para exportar", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+            } else if (esS45) {
+                if (finalDatosS45 == null || finalDatosS45.isEmpty()) {
+                    Toast.makeText(this, "No hay datos para exportar", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+            } else if (esS43) {
+                if (finalDatosS43 == null || finalDatosS43.isEmpty()) {
+                    Toast.makeText(this, "No hay datos para exportar", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+            } else {
+                if (finalDatosS02 == null || finalDatosS02.isEmpty()) {
+                    Toast.makeText(this, "No hay datos para exportar", Toast.LENGTH_SHORT).show();
+                    return;
+                }
             }
 
             SharedPreferences prefs = getSharedPreferences("ftp_config", MODE_PRIVATE);
             String cncName = prefs.getString("cncName", "Syncro");
 
-            String xml = generarCurvasXML(finalDatosS02, cntId, cncName);
+            String xml;
+            String idReporte;
+            if (esS44) {
+                xml = generarCurvasS44XML(finalDatosS44, cntId, cncName);
+                idReporte = "S44";
+            } else if (esS45) {
+                xml = generarCurvasS45XML(finalDatosS45, cntId, cncName);
+                idReporte = "S45";
+            } else if (esS43) {
+                xml = generarCurvasS43XML(finalDatosS43, cntId, cncName);
+                idReporte = "S43";
+            } else {
+                xml = generarCurvasXML(finalDatosS02, cntId, cncName);
+                idReporte = "S02";
+            }
 
             cncName = cncName.replaceAll("\\s+", "_");
 
             String fechaActual = new SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault()).format(new Date());
-            String nombreFichero = cncName + "_0_S02_0_" + fechaActual;
+            String nombreFichero = cncName + "_0_" + idReporte + "_0_" + fechaActual;
 
             File downloadsFolder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
             File syncroFolder = new File(downloadsFolder, "Syncro/Reports");
