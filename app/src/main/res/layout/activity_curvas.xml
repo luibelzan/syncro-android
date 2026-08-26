@@ -17,7 +17,7 @@
         android:layout_marginStart="24dp"
         android:layout_marginTop="32dp"
         android:layout_marginEnd="24dp"
-        android:text="@string/curvas"
+        android:text="@string/loadProfiles"
         android:textSize="26sp"
         android:textStyle="bold"
         android:textColor="@color/on_surface"
