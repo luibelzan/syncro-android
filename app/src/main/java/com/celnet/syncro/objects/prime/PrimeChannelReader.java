@@ -18,11 +18,26 @@ public class PrimeChannelReader {
     private static final String OBIS_MAC_MIN_BAND_SEARCH_TIME   = "0.0.94.34.32.255";
     private static final String OBIS_MAC_MAX_BAND_SEARCH_TIME   = "0.0.94.34.33.255";
 
+    /** Resultado en crudo de la lectura, para que la UI decida cómo pintarlo (texto, ticks, etc.). */
+    public static class Resultado {
+        public final boolean[] channelSelection; // índice 0 = Channel 1 .. índice 7 = Channel 8
+        public final boolean[] activeChannel;
+        public final int macMin;
+        public final int macMax;
+
+        public Resultado(boolean[] channelSelection, boolean[] activeChannel, int macMin, int macMax) {
+            this.channelSelection = channelSelection;
+            this.activeChannel = activeChannel;
+            this.macMin = macMin;
+            this.macMax = macMax;
+        }
+    }
+
     /**
      * Lee el canal PRIME configurado, el canal activo y los tiempos de búsqueda
-     * de banda, devolviendo el mismo formato de informe que el software de referencia.
+     * de banda. Devuelve los datos en crudo (la UI decide el formato de presentación).
      */
-    public static String leerCanalPrime(GXDLMSReader reader) throws Exception {
+    public static Resultado leerCanalPrime(GXDLMSReader reader) throws Exception {
         AppLogger.i("PrimeChannel", "Leyendo canal PRIME...");
 
         boolean[] channelSelection = leerBits(reader, OBIS_CHANNEL_SELECTION, "Channel selection");
@@ -37,24 +52,8 @@ public class PrimeChannelReader {
         int macMax = leerEntero(reader, OBIS_MAC_MAX_BAND_SEARCH_TIME);
         AppLogger.i("PrimeChannel", "Reading Prime 1.4 macMaxBandSearchTime : OK");
 
-        StringBuilder sb = new StringBuilder();
-        sb.append("------------------------------\n");
-        sb.append("Prime 1.4 Channel selection :\n");
-        agregarCanales(sb, channelSelection);
-        sb.append("Prime 1.4 Active Channel\n");
-        agregarCanales(sb, activeChannel);
-        sb.append("Prime 1.4 macMinBandSearchTime : ").append(macMin).append("\n");
-        sb.append("Prime 1.4 macMaxBandSearchTime : ").append(macMax);
-
         AppLogger.i("PrimeChannel", "Lectura de canal PRIME completada.");
-        return sb.toString();
-    }
-
-    private static void agregarCanales(StringBuilder sb, boolean[] canales) {
-        for (int i = 0; i < 8; i++) {
-            boolean marcado = (canales != null && i < canales.length) && canales[i];
-            sb.append(String.format(" CH%d   : %d%n", i + 1, marcado ? 1 : 0));
-        }
+        return new Resultado(channelSelection, activeChannel, macMin, macMax);
     }
 
     /**

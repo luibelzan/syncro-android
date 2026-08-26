@@ -1,12 +1,17 @@
 package com.celnet.syncro;
 
 import android.os.Bundle;
+import android.text.SpannableStringBuilder;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.StyleSpan;
+import android.graphics.Typeface;
 import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -117,14 +122,15 @@ public class PrimeCanalActivity extends BaseActivity {
                 try {
                     DLMSConnection.ConnectionResult res = conn.connectWithAutoDetect(PrimeCanalActivity.this);
 
-                    String resultado = PrimeChannelReader.leerCanalPrime(res.reader);
+                    PrimeChannelReader.Resultado resultado = PrimeChannelReader.leerCanalPrime(res.reader);
+                    SpannableStringBuilder textoResultado = formatearResultadoCanalPrime(resultado);
 
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);
                         btnLeerActual.setEnabled(true);
                         btnProgramar.setEnabled(true);
                         cardResultado.setVisibility(View.VISIBLE);
-                        tvResultado.setText(resultado);
+                        tvResultado.setText(textoResultado);
                     });
 
                 } catch (Exception e) {
@@ -241,5 +247,50 @@ public class PrimeCanalActivity extends BaseActivity {
                 }
             }).start();
         });
+    }
+
+    /**
+     * Construye el informe de resultado con un ✓ verde para cada canal activo
+     * (en vez del "1" plano de antes) y un guion neutro para los inactivos.
+     */
+    private SpannableStringBuilder formatearResultadoCanalPrime(PrimeChannelReader.Resultado resultado) {
+        SpannableStringBuilder sb = new SpannableStringBuilder();
+
+        int colorActivo = ContextCompat.getColor(this, R.color.success);
+        int colorInactivo = ContextCompat.getColor(this, R.color.on_surface_variant);
+
+        sb.append("------------------------------\n");
+        sb.append("Prime 1.4 Channel selection :\n");
+        agregarCanalesConTick(sb, resultado.channelSelection, colorActivo, colorInactivo);
+
+        sb.append("Prime 1.4 Active Channel\n");
+        agregarCanalesConTick(sb, resultado.activeChannel, colorActivo, colorInactivo);
+
+        sb.append("Prime 1.4 macMinBandSearchTime : ").append(String.valueOf(resultado.macMin)).append("\n");
+        sb.append("Prime 1.4 macMaxBandSearchTime : ").append(String.valueOf(resultado.macMax));
+
+        return sb;
+    }
+
+    private void agregarCanalesConTick(SpannableStringBuilder sb, boolean[] canales,
+                                       int colorActivo, int colorInactivo) {
+        for (int i = 0; i < 8; i++) {
+            boolean marcado = (canales != null && i < canales.length) && canales[i];
+
+            sb.append(String.format(" CH%d   : ", i + 1));
+
+            int inicio = sb.length();
+            sb.append(marcado ? "✓" : "–");
+            int fin = sb.length();
+
+            sb.setSpan(new ForegroundColorSpan(marcado ? colorActivo : colorInactivo),
+                    inicio, fin, SpannableStringBuilder.SPAN_EXCLUSIVE_EXCLUSIVE);
+            if (marcado) {
+                sb.setSpan(new StyleSpan(Typeface.BOLD),
+                        inicio, fin, SpannableStringBuilder.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+
+            sb.append("\n");
+        }
     }
 }
