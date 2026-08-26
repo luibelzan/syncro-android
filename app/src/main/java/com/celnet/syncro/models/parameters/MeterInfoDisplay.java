@@ -31,6 +31,7 @@ public class MeterInfoDisplay {
         FABRICANTES.put("B", "ITRON");
         FABRICANTES.put("3", "SANXING");
         FABRICANTES.put("J", "ELSTER");
+        FABRICANTES.put("K", "ORBIS");
     }
 
     /**
