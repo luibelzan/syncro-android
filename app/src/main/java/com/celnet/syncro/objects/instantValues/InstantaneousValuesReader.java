@@ -241,19 +241,33 @@ public class InstantaneousValuesReader {
             throw new Exception("El contador no devolvió filas en el buffer S29.");
         }
 
-        // La última fila es la más reciente (el buffer avanza cronológicamente).
-        Object ultimaFilaObj = filas[filas.length - 1];
-        if (!(ultimaFilaObj instanceof Object[])) {
-            throw new Exception("Formato de fila S29 inesperado: " + ultimaFilaObj);
-        }
-        Object[] fila = (Object[]) ultimaFilaObj;
+        // Se formatean TODAS las filas del buffer (histórico completo, p.ej. últimas 48h),
+        // no solo la última. El buffer avanza cronológicamente, así que el orden de
+        // impresión respeta el orden de llegada (más antigua -> más reciente).
+        StringBuilder resultado = new StringBuilder();
+        int filaIndex = 0;
+        for (Object filaObj : filas) {
+            filaIndex++;
+            if (!(filaObj instanceof Object[])) {
+                AppLogger.w("InstantValues", "Fila S29 #" + filaIndex + " con formato inesperado: " + filaObj);
+                continue;
+            }
+            Object[] fila = (Object[]) filaObj;
 
-        if (fila.length != COLUMNAS_S29.length) {
-            AppLogger.w("InstantValues", "Buffer S29: se esperaban " + COLUMNAS_S29.length
-                    + " columnas y llegaron " + fila.length + ". Se etiquetará lo que se pueda.");
+            if (fila.length != COLUMNAS_S29.length) {
+                AppLogger.w("InstantValues", "Fila S29 #" + filaIndex + ": se esperaban " + COLUMNAS_S29.length
+                        + " columnas y llegaron " + fila.length + ". Se etiquetará lo que se pueda.");
+            }
+
+            resultado.append("Registro ").append(filaIndex).append(" de ").append(filas.length).append("\n");
+            resultado.append(formatearFilaS29(fila));
+            resultado.append("\n");
         }
 
-        return formatearFilaS29(fila);
+        AppLogger.i("InstantValues", "Lectura de valores instantáneos S29 completada: "
+                + filas.length + " registros formateados.");
+
+        return resultado.toString();
     }
 
     // Orden exacto de capture_objects según documentación oficial
