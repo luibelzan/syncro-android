@@ -26,7 +26,7 @@
 
     <!-- LECTURAS -->
     <string name="readsMenu">Menu de Lecturas</string>
-    <string name="curvas">Curvas de Carga</string>
+    <string name="loadProfiles">Perfiles de energía</string>
     <string name="cierres">Cierres</string>
     <string name="events">Eventos</string>
     <string name="ids">Identificadores</string>
@@ -229,7 +229,7 @@
     </string-array>
 
     <!-- PRIME SEGURIDAD -->
-    <string name="prime">PRIME</string>
+    <string name="prime">Parámetros PRIME</string>
     <string name="primeSeguridad">Seguridad PRIME</string>
     <string name="guardar">Guardar</string>
     <string-array name="dual_stack_prime_version_array">
