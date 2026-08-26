@@ -56,13 +56,13 @@ public class CierreEnCursoAdapter extends RecyclerView.Adapter<RecyclerView.View
             rows.add(new RowTexto("Timestamp " + f.fecha, false));
 
             // ── Tablas P0..P6 ───────────────────────────────────────────
-            rows.add(new RowSeccion("Activa Importada", f.aPlus, null));
-            rows.add(new RowSeccion("Activa Exportada", f.aMinus, null));
-            rows.add(new RowSeccion("Reactiva QI", f.qi, null));
-            rows.add(new RowSeccion("Reactiva QII", f.qii, null));
-            rows.add(new RowSeccion("Reactiva QIII", f.qiii, null));
-            rows.add(new RowSeccion("Reactiva QIV", f.qiv, null));
-            rows.add(new RowSeccion("Maxímetros", f.maxDemand, f.maxDates));
+            rows.add(new RowSeccion("Activa Importada (kWh)", f.aPlus, null));
+            rows.add(new RowSeccion("Activa Exportada (kWh)", f.aMinus, null));
+            rows.add(new RowSeccion("Reactiva QI (kVArh)", f.qi, null));
+            rows.add(new RowSeccion("Reactiva QII (kVArh)", f.qii, null));
+            rows.add(new RowSeccion("Reactiva QIII (kVArh)", f.qiii, null));
+            rows.add(new RowSeccion("Reactiva QIV (kVArh)", f.qiv, null));
+            rows.add(new RowSeccion("Maxímetros (W)", f.maxDemand, f.maxDates));
 
             // ── Separador visual entre bloques de contrato ────────────────
             rows.add(new RowTexto("", false));
