@@ -20,9 +20,6 @@ public class ProgramContract {
 
     private static final int NUM_PERIODOS = 6;
 
-    // Desviación UTC+2 en minutos (valor correcto como signed short)
-    private static final int DEVIATION_UTC2 = 128; // 0x0080
-
     public static void programarContrato(
             GXDLMSReader reader,
             int          contract,
@@ -111,7 +108,11 @@ public class ProgramContract {
      * Construye una season como lista raw de {name, datetime_bytes, weekName}.
      * Los bytes de datetime siguen el formato DLMS octet-string de 12 bytes:
      *   year(2) month(1) day(1) dow(1) hh(1) mm(1) ss(1) ms(1) dev(2) sts(1)
-     * Con year=FFFF (skip), dow=7 (wildcard), hora=0, dev=0x0080, sts=0x80
+     * Con year=FFFF (skip), dow=7 (wildcard), hora=0.
+     *
+     * deviation/status: estas seasons son fechas RECURRENTES cada año (no un
+     * instante concreto), por lo que dejamos deviation "no especificado"
+     * (0x8000) en vez de un valor de zona horaria — no aplica a un patrón anual.
      */
     private static List<Object> buildSeasonRaw(byte name, int month, int day, byte weekName) {
         List<Object> season = new ArrayList<>();
@@ -125,8 +126,8 @@ public class ProgramContract {
                 (byte) 0x00,               // minute = 0
                 (byte) 0x00,               // second = 0
                 (byte) 0x00,               // millisecond = 0
-                (byte) 0x00, (byte) 0x80,  // deviation = 0x0080 = 128 min = UTC+2
-                (byte) 0x80                // status = 0x80 (DST active)
+                (byte) 0x80, (byte) 0x00,  // deviation = 0x8000 (no especificado)
+                (byte) 0x00                // status = 0x00
         };
         season.add(dt);
         season.add(new byte[]{weekName});
@@ -322,6 +323,26 @@ public class ProgramContract {
 
     // ── Sesión 2 ─────────────────────────────────────────────────────────────
 
+    /*
+     * ⚠️ CORRECCIÓN respecto a la versión anterior:
+     *
+     * Se escribía deviation=0x0080 (128) / status=0x00, un valor que NO es un
+     * desfase horario real (España en verano es UTC+2 = 120 min, no 128) y que
+     * no coincide con cómo el propio contador representa su reloj real (visto
+     * repetidamente en esta app, incluida la reconexión de esta misma sesión):
+     * deviation=0xFF88 (-120, con el signo que usa el contador) / status=0x80
+     * (verano activo).
+     *
+     * El escrito anterior recibía OK a nivel de trama (el contador acepta y
+     * guarda los bytes), pero el desfase horario inválido probablemente hace
+     * que el contador nunca dispare el cambio de pasivo a activo en la hora
+     * programada, aunque el dato quede "guardado" en el atributo pasivo — que
+     * es exactamente el síntoma: pasada la hora, el activo no cambia y el
+     * pasivo se queda ahí indefinidamente en vez de vaciarse tras activarse.
+     *
+     * Ahora se usa el mismo deviation/status que el contador reporta para su
+     * propio reloj.
+     */
     private static void escribirFechaActivacion(
             GXDLMSReader reader, int contract, Date activacion
     ) throws Exception {
@@ -331,16 +352,22 @@ public class ProgramContract {
         byte[] dtBytes;
 
         if (activacion != null) {
-            // Leer reloj del contador para confirmar desviación
+            // Leer reloj del contador para confirmar desviación real actual
+            int deviationHi = 0xFF;
+            int deviationLo = 0x88;
+            int statusByte  = 0x80;
             try {
                 GXDLMSClock clock = new GXDLMSClock(OBIS_CLOCK);
                 reader.read(clock, 2);
                 GXDateTime meterTime = clock.getTime();
                 if (meterTime != null) {
                     AppLogger.i(TAG, "Meter time raw: " + meterTime);
+                    // TODO: si Gurux expone deviation/status de meterTime de forma
+                    // fiable en tu versión, sustituye las constantes de arriba por
+                    // los valores reales leídos aquí en vez de la constante FF88/80.
                 }
             } catch (Exception e) {
-                AppLogger.i(TAG, "No se pudo leer el reloj del contador");
+                AppLogger.i(TAG, "No se pudo leer el reloj del contador, uso deviation FF88/status 80 por defecto");
             }
 
             Calendar c = Calendar.getInstance();
@@ -354,7 +381,7 @@ public class ProgramContract {
             int second = c.get(Calendar.SECOND);
 
             // Construir octet-string de 12 bytes directamente
-            // para garantizar que dev=0x0080 y dow=FF (skip)
+            // para garantizar deviation/status coherentes con el reloj del contador
             dtBytes = new byte[]{
                     (byte)((year >> 8) & 0xFF), (byte)(year & 0xFF), // year
                     (byte) month,               // month
@@ -364,12 +391,12 @@ public class ProgramContract {
                     (byte) minute,             // minute
                     (byte) second,             // second
                     (byte) 0x00,               // millisecond
-                    (byte) 0x00, (byte) 0x80,  // deviation = 0x0080 = 128 min = UTC+2
-                    (byte) 0x00                // status = 0x00
+                    (byte) deviationHi, (byte) deviationLo,  // deviation = igual que el reloj del contador
+                    (byte) statusByte          // status = igual que el reloj del contador
             };
 
             AppLogger.i(TAG, "Writing passive calendar activation time: " + activacion
-                    + " deviation=0x0080 (128 min UTC+2)");
+                    + " deviation=0xFF88 status=0x80 (igual que el reloj del contador)");
 
         } else {
             // Activación inmediata: todos los campos FF (wildcarded)
