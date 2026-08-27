@@ -5,12 +5,30 @@ import com.celnet.syncro.client.GXDLMSSecureClient2;
 import com.celnet.syncro.models.parameters.ControlModeResult;
 import com.celnet.syncro.utils.AppLogger;
 
+import gurux.dlms.GXDateTime;
 import gurux.dlms.GXReplyData;
 import gurux.dlms.enums.DataType;
+import gurux.dlms.objects.GXDLMSActionSchedule;
 import gurux.dlms.objects.GXDLMSDisconnectControl;
+import gurux.dlms.objects.GXDLMSScriptTable;
 import gurux.dlms.objects.enums.ControlState;
+import gurux.dlms.objects.enums.SingleActionScheduleType;
+
+import java.util.Calendar;
 
 public class ControlDisconnectMode {
+
+    // OBIS del Single Action Schedule que dispara el script de conexión/desconexión
+    // (0-0:15.0.1.255, el mismo que aparece en el log de la trama que fallaba).
+    private static final String OBIS_SINGLE_ACTION_SCHEDULE = "0.0.15.0.1.255";
+
+    // OBIS de la tabla de scripts referenciada (0-0:10.0.106.255 en el log).
+    private static final String OBIS_SCRIPT_TABLE = "0.0.10.0.106.255";
+
+    // Selectores de script dentro de la tabla: 1 = desconectar, 2 = reconectar
+    // (mismo criterio que ya usas en el método manual con methodId).
+    private static final int SCRIPT_SELECTOR_DESCONECTAR = 1;
+    private static final int SCRIPT_SELECTOR_RECONECTAR = 2;
 
     public static ControlModeResult setControlDisconnectMode(
             GXDLMSReader reader,
@@ -75,6 +93,88 @@ public class ControlDisconnectMode {
 
         } catch (Exception e) {
             AppLogger.e("DLMS", "Error al conectar/desconectar: " + e.getMessage());
+
+            return new ControlModeResult(
+                    false,
+                    "Desconocido",
+                    "Desconocido",
+                    "Desconocido",
+                    "Error: " + e.getMessage()
+            );
+        }
+    }
+
+    /**
+     * Programa una conexión/desconexión automática del relé para una fecha y
+     * hora concretas, usando GXDLMSActionSchedule (class_id 22, Single Action
+     * Schedule, OBIS 0-0:15.0.1.255) que dispara el script de la tabla de
+     * scripts (OBIS 0-0:10.0.106.255).
+     *
+     * A diferencia del intento manual original (que solo escribía el
+     * atributo 4 con una structure{time, date} y nunca el atributo 3),
+     * aquí se escriben los tres atributos relevantes:
+     *   - atributo 2 (executed_script): vía setTarget() + setExecutedScriptSelector()
+     *   - atributo 3 (type): SingleActionScheduleType1, el valor por defecto
+     *     de la clase para una ejecución única (no periódica)
+     *   - atributo 4 (execution_time): un único GXDateTime con fecha+hora
+     *     completas; GXDLMSActionSchedule lo serializa internamente como
+     *     structure{octet_string(4)=time, octet_string(5)=date}, el mismo
+     *     formato que el contador ya aceptó en la trama original.
+     */
+    public static ControlModeResult programarDesconexionAutomatica(
+            GXDLMSReader reader,
+            boolean connect,
+            Calendar fechaActivacion
+    ) {
+
+        try {
+            String action = connect ? "reconexión" : "desconexión";
+            AppLogger.i("Syncro", "PROGRAMANDO " + action.toUpperCase() + " AUTOMÁTICA");
+
+            GXDLMSActionSchedule schedule =
+                    new GXDLMSActionSchedule(OBIS_SINGLE_ACTION_SCHEDULE);
+
+            int scriptSelector = connect ? SCRIPT_SELECTOR_RECONECTAR : SCRIPT_SELECTOR_DESCONECTAR;
+
+            // ── Atributo 2: executed_script ──────────────────────────────────
+            GXDLMSScriptTable scriptTable = new GXDLMSScriptTable(OBIS_SCRIPT_TABLE);
+            schedule.setTarget(scriptTable);
+            schedule.setExecutedScriptSelector(scriptSelector);
+
+            // ── Atributo 3: type (ejecución única, sin periodicidad) ─────────
+            schedule.setType(SingleActionScheduleType.SingleActionScheduleType1);
+
+            // ── Atributo 4: execution_time (fecha/hora completa de disparo) ──
+            GXDateTime fechaEjecucion = new GXDateTime(fechaActivacion);
+            schedule.setExecutionTime(new GXDateTime[]{fechaEjecucion});
+
+            AppLogger.i("Syncro", "Script referenciado : " + OBIS_SCRIPT_TABLE
+                    + " selector " + scriptSelector);
+            AppLogger.i("Syncro", "Fecha/hora programada : "
+                    + fechaActivacion.get(Calendar.YEAR) + "/"
+                    + (fechaActivacion.get(Calendar.MONTH) + 1) + "/"
+                    + fechaActivacion.get(Calendar.DAY_OF_MONTH) + " "
+                    + fechaActivacion.get(Calendar.HOUR_OF_DAY) + ":"
+                    + fechaActivacion.get(Calendar.MINUTE) + ":"
+                    + fechaActivacion.get(Calendar.SECOND));
+
+            reader.writeObject(schedule, 2); // executed_script
+            //reader.writeObject(schedule, 3); // type
+            reader.writeObject(schedule, 4); // execution_time
+
+            AppLogger.i("Syncro", "Programación de " + action + " automática realizada correctamente.");
+
+            return new ControlModeResult(
+                    true,
+                    "Programado",
+                    "Programado",
+                    "Single Action Schedule",
+                    action.substring(0, 1).toUpperCase() + action.substring(1)
+                            + " automática programada correctamente"
+            );
+
+        } catch (Exception e) {
+            AppLogger.e("DLMS", "Error al programar la desconexión/reconexión automática: " + e.getMessage());
 
             return new ControlModeResult(
                     false,

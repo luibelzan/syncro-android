@@ -176,6 +176,7 @@
         <item>Connect</item>
         <item>Disconnect</item>
     </string-array>
+    <string name="fechaActivacionIcp">Fecha y hora de activación</string>
 
     <!-- DATE MENU -->
     <string name="dateMenu">Menu de Fecha y Hora</string>
