@@ -156,7 +156,7 @@
     <string name="date">Fecha y Hora</string>
     <string name="screen">Pantalla</string>
     <string name="transf">Rel. Transf.</string>
-    <string name="neutro">Neutro</string>
+    <string name="neutro">Medicion de Neutro</string>
 
     <!-- ICP MENU -->
     <string name="icpMenu">ICP Menu</string>
