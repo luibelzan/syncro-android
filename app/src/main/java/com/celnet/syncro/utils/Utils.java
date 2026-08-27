@@ -156,6 +156,9 @@ public class Utils {
                 // 2026/01/03 00:00:00.000W
                 DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss.SSS'W'"),
 
+                // 2026/08/24 14:00:00.000S
+                DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss.SSS'S'"),
+
                 // 2026/03/11 04:30:00
                 DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"),
 

@@ -1,5 +1,6 @@
 package com.celnet.syncro;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -13,12 +14,16 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.celnet.syncro.client.DLMSConnection;
+import com.celnet.syncro.models.instantvalues.RegistroS29;
 import com.celnet.syncro.models.instantvalues.TipoLecturaInstantanea;
 import com.celnet.syncro.objects.instantValues.InstantaneousValuesReader;
 import com.celnet.syncro.session.ConnectionConfig;
 import com.celnet.syncro.session.SessionManager;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ValoresInstantaneosActivity extends BaseActivity {
 
@@ -73,20 +78,35 @@ public class ValoresInstantaneosActivity extends BaseActivity {
                 try {
                     DLMSConnection.ConnectionResult res = conn.connectWithAutoDetect(ValoresInstantaneosActivity.this);
 
-                    String datos;
                     if (tipoFinal == TipoLecturaInstantanea.VALORES_S28) {
-                        datos = InstantaneousValuesReader.leerValores(res.reader);
-                    } else {
-                        datos = InstantaneousValuesReader.leerValoresS29(res.reader);
-                    }
+                        // S28: sin cambios, se sigue mostrando en esta misma pantalla.
+                        String datos = InstantaneousValuesReader.leerValores(res.reader);
 
-                    runOnUiThread(() -> {
-                        progressBar.setVisibility(View.GONE);
-                        cardSelector.setVisibility(View.GONE);
-                        layoutResultados.setVisibility(View.VISIBLE);
-                        btnLeer.setEnabled(true);
-                        tvResultado.setText(datos);
-                    });
+                        runOnUiThread(() -> {
+                            progressBar.setVisibility(View.GONE);
+                            cardSelector.setVisibility(View.GONE);
+                            layoutResultados.setVisibility(View.VISIBLE);
+                            btnLeer.setEnabled(true);
+                            tvResultado.setText(datos);
+                        });
+
+                    } else {
+                        // S29: histórico completo, se muestra en su propia pantalla
+                        // como tabla (RecyclerView + adapter, igual que CurvaFila).
+                        List<RegistroS29> registros = InstantaneousValuesReader.leerValoresS29(res.reader);
+
+                        runOnUiThread(() -> {
+                            progressBar.setVisibility(View.GONE);
+                            btnLeer.setEnabled(true);
+
+                            Intent intent = new Intent(ValoresInstantaneosActivity.this,
+                                    ResultadosValoresInstantaneosS29Activity.class);
+                            intent.putParcelableArrayListExtra(
+                                    ResultadosValoresInstantaneosS29Activity.EXTRA_REGISTROS,
+                                    new ArrayList<>(registros));
+                            startActivity(intent);
+                        });
+                    }
 
                 } catch (Exception e) {
                     e.printStackTrace();

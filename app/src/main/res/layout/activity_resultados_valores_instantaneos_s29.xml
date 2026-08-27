@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:fitsSystemWindows="true"
+    tools:context=".ResultadosValoresInstantaneosS29Activity">
+
+    <!-- Tabla: cabecera fija verticalmente + RecyclerView vertical,
+         ambos dentro del mismo scroll horizontal para que las columnas
+         se mantengan alineadas al desplazar lateralmente. -->
+    <HorizontalScrollView
+        android:id="@+id/horizontalScroll"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:scrollbars="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <!-- Fila de cabecera de columnas: se rellena programáticamente -->
+            <LinearLayout
+                android:id="@+id/rowHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="2dp"
+                android:background="@color/primary" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvResultados"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                tools:listitem="@android:layout/simple_list_item_1" />
+
+        </LinearLayout>
+
+    </HorizontalScrollView>
+
+    <!-- Mensaje si no llegaron registros -->
+    <TextView
+        android:id="@+id/tvSinDatos"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="No hay registros para mostrar."
+        android:textColor="@color/on_surface"
+        android:textSize="15sp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Botón exportar -->
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/btnExport"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="24dp"
+        android:text="@string/export"
+        android:textColor="@color/white"
+        app:icon="@drawable/reportestg"
+        app:iconTint="@color/white"
+        app:backgroundTint="@color/primary"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
