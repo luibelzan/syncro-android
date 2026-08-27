@@ -28,6 +28,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Syncro">
         <activity
+            android:name=".ResultadosDeteccionCorrienteDiferencialActivity"
+            android:exported="false" />
+        <activity
+            android:name=".DeteccionCorrienteDiferencialActivity"
+            android:exported="false" />
+        <activity
             android:name=".ResultadosValoresInstantaneosS29Activity"
             android:exported="false" />
         <activity

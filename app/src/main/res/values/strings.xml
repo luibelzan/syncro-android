@@ -156,6 +156,7 @@
     <string name="date">Fecha y Hora</string>
     <string name="screen">Pantalla</string>
     <string name="transf">Rel. Transf.</string>
+    <string name="neutro">Neutro</string>
 
     <!-- ICP MENU -->
     <string name="icpMenu">ICP Menu</string>
@@ -252,6 +253,15 @@
     <string name="primeCanal">Canal PRIME</string>
     <string name="primeChannel">Canal PRIME</string>
     <string name="primeSecurity">Seguridad PRIME</string>
+
+    <!-- DETECCION CORRIENTE DIFERENCIAL -->
+    <string name="differentialCurrentDetectionTitle">Deteccion de corriente diferencial</string>
+    <string name="differentialCurrentUmbralesTitle">Umbrales de detección</string>
+    <string name="umbralVariacionHint">Umbral variación corriente neutro</string>
+    <string name="umbralTiempoHint">Umbral de tiempo</string>
+    <string name="umbralCorrienteMinimaHint">Corriente mínima de fase</string>
+    <string name="corrienteDiferencialMedidaTitle">Valor medido</string>
+    <string name="corrienteDiferencialHint">Corriente diferencial actual</string>
 
 
 </resources>
