@@ -24,10 +24,15 @@ import com.celnet.syncro.utils.AppLogger;
 import com.google.android.material.checkbox.MaterialCheckBox;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class PrimeSeguridadActivity extends BaseActivity {
+
+    // Código de la opción de Dual Stack que se oculta del desplegable
+    // ("3: Dynamic communications - 1.3.6 or 1.4").
+    private static final String CODIGO_DUAL_STACK_OCULTO = "3";
 
     private MaterialCheckBox cbMaster;
     private List<MaterialCheckBox> bitCheckBoxes;
@@ -75,6 +80,8 @@ public class PrimeSeguridadActivity extends BaseActivity {
         //actualizarEstadoMaster();
 
         // Bits marcados por defecto: 0,1,2,4,5,6,12,13
+        // (se dejan preseleccionados por si el usuario activa el maestro,
+        // pero no se envían hasta que lo marque explícitamente)
         int[] bitsPorDefecto = {0, 1, 2, 4, 5, 6, 12, 13};
         boolean[] estadoInicial = new boolean[bitCheckBoxes.size()];
         for (int bit : bitsPorDefecto) {
@@ -84,31 +91,53 @@ public class PrimeSeguridadActivity extends BaseActivity {
             bitCheckBoxes.get(i).setChecked(estadoInicial[i]);
         }
 
-        // El maestro empieza activado: se enviará esta configuración por defecto al programar
-        cbMaster.setChecked(true);
-        actualizarHabilitacionHijos(true);
+        // El maestro empieza desactivado: constellation/coding no se envía
+        // por defecto al programar, salvo que el usuario lo marque.
+        cbMaster.setChecked(false);
+        actualizarHabilitacionHijos(false);
 
         // El maestro marca/desmarca todos los hijos
         cbMaster.setOnCheckedChangeListener(listenerMaster);
 
-        // Desplegable de versión Dual Stack Prime
+        // Desplegable de versión Dual Stack Prime.
+        // Se oculta la opción "3: Dynamic communications..." del listado
+        // que ve el usuario; el array original solo se usa como fuente
+        // para hacer el match en volcarEnFormulario() tras una lectura.
         AutoCompleteTextView spinnerDualStackVersion = findViewById(R.id.spinnerDualStackVersion);
-        String[] opcionesDualStack = getResources().getStringArray(R.array.dual_stack_prime_version_array);
+        String[] opcionesDualStackCompletas = getResources().getStringArray(R.array.dual_stack_prime_version_array);
+        String[] opcionesDualStackVisibles = filtrarOpcionOculta(opcionesDualStackCompletas);
+
         ArrayAdapter<String> adapterDualStack = new ArrayAdapter<>(
-                this, android.R.layout.simple_dropdown_item_1line, opcionesDualStack);
+                this, android.R.layout.simple_dropdown_item_1line, opcionesDualStackVisibles);
         spinnerDualStackVersion.setAdapter(adapterDualStack);
-        // Por defecto: "3: Dynamic communications - 1.3.6 or 1.4"
-        spinnerDualStackVersion.setText(opcionesDualStack[2], false);
+        // Por defecto: "2: Communications in Prime 1.4 mode"
+        // (antes era la opción 3, ahora oculta).
+        spinnerDualStackVersion.setText(opcionesDualStackVisibles[1], false);
 
         LinearLayout progressBar = findViewById(R.id.progressContainer);
         ExtendedFloatingActionButton btnLeerActual = findViewById(R.id.btnLeerActual);
         ExtendedFloatingActionButton btnProgramar = findViewById(R.id.btnProgramar);
 
         btnLeerActual.setOnClickListener(v -> leerActual(progressBar, btnLeerActual, btnProgramar,
-                spinnerDualStackVersion, opcionesDualStack));
+                spinnerDualStackVersion, opcionesDualStackVisibles));
 
         btnProgramar.setOnClickListener(v -> programar(progressBar, btnLeerActual, btnProgramar,
                 spinnerDualStackVersion));
+    }
+
+    /**
+     * Elimina del array de opciones la que empieza por
+     * {@link #CODIGO_DUAL_STACK_OCULTO} + ":" (p.ej. "3: Dynamic communications...").
+     */
+    private String[] filtrarOpcionOculta(String[] opcionesOriginales) {
+        List<String> filtradas = new ArrayList<>();
+        String prefijoOculto = CODIGO_DUAL_STACK_OCULTO + ":";
+        for (String opcion : opcionesOriginales) {
+            if (!opcion.trim().startsWith(prefijoOculto)) {
+                filtradas.add(opcion);
+            }
+        }
+        return filtradas.toArray(new String[0]);
     }
 
     private void leerActual(LinearLayout progressBar,
@@ -240,11 +269,24 @@ public class PrimeSeguridadActivity extends BaseActivity {
         cbMaster.setChecked(true);
         actualizarHabilitacionHijos(true);
 
+        String codigoLeido = datos.getDualStackVersionCode() + ":";
+        boolean encontrada = false;
         for (String opcion : opcionesDualStack) {
-            if (opcion.startsWith(datos.getDualStackVersionCode() + ":")) {
+            if (opcion.startsWith(codigoLeido)) {
                 spinnerDualStackVersion.setText(opcion, false);
+                encontrada = true;
                 break;
             }
+        }
+
+        // El contador puede tener programada la opción oculta (código 3)
+        // aunque ya no se ofrezca en el desplegable. En ese caso avisamos
+        // en vez de dejar el campo con un valor obsoleto o vacío.
+        if (!encontrada) {
+            Toast.makeText(this,
+                    "El contador tiene programada una versión de Dual Stack (código "
+                            + datos.getDualStackVersionCode() + ") que ya no está disponible en este formulario.",
+                    Toast.LENGTH_LONG).show();
         }
     }
 
