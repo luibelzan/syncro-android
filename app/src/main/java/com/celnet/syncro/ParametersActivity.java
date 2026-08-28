@@ -108,7 +108,7 @@ public class ParametersActivity extends BaseActivity {
         String cncNameClean = cncName.replaceAll("\\s+", "_");
         String fechaActual  = new SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault())
                 .format(new Date());
-        String nombreFichero = cncNameClean + "_0_S06_0_" + fechaActual + ".xml";
+        String nombreFichero = cncNameClean + "_0_S06_0_" + fechaActual;
 
         File syncroFolder = new File(
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
