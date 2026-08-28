@@ -1,12 +1,56 @@
 package com.celnet.syncro.models.prime;
 
-public class PrimeSecurityInfo {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+public class PrimeSecurityInfo implements Parcelable {
 
     private ConstellationCoding constellationCoding;
     private String sarSize;
     private boolean arqEnabled;
     private String dualStackVersion;
-    private int dualStackVersionCode;   // 👈 nuevo
+    private int dualStackVersionCode;
+
+    public PrimeSecurityInfo() {
+    }
+
+    protected PrimeSecurityInfo(Parcel in) {
+        boolean[] bits = in.createBooleanArray();
+        constellationCoding = ConstellationCoding.fromBitArray(bits);
+        sarSize = in.readString();
+        arqEnabled = in.readByte() != 0;
+        dualStackVersion = in.readString();
+        dualStackVersionCode = in.readInt();
+    }
+
+    public static final Creator<PrimeSecurityInfo> CREATOR = new Creator<PrimeSecurityInfo>() {
+        @Override
+        public PrimeSecurityInfo createFromParcel(Parcel in) {
+            return new PrimeSecurityInfo(in);
+        }
+
+        @Override
+        public PrimeSecurityInfo[] newArray(int size) {
+            return new PrimeSecurityInfo[size];
+        }
+    };
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        // Se serializa el array de bits en vez de ConstellationCoding
+        // directamente, para no depender de que esa clase implemente
+        // Parcelable. Se reconstruye con fromBitArray() al deserializar.
+        dest.writeBooleanArray(constellationCoding.toBitArray());
+        dest.writeString(sarSize);
+        dest.writeByte((byte) (arqEnabled ? 1 : 0));
+        dest.writeString(dualStackVersion);
+        dest.writeInt(dualStackVersionCode);
+    }
 
     public ConstellationCoding getConstellationCoding() { return constellationCoding; }
     public void setConstellationCoding(ConstellationCoding constellationCoding) { this.constellationCoding = constellationCoding; }

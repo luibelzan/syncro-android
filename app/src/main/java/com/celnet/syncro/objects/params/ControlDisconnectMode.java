@@ -59,9 +59,9 @@ public class ControlDisconnectMode {
 
             AppLogger.i("Syncro", "Intentando " + action + "...");
 
-            byte[] parameters = new byte[]{0x01, 0x0F, 0x00};
+            //byte[] parameters = new byte[]{0x01, 0x0F, 0x00};
 
-            byte[][] data = client.method(dc, methodId, parameters, DataType.OCTET_STRING);
+            byte[][] data = client.method(dc, methodId, 0, DataType.INT8);
             GXReplyData reply = new GXReplyData();
 
             for (byte[] frame : data) {
@@ -72,6 +72,8 @@ public class ControlDisconnectMode {
                     throw new RuntimeException("Error DLMS en acción: " + reply.getError());
                 }
             }
+
+            Thread.sleep(1000);
 
             reader.read(dc, 2);
             reader.read(dc, 3);
@@ -114,8 +116,9 @@ public class ControlDisconnectMode {
      * atributo 4 con una structure{time, date} y nunca el atributo 3),
      * aquí se escriben los tres atributos relevantes:
      *   - atributo 2 (executed_script): vía setTarget() + setExecutedScriptSelector()
-     *   - atributo 3 (type): SingleActionScheduleType1, el valor por defecto
-     *     de la clase para una ejecución única (no periódica)
+     *   - atributo 3 (type): NO se escribe (read-write-denied en este contador,
+     *     confirmado en campo); se deja el valor por defecto de la clase
+     *     (SingleActionScheduleType1, ejecución única).
      *   - atributo 4 (execution_time): un único GXDateTime con fecha+hora
      *     completas; GXDLMSActionSchedule lo serializa internamente como
      *     structure{octet_string(4)=time, octet_string(5)=date}, el mismo
@@ -141,7 +144,11 @@ public class ControlDisconnectMode {
             schedule.setTarget(scriptTable);
             schedule.setExecutedScriptSelector(scriptSelector);
 
-            // ── Atributo 3: type (ejecución única, sin periodicidad) ─────────
+            // ── Atributo 3: type — NO se escribe. El contador lo deniega
+            //    (Read-Write denied, comprobado en campo); es de solo lectura
+            //    en este equipo. El valor por defecto de la clase ya es
+            //    SingleActionScheduleType1 (ejecución única), que es lo que
+            //    necesitamos, así que no hace falta tocarlo.
             schedule.setType(SingleActionScheduleType.SingleActionScheduleType1);
 
             // ── Atributo 4: execution_time (fecha/hora completa de disparo) ──
@@ -159,7 +166,6 @@ public class ControlDisconnectMode {
                     + fechaActivacion.get(Calendar.SECOND));
 
             reader.writeObject(schedule, 2); // executed_script
-            //reader.writeObject(schedule, 3); // type
             reader.writeObject(schedule, 4); // execution_time
 
             AppLogger.i("Syncro", "Programación de " + action + " automática realizada correctamente.");
