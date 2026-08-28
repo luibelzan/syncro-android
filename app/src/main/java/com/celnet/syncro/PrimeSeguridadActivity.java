@@ -1,5 +1,6 @@
 package com.celnet.syncro;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -77,8 +78,6 @@ public class PrimeSeguridadActivity extends BaseActivity {
                 (MaterialCheckBox) findViewById(R.id.cbBit15)
         );
 
-        //actualizarEstadoMaster();
-
         // Bits marcados por defecto: 0,1,2,4,5,6,12,13
         // (se dejan preseleccionados por si el usuario activa el maestro,
         // pero no se envían hasta que lo marque explícitamente)
@@ -101,8 +100,7 @@ public class PrimeSeguridadActivity extends BaseActivity {
 
         // Desplegable de versión Dual Stack Prime.
         // Se oculta la opción "3: Dynamic communications..." del listado
-        // que ve el usuario; el array original solo se usa como fuente
-        // para hacer el match en volcarEnFormulario() tras una lectura.
+        // que ve el usuario.
         AutoCompleteTextView spinnerDualStackVersion = findViewById(R.id.spinnerDualStackVersion);
         String[] opcionesDualStackCompletas = getResources().getStringArray(R.array.dual_stack_prime_version_array);
         String[] opcionesDualStackVisibles = filtrarOpcionOculta(opcionesDualStackCompletas);
@@ -118,8 +116,7 @@ public class PrimeSeguridadActivity extends BaseActivity {
         ExtendedFloatingActionButton btnLeerActual = findViewById(R.id.btnLeerActual);
         ExtendedFloatingActionButton btnProgramar = findViewById(R.id.btnProgramar);
 
-        btnLeerActual.setOnClickListener(v -> leerActual(progressBar, btnLeerActual, btnProgramar,
-                spinnerDualStackVersion, opcionesDualStackVisibles));
+        btnLeerActual.setOnClickListener(v -> leerActual(progressBar, btnLeerActual, btnProgramar));
 
         btnProgramar.setOnClickListener(v -> programar(progressBar, btnLeerActual, btnProgramar,
                 spinnerDualStackVersion));
@@ -142,9 +139,7 @@ public class PrimeSeguridadActivity extends BaseActivity {
 
     private void leerActual(LinearLayout progressBar,
                             ExtendedFloatingActionButton btnLeerActual,
-                            ExtendedFloatingActionButton btnProgramar,
-                            AutoCompleteTextView spinnerDualStackVersion,
-                            String[] opcionesDualStack) {
+                            ExtendedFloatingActionButton btnProgramar) {
 
         progressBar.setVisibility(View.VISIBLE);
         btnLeerActual.setEnabled(false);
@@ -168,12 +163,19 @@ public class PrimeSeguridadActivity extends BaseActivity {
                     progressBar.setVisibility(View.GONE);
                     btnLeerActual.setEnabled(true);
                     btnProgramar.setEnabled(true);
-                    volcarEnFormulario(datos, spinnerDualStackVersion, opcionesDualStack);
+
+                    // El formulario de esta pantalla es para PROGRAMAR, no un
+                    // espejo de la última lectura: no se rellenan los inputs.
+                    // El resultado de la lectura vive únicamente en su propia
+                    // pantalla de solo lectura.
+                    Intent intent = new Intent(PrimeSeguridadActivity.this,
+                            ResultadosPrimeSeguridadActivity.class);
+                    intent.putExtra(ResultadosPrimeSeguridadActivity.EXTRA_INFO, datos);
+                    startActivity(intent);
                 });
 
             } catch (Exception e) {
                 e.printStackTrace();
-                DLMSConnection finalConn = conn;
                 runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);
                     btnLeerActual.setEnabled(true);
@@ -254,40 +256,6 @@ public class PrimeSeguridadActivity extends BaseActivity {
                 .setPositiveButton("Aceptar", null)
                 .setCancelable(true)
                 .show();
-    }
-
-    /** Rellena checkboxes y spinner con lo leído del contador */
-    private void volcarEnFormulario(PrimeSecurityInfo datos,
-                                    AutoCompleteTextView spinnerDualStackVersion,
-                                    String[] opcionesDualStack) {
-
-        boolean[] bits = datos.getConstellationCoding().toBitArray();
-        for (int i = 0; i < bitCheckBoxes.size(); i++) {
-            bitCheckBoxes.get(i).setChecked(bits[i]);
-        }
-
-        cbMaster.setChecked(true);
-        actualizarHabilitacionHijos(true);
-
-        String codigoLeido = datos.getDualStackVersionCode() + ":";
-        boolean encontrada = false;
-        for (String opcion : opcionesDualStack) {
-            if (opcion.startsWith(codigoLeido)) {
-                spinnerDualStackVersion.setText(opcion, false);
-                encontrada = true;
-                break;
-            }
-        }
-
-        // El contador puede tener programada la opción oculta (código 3)
-        // aunque ya no se ofrezca en el desplegable. En ese caso avisamos
-        // en vez de dejar el campo con un valor obsoleto o vacío.
-        if (!encontrada) {
-            Toast.makeText(this,
-                    "El contador tiene programada una versión de Dual Stack (código "
-                            + datos.getDualStackVersionCode() + ") que ya no está disponible en este formulario.",
-                    Toast.LENGTH_LONG).show();
-        }
     }
 
     private void actualizarEstadoMaster() {
