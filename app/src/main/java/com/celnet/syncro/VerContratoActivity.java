@@ -2,36 +2,29 @@ package com.celnet.syncro;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.ImageButton;
+import android.widget.AutoCompleteTextView;
 import android.widget.LinearLayout;
-import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.celnet.syncro.client.DLMSConnection;
-import com.celnet.syncro.client.GXDLMSReader;
 import com.celnet.syncro.objects.contracts.ViewContract;
 import com.celnet.syncro.session.ConnectionConfig;
 import com.celnet.syncro.session.SessionManager;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
+import java.util.Arrays;
 
-public class VerContratoActivity extends AppCompatActivity {
+public class VerContratoActivity extends BaseActivity {
 
-    private Spinner spinnerContrato;
+    private AutoCompleteTextView spinnerContrato;
+    private String[] contratosArray;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,23 +37,17 @@ public class VerContratoActivity extends AppCompatActivity {
             return insets;
         });
 
-        //Spinner de contrato
+        // Desplegable de contrato
         spinnerContrato = findViewById(R.id.spinnerContrato);
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
-                this,
-                R.array.program_contracts_array,
-                android.R.layout.simple_spinner_item
-        );
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        contratosArray = getResources().getStringArray(R.array.program_contracts_array);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                this, android.R.layout.simple_dropdown_item_1line, contratosArray);
         spinnerContrato.setAdapter(adapter);
-        spinnerContrato.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {}
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
-        });
+        if (contratosArray.length > 0) {
+            spinnerContrato.setText(contratosArray[0], false);
+        }
 
-        ImageButton btnNext = findViewById(R.id.btnNext);
+        ExtendedFloatingActionButton btnNext = findViewById(R.id.btnNext);
         LinearLayout progressBar = findViewById(R.id.progressContainer);
 
         btnNext.setOnClickListener(v -> {
@@ -68,7 +55,8 @@ public class VerContratoActivity extends AppCompatActivity {
             ConnectionConfig config = SessionManager.getInstance().getConnectionConfig();
 
             // ── Contrato ────────────────────────────────────────────────────────
-            int contract = spinnerContrato.getSelectedItemPosition() + 1;
+            int posicionContrato = Arrays.asList(contratosArray).indexOf(spinnerContrato.getText().toString());
+            int contract = (posicionContrato >= 0 ? posicionContrato : 0) + 1;
 
             // Bloquear interacción mientras carga
             btnNext.setEnabled(false);

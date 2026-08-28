@@ -5,67 +5,104 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/background"
+    android:fitsSystemWindows="true"
     tools:context=".VerContratoActivity">
 
-    <LinearLayout
-        android:id="@+id/layoutBluetooth"
-        android:layout_width="wrap_content"
+    <!-- Cabecera -->
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="36dp"
-        android:layout_marginTop="30dp"
-        android:orientation="vertical"
-        android:visibility="visible"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="24dp"
+        android:text="@string/verContract"
+        android:textSize="26sp"
+        android:textStyle="bold"
+        android:textColor="@color/on_surface"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent" />
 
-        <TextView
-            android:layout_width="wrap_content"
+    <View
+        android:id="@+id/dividerHeader"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginTop="16dp"
+        android:background="@color/outline"
+        app:layout_constraintEnd_toEndOf="@id/textView"
+        app:layout_constraintStart_toStartOf="@id/textView"
+        app:layout_constraintTop_toBottomOf="@id/textView" />
+
+    <!-- Tarjeta de selección de contrato -->
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="24dp"
+        app:cardBackgroundColor="@color/surface"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="3dp"
+        app:strokeColor="@color/outline"
+        app:strokeWidth="1dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/dividerHeader">
+
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingBottom="15sp"
-            android:text="@string/tarifContract"
-            android:textColor="@color/gris_texto"
-            android:textSize="25sp" />
+            android:orientation="vertical"
+            android:padding="24dp">
 
-        <Spinner
-            android:id="@+id/spinnerContrato"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent" />
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/layoutContrato"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/tarifContract"
+                app:boxCornerRadiusBottomEnd="12dp"
+                app:boxCornerRadiusBottomStart="12dp"
+                app:boxCornerRadiusTopEnd="12dp"
+                app:boxCornerRadiusTopStart="12dp"
+                app:boxStrokeColor="@color/primary"
+                app:hintTextColor="@color/primary">
 
-    </LinearLayout>
+                <AutoCompleteTextView
+                    android:id="@+id/spinnerContrato"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="none"
+                    android:textColor="@color/on_surface" />
+            </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Contenedor para ProgressBar y texto -->
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Overlay de progreso -->
     <include
         android:id="@+id/progressContainer"
-        layout="@layout/overlay_progress" />
+        layout="@layout/overlay_progress"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-    <LinearLayout
-        android:id="@+id/btnNextLayout"
+    <!-- Botón ver contrato -->
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/btnNext"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="61dp"
-        android:orientation="vertical"
-        android:gravity="center_horizontal"
+        android:layout_marginBottom="32dp"
+        android:layout_marginEnd="24dp"
+        android:text="@string/verContract"
+        android:textColor="@color/white"
+        app:icon="@android:drawable/ic_media_next"
+        app:iconTint="@color/white"
+        app:backgroundTint="@color/primary"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="parent">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:paddingBottom="15sp"
-            android:text="@string/verContract"
-            android:textColor="@color/gris_texto"
-            android:textSize="25sp" />
-
-        <ImageButton
-            android:id="@+id/btnNext"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:background="@drawable/circle_button"
-            android:contentDescription="@string/next"
-            android:src="@android:drawable/ic_media_next"
-            app:tint="@color/gris_texto" />
-    </LinearLayout>
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
