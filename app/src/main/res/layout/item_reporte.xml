@@ -3,6 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:background="@drawable/bg_row_fila"
     android:gravity="center_vertical"
     android:orientation="horizontal"
@@ -40,6 +41,34 @@
             android:textColor="@color/on_surface_variant"
             android:textSize="13sp" />
 
+        <TextView
+            android:id="@+id/txtEstado"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            tools:ignore="MissingConstraints"
+            tools:text="Enviado correctamente" />
+
     </LinearLayout>
+
+    <!-- Indicador de estado: spinner mientras sube, icono al terminar -->
+    <ProgressBar
+        android:id="@+id/progressEstado"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_marginStart="8dp"
+        android:indeterminateTint="@color/primary"
+        android:visibility="gone" />
+
+    <ImageView
+        android:id="@+id/ivEstado"
+        android:layout_width="22dp"
+        android:layout_height="22dp"
+        android:layout_marginStart="8dp"
+        android:visibility="gone"
+        tools:src="@android:drawable/checkbox_on_background" />
 
 </LinearLayout>

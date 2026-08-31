@@ -23,6 +23,7 @@ import java.util.ArrayList;
 public class ReportesActivity extends BaseActivity {
 
     private ArrayList<ReportFile> lista = new ArrayList<>();
+    private ReportesAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,10 +43,10 @@ public class ReportesActivity extends BaseActivity {
 
         cargarReportes();
 
-        ReportesAdapter adapter = new ReportesAdapter(lista);
+        adapter = new ReportesAdapter(lista);
         rv.setAdapter(adapter);
 
-        btnEnviar.setOnClickListener(v -> enviarSeleccionados());
+        btnEnviar.setOnClickListener(v -> enviarSeleccionados(btnEnviar));
     }
 
     private void cargarReportes() {
@@ -72,7 +73,7 @@ public class ReportesActivity extends BaseActivity {
         }
     }
 
-    private void enviarSeleccionados() {
+    private void enviarSeleccionados(ExtendedFloatingActionButton btnEnviar) {
 
         boolean algunoSeleccionado = false;
         for (ReportFile report : lista) {
@@ -86,6 +87,8 @@ public class ReportesActivity extends BaseActivity {
             Toast.makeText(this, "Selecciona al menos un reporte", Toast.LENGTH_SHORT).show();
             return;
         }
+
+        btnEnviar.setEnabled(false);
 
         new Thread(() -> {
 
@@ -102,12 +105,19 @@ public class ReportesActivity extends BaseActivity {
                     );
 
             int enviados = 0;
+            int fallidos = 0;
 
-            for (ReportFile report : lista) {
-
+            for (int i = 0; i < lista.size(); i++) {
+                ReportFile report = lista.get(i);
                 if (!report.isSeleccionado()) {
                     continue;
                 }
+
+                final int index = i;
+
+                // Marca "subiendo" y refresca esa fila antes de intentar el envío
+                report.setEstado(ReportFile.EstadoEnvio.SUBIENDO);
+                runOnUiThread(() -> adapter.notifyItemChanged(index));
 
                 boolean subidaCorrecta = false;
 
@@ -147,28 +157,46 @@ public class ReportesActivity extends BaseActivity {
                                 afterSend,
                                 ReportesActivity.this
                         );
+
+                    } else {
+                        fallidos++;
                     }
 
                 } catch (Exception e) {
                     e.printStackTrace();
+                    fallidos++;
                 }
+
+                // Marca el resultado final de ESTE archivo y refresca su fila
+                report.setEstado(subidaCorrecta
+                        ? ReportFile.EstadoEnvio.EXITO
+                        : ReportFile.EstadoEnvio.ERROR);
+                final boolean fueExitoso = subidaCorrecta;
+                runOnUiThread(() -> adapter.notifyItemChanged(index));
             }
 
             int totalEnviados = enviados;
+            int totalFallidos = fallidos;
 
             runOnUiThread(() -> {
 
+                btnEnviar.setEnabled(true);
+
+                String resumen = totalEnviados + " reportes enviados";
+                if (totalFallidos > 0) {
+                    resumen += ", " + totalFallidos + " con error";
+                }
+
                 Toast.makeText(
                         ReportesActivity.this,
-                        totalEnviados + " reportes enviados",
+                        resumen,
                         Toast.LENGTH_LONG
                 ).show();
 
-                lista.clear();
-                cargarReportes();
-
-                RecyclerView rv = findViewById(R.id.rvReportes);
-                rv.setAdapter(new ReportesAdapter(lista));
+                // No se recarga la lista automáticamente: así el usuario ve
+                // el resultado (✓ verde / ✗ rojo) de cada reporte en su fila,
+                // en vez de que desaparezcan de golpe los que se movieron o
+                // borraron tras un envío exitoso (gestionarArchivoTrasEnvio).
             });
 
         }).start();
