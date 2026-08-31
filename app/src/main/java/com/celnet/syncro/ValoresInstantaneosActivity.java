@@ -39,6 +39,7 @@ public class ValoresInstantaneosActivity extends BaseActivity {
         });
 
         LinearLayout progressBar = findViewById(R.id.progressContainer);
+        MaterialCardView cardResultados = findViewById(R.id.cardResultados);
         LinearLayout layoutResultados = findViewById(R.id.layoutResultados);
         TextView tvResultado = findViewById(R.id.tvResultado);
         MaterialCardView cardSelector = findViewById(R.id.cardSelector);
@@ -67,6 +68,7 @@ public class ValoresInstantaneosActivity extends BaseActivity {
             ConnectionConfig config = SessionManager.getInstance().getConnectionConfig();
 
             progressBar.setVisibility(View.VISIBLE);
+            cardResultados.setVisibility(View.GONE);
             layoutResultados.setVisibility(View.GONE);
             btnLeer.setEnabled(false);
 
@@ -85,6 +87,7 @@ public class ValoresInstantaneosActivity extends BaseActivity {
                         runOnUiThread(() -> {
                             progressBar.setVisibility(View.GONE);
                             cardSelector.setVisibility(View.GONE);
+                            cardResultados.setVisibility(View.VISIBLE);
                             layoutResultados.setVisibility(View.VISIBLE);
                             btnLeer.setEnabled(true);
                             tvResultado.setText(datos);
