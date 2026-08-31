@@ -15,6 +15,8 @@ public class ReportFile {
     private boolean seleccionado;
     private EstadoEnvio estado = EstadoEnvio.PENDIENTE;
 
+    private String mensajeError;
+
     public ReportFile(File file) {
         this.file = file;
     }
@@ -37,5 +39,13 @@ public class ReportFile {
 
     public void setEstado(EstadoEnvio estado) {
         this.estado = estado;
+    }
+
+    public String getMensajeError() {
+        return mensajeError;
+    }
+
+    public void setMensajeError(String mensajeError) {
+        this.mensajeError = mensajeError;
     }
 }

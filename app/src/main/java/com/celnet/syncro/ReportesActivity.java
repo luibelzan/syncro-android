@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.celnet.syncro.adapters.ReportesAdapter;
 import com.celnet.syncro.models.ReportFile;
+import com.celnet.syncro.models.UploadResult;
 import com.celnet.syncro.utils.Utils;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
@@ -123,47 +124,31 @@ public class ReportesActivity extends BaseActivity {
 
                 try {
 
+                    UploadResult resultado;
+
                     if ("SFTP".equalsIgnoreCase(protocolo)) {
-
-                        subidaCorrecta =
-                                Utils.subirArchivoSFTP(
-                                        ReportesActivity.this,
-                                        report.getFile()
-                                );
-
+                        resultado = Utils.subirArchivoSFTPConDetalle(ReportesActivity.this, report.getFile());
                     } else if ("FTPS".equalsIgnoreCase(protocolo)) {
-
-                        subidaCorrecta =
-                                Utils.subirArchivoFTPS(
-                                        ReportesActivity.this,
-                                        report.getFile()
-                                );
-
+                        resultado = Utils.subirArchivoFTPSConDetalle(ReportesActivity.this, report.getFile());
                     } else {
-
-                        subidaCorrecta =
-                                Utils.subirArchivoFTP(
-                                        ReportesActivity.this,
-                                        report.getFile()
-                                );
+                        resultado = Utils.subirArchivoFTPConDetalle(ReportesActivity.this, report.getFile());
                     }
+
+                    subidaCorrecta = resultado.success;
 
                     if (subidaCorrecta) {
-
                         enviados++;
-
-                        Utils.gestionarArchivoTrasEnvio(
-                                report.getFile(),
-                                afterSend,
-                                ReportesActivity.this
-                        );
-
+                        Utils.gestionarArchivoTrasEnvio(report.getFile(), afterSend, ReportesActivity.this);
                     } else {
                         fallidos++;
+                        report.setMensajeError(resultado.errorMessage);
+                        android.util.Log.e("ReportesActivity",
+                                "Fallo al subir " + report.getFile().getName() + ": " + resultado.errorMessage);
                     }
 
-                } catch (Exception e) {
-                    e.printStackTrace();
+                }  catch (Exception e) {
+                    com.celnet.syncro.utils.AppLogger.e("ReportesActivity",
+                            "Error al subir " + report.getFile().getName() + ": " + e.getMessage());
                     fallidos++;
                 }
 

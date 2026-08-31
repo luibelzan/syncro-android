@@ -63,15 +63,15 @@ public class ReportesAdapter extends RecyclerView.Adapter<ReportesAdapter.ViewHo
         holder.itemView.setBackgroundResource(
                 esPar ? R.drawable.bg_row_fila : R.drawable.bg_row_fila_alt);
 
-        pintarEstado(holder, report.getEstado());
+        pintarEstado(holder, report);
     }
 
-    private void pintarEstado(ViewHolder holder, ReportFile.EstadoEnvio estado) {
+    private void pintarEstado(ViewHolder holder, ReportFile report) {
         holder.progressEstado.setVisibility(View.GONE);
         holder.ivEstado.setVisibility(View.GONE);
         holder.txtEstado.setVisibility(View.GONE);
 
-        switch (estado) {
+        switch (report.getEstado()) {
             case SUBIENDO:
                 holder.progressEstado.setVisibility(View.VISIBLE);
                 holder.txtEstado.setVisibility(View.VISIBLE);
@@ -97,14 +97,14 @@ public class ReportesAdapter extends RecyclerView.Adapter<ReportesAdapter.ViewHo
                 holder.ivEstado.setColorFilter(
                         ContextCompat.getColor(holder.itemView.getContext(), R.color.error));
                 holder.txtEstado.setVisibility(View.VISIBLE);
-                holder.txtEstado.setText("Error al enviar");
+                String motivo = report.getMensajeError();
+                holder.txtEstado.setText(motivo != null ? "Error: " + motivo : "Error al enviar");
                 holder.txtEstado.setTextColor(
                         ContextCompat.getColor(holder.itemView.getContext(), R.color.error));
                 break;
 
             case PENDIENTE:
             default:
-                // Sin indicador: aún no se ha intentado enviar.
                 break;
         }
     }
