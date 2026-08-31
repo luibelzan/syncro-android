@@ -284,8 +284,8 @@ public class LoadProfileReader {
             reader.read(lp6, 3);
         } catch (Exception e) {
             AppLogger.e("LoadProfile", "El contador no soporta LP6 (energías por fase): " + e.getMessage());
-            throw new Exception("Este contador no dispone de la curva de energías por fase (S46). "
-                    + "Solo disponible en contadores polifásicos.", e);
+            throw new Exception("Este contador no dispone del informe S43. "
+                    + "Este informe solo está disponible en contadores con Companion 2.0 Trifásicos.", e);
         }
 
         if (lp6.getCaptureObjects().isEmpty()) {
