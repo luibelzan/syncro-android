@@ -47,7 +47,7 @@ public class ResultadosCierresActivity extends BaseActivity {
                     .append("R2a=\"").append(fila.r2).append("\" ")
                     .append("R3a=\"").append(fila.r3).append("\" ")
                     .append("R4a=\"").append(fila.r4).append("\"")
-                    .append("></Value>\n");
+                    .append("/>\n");
 
             sb.append("      </S05>\n");
         }
