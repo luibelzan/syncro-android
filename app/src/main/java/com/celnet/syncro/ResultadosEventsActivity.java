@@ -35,10 +35,27 @@ public class ResultadosEventsActivity extends BaseActivity {
         sb.append("    <Cnt Id=\"").append(cntId).append("\">\n");
 
         for (EventFila fila : datos) {
+            boolean tieneDatosAdicionales = fila.d1 != null || fila.d2 != null;
+
+            // Et = grupo/categoría del evento (fila.cod), C = código del evento
+            // dentro de ese grupo (fila.id). Antes estaba invertido.
             sb.append("      <S09 ")
                     .append("Fh=\"").append(Utils.convertirFecha(fila.fh)).append("\" ")
-                    .append("Et=\"").append(fila.id).append("\" ")
-                    .append("C=\"").append(fila.cod).append("\"/>\n");
+                    .append("Et=\"").append(fila.cod).append("\" ")
+                    .append("C=\"").append(fila.id).append("\"");
+
+            if (!tieneDatosAdicionales) {
+                sb.append("></S09>\n");
+            } else {
+                sb.append(">\n");
+                if (fila.d1 != null) {
+                    sb.append("        <D1>").append(fila.d1).append("</D1>\n");
+                }
+                if (fila.d2 != null) {
+                    sb.append("        <D2>").append(fila.d2).append("</D2>\n");
+                }
+                sb.append("      </S09>\n");
+            }
         }
 
         sb.append("    </Cnt>\n");

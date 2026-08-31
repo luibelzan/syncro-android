@@ -45,13 +45,18 @@ public class FinishedPQEventLog {
                 AppLogger.i(TAG, "ZIV detectado o estructura vacía. Aplicando plantilla manual...");
 
                 gurux.dlms.objects.GXDLMSClock clock = new gurux.dlms.objects.GXDLMSClock("0.0.1.0.0.255");
-                gurux.dlms.objects.GXDLMSData eventCode = new gurux.dlms.objects.GXDLMSData("0.0.96.11.7.255");
+                gurux.dlms.objects.GXDLMSData eventCode = new gurux.dlms.objects.GXDLMSData("0.0.96.11.9.255");
 
                 gurux.dlms.objects.GXDLMSCaptureObject capClock = new gurux.dlms.objects.GXDLMSCaptureObject(2, 0);
                 gurux.dlms.objects.GXDLMSCaptureObject capEvent = new gurux.dlms.objects.GXDLMSCaptureObject(2, 0);
 
                 finishedPQLog.getCaptureObjects().add(new java.util.AbstractMap.SimpleEntry<>(clock, capClock));
                 finishedPQLog.getCaptureObjects().add(new java.util.AbstractMap.SimpleEntry<>(eventCode, capEvent));
+                // NOTA: la plantilla manual (fallback ZIV) solo cubre clock +
+                // event code (2 columnas). Sin los capture_objects reales del
+                // contador no se pueden inferir las 5 columnas adicionales
+                // (timestamp_begin + 4 valores de tensión), así que en ese
+                // caso D1/D2 quedarán vacíos (fila.length == 2).
             }
 
             SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd");
@@ -90,11 +95,29 @@ public class FinishedPQEventLog {
                     int id = Integer.parseInt(fila[1].toString());
                     EventDescription info = getEventDescription(context, id, 3);
 
+                    // Según documentación del fabricante (Finished Power
+                    // Quality Event Log, 0-0:99.98.9.255):
+                    //   col 2 = Timestamp begin of event               → D1
+                    //   col 3-6 = tensión finalizada fase R/S/T/promedio → D2
+                    // Solo la fase que originó el evento lleva valor real;
+                    // el resto llegan como "null" (ya gestionado por
+                    // EventExtraDataFormatter.format).
+                    String d1 = null;
+                    String d2 = null;
+                    if (fila.length > 2) {
+                        d1 = EventExtraDataFormatter.format(fila[2]);
+                    }
+                    if (fila.length > 6) {
+                        d2 = EventExtraDataFormatter.formatList(fila[3], fila[4], fila[5], fila[6]);
+                    }
+
                     EventFila evento = new EventFila(
                             fecha,
                             id,
                             info.description,
-                            info.grp
+                            info.grp,
+                            d1,
+                            d2
                     );
 
                     result.add(evento);
