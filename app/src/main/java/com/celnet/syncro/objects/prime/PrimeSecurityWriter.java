@@ -5,34 +5,31 @@ import com.celnet.syncro.models.prime.ConstellationCoding;
 import com.celnet.syncro.utils.AppLogger;
 
 import gurux.dlms.GXBitString;
+import gurux.dlms.GXUInt16;
 import gurux.dlms.enums.DataType;
 import gurux.dlms.objects.GXDLMSData;
-import gurux.dlms.objects.GXDLMSScriptTable;
+import gurux.dlms.objects.GXDLMSRegister;
 
 public class PrimeSecurityWriter {
 
     private static final String OBIS_CONSTELLATION_CODING = "0.0.94.34.26.255";
-    private static final String OBIS_SCRIPT_TABLE_DUALSTACK = "0.0.94.34.29.255";
 
-    /** Valor especial: no tocar la versión Dual Stack actual (no se ejecuta ningún script) */
-    public static final int DUALSTACK_MANTENER_ACTUAL = 0;
+    // macMin/macMax movidos aquí desde PrimeChannelWriter.
+    private static final String OBIS_MAC_MIN_BAND_SEARCH_TIME = "0.0.94.34.32.255";
+    private static final String OBIS_MAC_MAX_BAND_SEARCH_TIME = "0.0.94.34.33.255";
 
     /**
-     * Programa la seguridad PRIME 1.4 del contador.
-     *
-     * @param reader                 wrapper de lectura/escritura DLMS ya conectado
-     * @param constellation          estado deseado de los 16 bits de constellation/coding
-     * @param dualStackOpcionElegida número mostrado en el desplegable (0,1,2,3).
-     *                                Confirmado por log: coincide 1:1 con el scriptId real
-     *                                (0 = mantener actual, no se ejecuta script;
-     *                                 1, 2, 3 = se ejecuta el script con ese mismo valor).
+     * Programa la seguridad PRIME 1.4 del contador: constellation/coding y
+     * los tiempos de búsqueda de banda (macMin/macMax). La versión de Dual
+     * Stack se programa ahora desde PrimeChannelWriter, junto con la
+     * selección de canal.
      */
     public static void programarSeguridadPrime(GXDLMSReader reader,
                                                ConstellationCoding constellation,
                                                boolean escribirConstellationCoding,
-                                               int dualStackOpcionElegida) throws Exception {
+                                               boolean escribirMacMin, int macMin,
+                                               boolean escribirMacMax, int macMax) throws Exception {
 
-        // 1) SET del bit-string de Constellation Coding — solo si el maestro está activado
         if (escribirConstellationCoding) {
             GXDLMSData constellationObj = new GXDLMSData(OBIS_CONSTELLATION_CODING);
             constellationObj.setValue(buildBitString(constellation.toBitArray()));
@@ -43,20 +40,21 @@ public class PrimeSecurityWriter {
             AppLogger.i("PrimeSecurity", "Constellation coding: sección desactivada, no se envía SET.");
         }
 
-        // 2) ACTION (execute) sobre la tabla de scripts, solo si el usuario no eligió "mantener actual"
-        if (dualStackOpcionElegida == DUALSTACK_MANTENER_ACTUAL) {
-            AppLogger.i("PrimeSecurity", "Dual stack Prime version: se mantiene el valor actual, no se ejecuta script.");
-            return;
+        if (escribirMacMin) {
+            escribirEntero(reader, OBIS_MAC_MIN_BAND_SEARCH_TIME, macMin);
+            AppLogger.i("PrimeSecurity", "Writting macMinBandSearchTime : OK");
         }
 
-        if (dualStackOpcionElegida < 1 || dualStackOpcionElegida > 3) {
-            throw new IllegalArgumentException("Opción de Dual Stack no reconocida: " + dualStackOpcionElegida);
+        if (escribirMacMax) {
+            escribirEntero(reader, OBIS_MAC_MAX_BAND_SEARCH_TIME, macMax);
+            AppLogger.i("PrimeSecurity", "Writting macMaxBandSearchTime : OK");
         }
+    }
 
-        AppLogger.i("PrimeSecurity", "Executing Dual stack Prime version Script");
-        GXDLMSScriptTable scriptTable = new GXDLMSScriptTable(OBIS_SCRIPT_TABLE_DUALSTACK);
-        reader.method(scriptTable, 1, dualStackOpcionElegida, DataType.UINT16);
-        AppLogger.i("PrimeSecurity", "Prime 1.4 – Executed Dual stack Prime version : OK");
+    private static void escribirEntero(GXDLMSReader reader, String obis, int valor) throws Exception {
+        GXDLMSRegister reg = new GXDLMSRegister(obis);
+        reg.setValue(new GXUInt16(valor));
+        reader.writeObject(reg, 2);
     }
 
     private static GXBitString buildBitString(boolean[] bits) {

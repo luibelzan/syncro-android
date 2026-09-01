@@ -3,8 +3,6 @@ package com.celnet.syncro;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -24,27 +22,18 @@ import com.celnet.syncro.session.SessionManager;
 import com.celnet.syncro.utils.AppLogger;
 import com.google.android.material.checkbox.MaterialCheckBox;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
+import com.google.android.material.textfield.TextInputEditText;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class PrimeSeguridadActivity extends BaseActivity {
 
-    // Código de la opción de Dual Stack que se oculta del desplegable
-    // ("3: Dynamic communications - 1.3.6 or 1.4").
-    private static final String CODIGO_DUAL_STACK_OCULTO = "3";
-
     private MaterialCheckBox cbMaster;
     private List<MaterialCheckBox> bitCheckBoxes;
 
-    // Evita bucles infinitos entre el listener del maestro y el de los hijos
-    private boolean actualizandoDesdeMaster = false;
-
     private final CompoundButton.OnCheckedChangeListener listenerMaster =
-            (buttonView, isChecked) -> {
-                actualizarHabilitacionHijos(isChecked);
-            };
+            (buttonView, isChecked) -> actualizarHabilitacionHijos(isChecked);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,8 +68,6 @@ public class PrimeSeguridadActivity extends BaseActivity {
         );
 
         // Bits marcados por defecto: 0,1,2,4,5,6,12,13
-        // (se dejan preseleccionados por si el usuario activa el maestro,
-        // pero no se envían hasta que lo marque explícitamente)
         int[] bitsPorDefecto = {0, 1, 2, 4, 5, 6, 12, 13};
         boolean[] estadoInicial = new boolean[bitCheckBoxes.size()];
         for (int bit : bitsPorDefecto) {
@@ -90,27 +77,20 @@ public class PrimeSeguridadActivity extends BaseActivity {
             bitCheckBoxes.get(i).setChecked(estadoInicial[i]);
         }
 
-        // El maestro empieza desactivado: constellation/coding no se envía
-        // por defecto al programar, salvo que el usuario lo marque.
         cbMaster.setChecked(false);
         actualizarHabilitacionHijos(false);
-
-        // El maestro marca/desmarca todos los hijos
         cbMaster.setOnCheckedChangeListener(listenerMaster);
 
-        // Desplegable de versión Dual Stack Prime.
-        // Se oculta la opción "3: Dynamic communications..." del listado
-        // que ve el usuario.
-        AutoCompleteTextView spinnerDualStackVersion = findViewById(R.id.spinnerDualStackVersion);
-        String[] opcionesDualStackCompletas = getResources().getStringArray(R.array.dual_stack_prime_version_array);
-        String[] opcionesDualStackVisibles = filtrarOpcionOculta(opcionesDualStackCompletas);
+        // ===== macMaxBandSearchTime / macMinBandSearchTime (movidas desde Canal PRIME) =====
+        MaterialCheckBox checkBoxMacMax = findViewById(R.id.checkBoxMacMax);
+        TextInputEditText editMacMaxBandSearchTime = findViewById(R.id.editMacMaxBandSearchTime);
+        checkBoxMacMax.setOnCheckedChangeListener((buttonView, isChecked) ->
+                editMacMaxBandSearchTime.setEnabled(isChecked));
 
-        ArrayAdapter<String> adapterDualStack = new ArrayAdapter<>(
-                this, android.R.layout.simple_dropdown_item_1line, opcionesDualStackVisibles);
-        spinnerDualStackVersion.setAdapter(adapterDualStack);
-        // Por defecto: "2: Communications in Prime 1.4 mode"
-        // (antes era la opción 3, ahora oculta).
-        spinnerDualStackVersion.setText(opcionesDualStackVisibles[1], false);
+        MaterialCheckBox checkBoxMacMin = findViewById(R.id.checkBoxMacMin);
+        TextInputEditText editMacMinBandSearchTime = findViewById(R.id.editMacMinBandSearchTime);
+        checkBoxMacMin.setOnCheckedChangeListener((buttonView, isChecked) ->
+                editMacMinBandSearchTime.setEnabled(isChecked));
 
         LinearLayout progressBar = findViewById(R.id.progressContainer);
         ExtendedFloatingActionButton btnLeerActual = findViewById(R.id.btnLeerActual);
@@ -119,22 +99,8 @@ public class PrimeSeguridadActivity extends BaseActivity {
         btnLeerActual.setOnClickListener(v -> leerActual(progressBar, btnLeerActual, btnProgramar));
 
         btnProgramar.setOnClickListener(v -> programar(progressBar, btnLeerActual, btnProgramar,
-                spinnerDualStackVersion));
-    }
-
-    /**
-     * Elimina del array de opciones la que empieza por
-     * {@link #CODIGO_DUAL_STACK_OCULTO} + ":" (p.ej. "3: Dynamic communications...").
-     */
-    private String[] filtrarOpcionOculta(String[] opcionesOriginales) {
-        List<String> filtradas = new ArrayList<>();
-        String prefijoOculto = CODIGO_DUAL_STACK_OCULTO + ":";
-        for (String opcion : opcionesOriginales) {
-            if (!opcion.trim().startsWith(prefijoOculto)) {
-                filtradas.add(opcion);
-            }
-        }
-        return filtradas.toArray(new String[0]);
+                checkBoxMacMin, editMacMinBandSearchTime,
+                checkBoxMacMax, editMacMaxBandSearchTime));
     }
 
     private void leerActual(LinearLayout progressBar,
@@ -164,10 +130,6 @@ public class PrimeSeguridadActivity extends BaseActivity {
                     btnLeerActual.setEnabled(true);
                     btnProgramar.setEnabled(true);
 
-                    // El formulario de esta pantalla es para PROGRAMAR, no un
-                    // espejo de la última lectura: no se rellenan los inputs.
-                    // El resultado de la lectura vive únicamente en su propia
-                    // pantalla de solo lectura.
                     Intent intent = new Intent(PrimeSeguridadActivity.this,
                             ResultadosPrimeSeguridadActivity.class);
                     intent.putExtra(ResultadosPrimeSeguridadActivity.EXTRA_INFO, datos);
@@ -191,7 +153,8 @@ public class PrimeSeguridadActivity extends BaseActivity {
     private void programar(LinearLayout progressBar,
                            ExtendedFloatingActionButton btnLeerActual,
                            ExtendedFloatingActionButton btnProgramar,
-                           AutoCompleteTextView spinnerDualStackVersion) {
+                           MaterialCheckBox checkBoxMacMin, TextInputEditText editMacMin,
+                           MaterialCheckBox checkBoxMacMax, TextInputEditText editMacMax) {
 
         boolean enviarConstellationCoding = cbMaster.isChecked();
 
@@ -201,14 +164,39 @@ public class PrimeSeguridadActivity extends BaseActivity {
         }
         ConstellationCoding constellation = ConstellationCoding.fromBitArray(bits);
 
-        String versionSeleccionada = spinnerDualStackVersion.getText().toString();
-        int opcionDualStack;
-        try {
-            opcionDualStack = Integer.parseInt(versionSeleccionada.split(":")[0].trim());
-        } catch (Exception e) {
-            mostrarError("Selecciona una versión de Dual Stack válida.", e);
+        boolean escribirMacMin = checkBoxMacMin.isChecked();
+        int macMin = 0;
+        if (escribirMacMin) {
+            try {
+                macMin = Integer.parseInt(editMacMin.getText().toString().trim());
+            } catch (Exception e) {
+                editMacMin.setError("Valor inválido");
+                editMacMin.requestFocus();
+                return;
+            }
+        }
+
+        boolean escribirMacMax = checkBoxMacMax.isChecked();
+        int macMax = 0;
+        if (escribirMacMax) {
+            try {
+                macMax = Integer.parseInt(editMacMax.getText().toString().trim());
+            } catch (Exception e) {
+                editMacMax.setError("Valor inválido");
+                editMacMax.requestFocus();
+                return;
+            }
+        }
+
+        if (!enviarConstellationCoding && !escribirMacMin && !escribirMacMax) {
+            Toast.makeText(this, "Marca al menos una sección para programar", Toast.LENGTH_SHORT).show();
             return;
         }
+
+        boolean escribirMacMinFinal = escribirMacMin;
+        int macMinFinal = macMin;
+        boolean escribirMacMaxFinal = escribirMacMax;
+        int macMaxFinal = macMax;
 
         ConnectionConfig config = SessionManager.getInstance().getConnectionConfig();
 
@@ -226,7 +214,9 @@ public class PrimeSeguridadActivity extends BaseActivity {
                 DLMSConnection.ConnectionResult res = conn.connectWithAutoDetect(this);
 
                 PrimeSecurityWriter.programarSeguridadPrime(
-                        res.reader, constellation, enviarConstellationCoding, opcionDualStack);
+                        res.reader, constellation, enviarConstellationCoding,
+                        escribirMacMinFinal, macMinFinal,
+                        escribirMacMaxFinal, macMaxFinal);
 
                 runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);
@@ -256,19 +246,6 @@ public class PrimeSeguridadActivity extends BaseActivity {
                 .setPositiveButton("Aceptar", null)
                 .setCancelable(true)
                 .show();
-    }
-
-    private void actualizarEstadoMaster() {
-        boolean todosMarcados = true;
-        for (MaterialCheckBox cb : bitCheckBoxes) {
-            if (!cb.isChecked()) {
-                todosMarcados = false;
-                break;
-            }
-        }
-        cbMaster.setOnCheckedChangeListener(null);
-        cbMaster.setChecked(todosMarcados);
-        cbMaster.setOnCheckedChangeListener(listenerMaster);
     }
 
     private void actualizarHabilitacionHijos(boolean habilitados) {

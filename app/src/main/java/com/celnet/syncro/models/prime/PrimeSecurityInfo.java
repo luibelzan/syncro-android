@@ -8,8 +8,8 @@ public class PrimeSecurityInfo implements Parcelable {
     private ConstellationCoding constellationCoding;
     private String sarSize;
     private boolean arqEnabled;
-    private String dualStackVersion;
-    private int dualStackVersionCode;
+    private int macMin;
+    private int macMax;
 
     public PrimeSecurityInfo() {
     }
@@ -19,8 +19,8 @@ public class PrimeSecurityInfo implements Parcelable {
         constellationCoding = ConstellationCoding.fromBitArray(bits);
         sarSize = in.readString();
         arqEnabled = in.readByte() != 0;
-        dualStackVersion = in.readString();
-        dualStackVersionCode = in.readInt();
+        macMin = in.readInt();
+        macMax = in.readInt();
     }
 
     public static final Creator<PrimeSecurityInfo> CREATOR = new Creator<PrimeSecurityInfo>() {
@@ -42,14 +42,11 @@ public class PrimeSecurityInfo implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        // Se serializa el array de bits en vez de ConstellationCoding
-        // directamente, para no depender de que esa clase implemente
-        // Parcelable. Se reconstruye con fromBitArray() al deserializar.
         dest.writeBooleanArray(constellationCoding.toBitArray());
         dest.writeString(sarSize);
         dest.writeByte((byte) (arqEnabled ? 1 : 0));
-        dest.writeString(dualStackVersion);
-        dest.writeInt(dualStackVersionCode);
+        dest.writeInt(macMin);
+        dest.writeInt(macMax);
     }
 
     public ConstellationCoding getConstellationCoding() { return constellationCoding; }
@@ -61,11 +58,11 @@ public class PrimeSecurityInfo implements Parcelable {
     public boolean isArqEnabled() { return arqEnabled; }
     public void setArqEnabled(boolean arqEnabled) { this.arqEnabled = arqEnabled; }
 
-    public String getDualStackVersion() { return dualStackVersion; }
-    public void setDualStackVersion(String dualStackVersion) { this.dualStackVersion = dualStackVersion; }
+    public int getMacMin() { return macMin; }
+    public void setMacMin(int macMin) { this.macMin = macMin; }
 
-    public int getDualStackVersionCode() { return dualStackVersionCode; }
-    public void setDualStackVersionCode(int dualStackVersionCode) { this.dualStackVersionCode = dualStackVersionCode; }
+    public int getMacMax() { return macMax; }
+    public void setMacMax(int macMax) { this.macMax = macMax; }
 
     @Override
     public String toString() {
@@ -74,6 +71,7 @@ public class PrimeSecurityInfo implements Parcelable {
                 constellationCoding.toString() + "\n" +
                 "Prime 1.4 SARSize : " + sarSize + "\n" +
                 "Prime 1.4 ARQ " + (arqEnabled ? "Enabled" : "Disabled") + "\n" +
-                "Prime 1.4 Dualstackversion : " + dualStackVersion;
+                "Prime 1.4 macMinBandSearchTime : " + macMin + "\n" +
+                "Prime 1.4 macMaxBandSearchTime : " + macMax;
     }
 }

@@ -6,8 +6,13 @@ import com.celnet.syncro.models.prime.PrimeSecurityInfo;
 import com.celnet.syncro.utils.AppLogger;
 
 import gurux.dlms.objects.GXDLMSData;
+import gurux.dlms.objects.GXDLMSRegister;
 
 public class PrimeSecurityReader {
+
+    // macMin/macMax movidos aquí desde PrimeChannelReader.
+    private static final String OBIS_MAC_MIN_BAND_SEARCH_TIME = "0.0.94.34.32.255";
+    private static final String OBIS_MAC_MAX_BAND_SEARCH_TIME = "0.0.94.34.33.255";
 
     public static PrimeSecurityInfo leerSeguridadPrime(GXDLMSReader reader) throws Exception {
         AppLogger.w("Syncro", "Leyendo Seguridad PRIME actual");
@@ -32,11 +37,12 @@ public class PrimeSecurityReader {
         info.setArqEnabled(parseBoolean(arq.getValue()));
         AppLogger.i("PrimeSecurity", "Reading Prime 1.4 ARQ Enable/Disable : OK");
 
-        // 4. Prime 1.4 Dualstack version (enum)
-        GXDLMSData dualStack = new GXDLMSData("0.0.94.34.30.255");
-        reader.read(dualStack, 2);
-        info.setDualStackVersion(parseDualStackVersion(toInt(dualStack.getValue())));
-        AppLogger.i("PrimeSecurity", "Reading Prime 1.4 Dualstackversion : OK");
+        // 4. macMinBandSearchTime / macMaxBandSearchTime (movidos desde Canal PRIME)
+        info.setMacMin(leerEntero(reader, OBIS_MAC_MIN_BAND_SEARCH_TIME));
+        AppLogger.i("PrimeSecurity", "Reading Prime 1.4 macMinBandSearchTime : OK");
+
+        info.setMacMax(leerEntero(reader, OBIS_MAC_MAX_BAND_SEARCH_TIME));
+        AppLogger.i("PrimeSecurity", "Reading Prime 1.4 macMaxBandSearchTime : OK");
 
         return info;
     }
@@ -65,11 +71,6 @@ public class PrimeSecurityReader {
         return cc;
     }
 
-    /**
-     * Extrae bits de un valor bit-string devuelto por Gurux.
-     * Soporta tanto gurux.dlms.GXBitString como byte[] "en crudo",
-     * por si la versión de la librería expone el valor de forma distinta.
-     */
     private static boolean[] extractBits(Object value, int bitCount) {
         byte[] raw;
         if (value instanceof gurux.dlms.GXBitString) {
@@ -77,7 +78,6 @@ public class PrimeSecurityReader {
         } else if (value instanceof byte[]) {
             raw = (byte[]) value;
         } else if (value instanceof String) {
-            // Algunas versiones devuelven directamente "1110111000001100"
             String s = (String) value;
             boolean[] fromString = new boolean[bitCount];
             for (int i = 0; i < bitCount && i < s.length(); i++) {
@@ -92,7 +92,7 @@ public class PrimeSecurityReader {
         boolean[] bits = new boolean[bitCount];
         for (int i = 0; i < bitCount; i++) {
             int byteIndex = i / 8;
-            int bitInByte = 7 - (i % 8); // MSB primero, como en el log (EE 0C)
+            int bitInByte = 7 - (i % 8);
             if (byteIndex < raw.length) {
                 bits[i] = ((raw[byteIndex] >> bitInByte) & 1) == 1;
             }
@@ -103,19 +103,6 @@ public class PrimeSecurityReader {
     private static String parseSarSize(int v) {
         switch (v) {
             case 0: return "(0) Not mandated by BN";
-            // TODO: completar con el resto de valores si el fabricante los documenta
-            default: return "(" + v + ") Valor no mapeado";
-        }
-    }
-
-    private static String parseDualStackVersion(int v) {
-        switch (v) {
-            case 1: return "(1) Communications in Prime 1.3.6";
-
-            case 2: return "(2) Communications in Prime 1.4";
-
-            case 3: return "(3) Dynamic communications 1.3.6 or 1.4";
-            // TODO: completar con el resto de valores si el fabricante los documenta
             default: return "(" + v + ") Valor no mapeado";
         }
     }
@@ -131,5 +118,19 @@ public class PrimeSecurityReader {
         if (value instanceof Number) return ((Number) value).intValue();
         throw new IllegalArgumentException("Tipo inesperado para entero: "
                 + (value == null ? "null" : value.getClass()));
+    }
+
+    private static int leerEntero(GXDLMSReader reader, String obis) throws Exception {
+        GXDLMSRegister reg = new GXDLMSRegister(obis);
+        reader.read(reg, 2);
+        Object value = reg.getValue();
+        if (value instanceof Number) {
+            return ((Number) value).intValue();
+        }
+        try {
+            return Integer.parseInt(String.valueOf(value));
+        } catch (Exception e) {
+            return 0;
+        }
     }
 }

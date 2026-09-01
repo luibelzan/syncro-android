@@ -6,6 +6,8 @@ import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
 import android.graphics.Typeface;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -24,17 +26,20 @@ import com.celnet.syncro.session.SessionManager;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.checkbox.MaterialCheckBox;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
-import com.google.android.material.textfield.TextInputEditText;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class PrimeCanalActivity extends BaseActivity {
 
+    // Código de la opción de Dual Stack que se oculta del desplegable
+    // ("3: Dynamic communications - 1.3.6 or 1.4"). Movido desde PrimeSeguridadActivity.
+    private static final String CODIGO_DUAL_STACK_OCULTO = "3";
+
     private MaterialCheckBox cbAuto;
     private List<MaterialCheckBox> canales;
 
-    // Evita bucles infinitos entre el listener de AUTO y el de los canales
     private boolean actualizandoDesdeAuto = false;
     private boolean actualizandoDesdeCanal = false;
 
@@ -86,23 +91,27 @@ public class PrimeCanalActivity extends BaseActivity {
             canal.setOnCheckedChangeListener(listenerCanal);
         }
 
-        // ===== macMaxBandSearchTime / macMinBandSearchTime =====
-        MaterialCheckBox checkBoxMacMax = findViewById(R.id.checkBoxMacMax);
-        TextInputEditText editMacMaxBandSearchTime = findViewById(R.id.editMacMaxBandSearchTime);
-        checkBoxMacMax.setOnCheckedChangeListener((buttonView, isChecked) ->
-                editMacMaxBandSearchTime.setEnabled(isChecked));
+        // ===== Dual stack Prime version (movida desde Seguridad PRIME) =====
+        MaterialCheckBox cbDualStackSelection = findViewById(R.id.cbDualStackSelection);
+        AutoCompleteTextView spinnerDualStackVersion = findViewById(R.id.spinnerDualStackVersion);
 
-        MaterialCheckBox checkBoxMacMin = findViewById(R.id.checkBoxMacMin);
-        TextInputEditText editMacMinBandSearchTime = findViewById(R.id.editMacMinBandSearchTime);
-        checkBoxMacMin.setOnCheckedChangeListener((buttonView, isChecked) ->
-                editMacMinBandSearchTime.setEnabled(isChecked));
+        String[] opcionesDualStackCompletas = getResources().getStringArray(R.array.dual_stack_prime_version_array);
+        String[] opcionesDualStackVisibles = filtrarOpcionOculta(opcionesDualStackCompletas);
+
+        ArrayAdapter<String> adapterDualStack = new ArrayAdapter<>(
+                this, android.R.layout.simple_dropdown_item_1line, opcionesDualStackVisibles);
+        spinnerDualStackVersion.setAdapter(adapterDualStack);
+        // Por defecto: "2: Communications in Prime 1.4 mode"
+        spinnerDualStackVersion.setText(opcionesDualStackVisibles[1], false);
+
+        cbDualStackSelection.setOnCheckedChangeListener((buttonView, isChecked) ->
+                spinnerDualStackVersion.setEnabled(isChecked));
 
         // ===== Vistas de resultado / progreso =====
         MaterialCardView cardResultado = findViewById(R.id.cardResultado);
         TextView tvResultado = findViewById(R.id.tvResultado);
         LinearLayout progressBar = findViewById(R.id.progressContainer);
 
-        // ⚠️ El botón de leer se llama btnLeerActual en tu layout, no btnLeer
         ExtendedFloatingActionButton btnLeerActual = findViewById(R.id.btnLeerActual);
         ExtendedFloatingActionButton btnProgramar = findViewById(R.id.btnProgramar);
 
@@ -160,34 +169,25 @@ public class PrimeCanalActivity extends BaseActivity {
             for (int i = 0; i < canales.size(); i++) {
                 canalMascara[i] = canales.get(i).isChecked();
             }
-            // AUTO se programa como bit-string todo a cero (canalMascara ya queda
-            // así por defecto si cbAuto está marcado, ya que ningún canal lo está).
 
-            boolean escribirMacMin = checkBoxMacMin.isChecked();
-            int macMin = 0;
-            if (escribirMacMin) {
+            boolean escribirDualStack = cbDualStackSelection.isChecked();
+            int dualStackOpcion = 0;
+            if (escribirDualStack) {
+                String versionSeleccionada = spinnerDualStackVersion.getText().toString();
                 try {
-                    macMin = Integer.parseInt(editMacMinBandSearchTime.getText().toString().trim());
+                    dualStackOpcion = Integer.parseInt(versionSeleccionada.split(":")[0].trim());
                 } catch (Exception e) {
-                    editMacMinBandSearchTime.setError("Valor inválido");
-                    editMacMinBandSearchTime.requestFocus();
+                    new androidx.appcompat.app.AlertDialog.Builder(PrimeCanalActivity.this)
+                            .setTitle("Error")
+                            .setMessage("Selecciona una versión de Dual Stack válida.")
+                            .setPositiveButton("Aceptar", null)
+                            .setCancelable(true)
+                            .show();
                     return;
                 }
             }
 
-            boolean escribirMacMax = checkBoxMacMax.isChecked();
-            int macMax = 0;
-            if (escribirMacMax) {
-                try {
-                    macMax = Integer.parseInt(editMacMaxBandSearchTime.getText().toString().trim());
-                } catch (Exception e) {
-                    editMacMaxBandSearchTime.setError("Valor inválido");
-                    editMacMaxBandSearchTime.requestFocus();
-                    return;
-                }
-            }
-
-            if (!escribirCanal && !escribirMacMin && !escribirMacMax) {
+            if (!escribirCanal && !escribirDualStack) {
                 android.widget.Toast.makeText(this,
                         "Marca al menos una sección para programar",
                         android.widget.Toast.LENGTH_SHORT).show();
@@ -195,10 +195,8 @@ public class PrimeCanalActivity extends BaseActivity {
             }
 
             boolean escribirCanalFinal = escribirCanal;
-            int macMinFinal = macMin;
-            int macMaxFinal = macMax;
-            boolean escribirMacMinFinal = escribirMacMin;
-            boolean escribirMacMaxFinal = escribirMacMax;
+            boolean escribirDualStackFinal = escribirDualStack;
+            int dualStackOpcionFinal = dualStackOpcion;
 
             ConnectionConfig config = SessionManager.getInstance().getConnectionConfig();
 
@@ -217,8 +215,7 @@ public class PrimeCanalActivity extends BaseActivity {
                     PrimeChannelWriter.programarCanalPrime(
                             res.reader, conn.getClient(),
                             escribirCanalFinal, canalMascara,
-                            escribirMacMinFinal, macMinFinal,
-                            escribirMacMaxFinal, macMaxFinal);
+                            escribirDualStackFinal, dualStackOpcionFinal);
 
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);
@@ -250,8 +247,23 @@ public class PrimeCanalActivity extends BaseActivity {
     }
 
     /**
+     * Elimina del array de opciones la que empieza por
+     * {@link #CODIGO_DUAL_STACK_OCULTO} + ":" (p.ej. "3: Dynamic communications...").
+     */
+    private String[] filtrarOpcionOculta(String[] opcionesOriginales) {
+        List<String> filtradas = new ArrayList<>();
+        String prefijoOculto = CODIGO_DUAL_STACK_OCULTO + ":";
+        for (String opcion : opcionesOriginales) {
+            if (!opcion.trim().startsWith(prefijoOculto)) {
+                filtradas.add(opcion);
+            }
+        }
+        return filtradas.toArray(new String[0]);
+    }
+
+    /**
      * Construye el informe de resultado con un ✓ verde para cada canal activo
-     * (en vez del "1" plano de antes) y un guion neutro para los inactivos.
+     * y muestra la versión de Dual Stack en vez de macMin/macMax (movidos a Seguridad).
      */
     private SpannableStringBuilder formatearResultadoCanalPrime(PrimeChannelReader.Resultado resultado) {
         SpannableStringBuilder sb = new SpannableStringBuilder();
@@ -266,8 +278,7 @@ public class PrimeCanalActivity extends BaseActivity {
         sb.append("Prime 1.4 Active Channel\n");
         agregarCanalesConTick(sb, resultado.activeChannel, colorActivo, colorInactivo);
 
-        sb.append("Prime 1.4 macMinBandSearchTime : ").append(String.valueOf(resultado.macMin)).append("\n");
-        sb.append("Prime 1.4 macMaxBandSearchTime : ").append(String.valueOf(resultado.macMax));
+        sb.append("Dual stack Prime version : ").append(resultado.dualStackVersion);
 
         return sb;
     }

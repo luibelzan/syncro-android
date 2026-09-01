@@ -4,25 +4,26 @@ import com.celnet.syncro.client.GXDLMSReader;
 import com.celnet.syncro.client.GXDLMSSecureClient2;
 import com.celnet.syncro.utils.AppLogger;
 
+import gurux.dlms.GXBitString;
+import gurux.dlms.GXReplyData;
+import gurux.dlms.enums.DataType;
 import gurux.dlms.objects.GXDLMSData;
-import gurux.dlms.objects.GXDLMSRegister;
+import gurux.dlms.objects.GXDLMSObject;
+import gurux.dlms.objects.GXDLMSScriptTable;
 
 public class PrimeChannelWriter {
 
-    // OBIS confirmados byte a byte contra el log de referencia:
-    //   Channel selection : TX class=1(Data) obis=0.0.94.34.23.255 -> RX 04 08 80 (bit-string)
-    //   Active Channel     : TX class=1(Data) obis=0.0.94.34.24.255 -> RX 04 08 80 (bit-string)
-    //   macMinBandSearchTime : TX class=3(Register) obis=0.0.94.34.32.255 -> RX 12 00 0A (=10)
-    //   macMaxBandSearchTime : TX class=3(Register) obis=0.0.94.34.33.255 -> RX 12 02 58 (=600)
-    private static final String OBIS_CHANNEL_SELECTION         = "0.0.94.34.23.255";
-    private static final String OBIS_ACTIVE_CHANNEL             = "0.0.94.34.24.255";
-    private static final String OBIS_MAC_MIN_BAND_SEARCH_TIME   = "0.0.94.34.32.255";
-    private static final String OBIS_MAC_MAX_BAND_SEARCH_TIME   = "0.0.94.34.33.255";
+    private static final String OBIS_CHANNEL_SELECTION = "0.0.94.34.23.255";
+
+    // Dual stack version (script table de ejecución) movida aquí desde PrimeSecurityWriter.
+    private static final String OBIS_SCRIPT_TABLE_DUALSTACK = "0.0.94.34.29.255";
+
+    /** Valor especial: no tocar la versión Dual Stack actual (no se ejecuta ningún script). */
+    public static final int DUALSTACK_MANTENER_ACTUAL = 0;
 
     public static void programarCanalPrime(GXDLMSReader reader, GXDLMSSecureClient2 client,
                                            boolean escribirCanal, boolean[] canalMascara,
-                                           boolean escribirMacMin, int macMin,
-                                           boolean escribirMacMax, int macMax) throws Exception {
+                                           boolean escribirDualStack, int dualStackOpcionElegida) throws Exception {
         AppLogger.i("PrimeChannel", "Programando Canal Prime");
 
         if (escribirCanal) {
@@ -30,14 +31,17 @@ public class PrimeChannelWriter {
             AppLogger.i("PrimeChannel", "Writting Prime 1.4 Channel selection : OK");
         }
 
-        if (escribirMacMin) {
-            escribirEntero(reader, client, OBIS_MAC_MIN_BAND_SEARCH_TIME, macMin);
-            AppLogger.i("PrimeChannel", "Writting macMinBandSearchTime : OK");
-        }
-
-        if (escribirMacMax) {
-            escribirEntero(reader, client, OBIS_MAC_MAX_BAND_SEARCH_TIME, macMax);
-            AppLogger.i("PrimeChannel", "Writting macMaxBandSearchTime : OK");
+        if (escribirDualStack) {
+            if (dualStackOpcionElegida == DUALSTACK_MANTENER_ACTUAL) {
+                AppLogger.i("PrimeChannel", "Dual stack Prime version: se mantiene el valor actual, no se ejecuta script.");
+            } else if (dualStackOpcionElegida < 1 || dualStackOpcionElegida > 3) {
+                throw new IllegalArgumentException("Opción de Dual Stack no reconocida: " + dualStackOpcionElegida);
+            } else {
+                AppLogger.i("PrimeChannel", "Executing Dual stack Prime version Script");
+                GXDLMSScriptTable scriptTable = new GXDLMSScriptTable(OBIS_SCRIPT_TABLE_DUALSTACK);
+                reader.method(scriptTable, 1, dualStackOpcionElegida, DataType.UINT16);
+                AppLogger.i("PrimeChannel", "Dual stack Prime version – Executed : OK");
+            }
         }
     }
 
@@ -49,31 +53,15 @@ public class PrimeChannelWriter {
         }
 
         GXDLMSData data = new GXDLMSData(obis);
-        // ⚠️ Construcción del bit-string: uso el constructor GXBitString(String).
-        // Si tu versión de Gurux no lo tiene (API distinta), dímelo y lo adapto
-        // al constructor real disponible (p.ej. GXBitString(byte[], int)).
-        data.setValue(new gurux.dlms.GXBitString(cadena.toString()));
+        data.setValue(new GXBitString(cadena.toString()));
 
         enviarEscritura(reader, client, data, 2);
     }
 
-    private static void escribirEntero(
-            GXDLMSReader reader,
-            GXDLMSSecureClient2 client,
-            String obis,
-            int valor) throws Exception {
-
-        GXDLMSRegister reg = new GXDLMSRegister(obis);
-
-        reg.setValue(new gurux.dlms.GXUInt16(valor));
-
-        enviarEscritura(reader, client, reg, 2);
-    }
-
     private static void enviarEscritura(GXDLMSReader reader, GXDLMSSecureClient2 client,
-                                        gurux.dlms.objects.GXDLMSObject obj, int attributeIndex) throws Exception {
+                                        GXDLMSObject obj, int attributeIndex) throws Exception {
         byte[][] data = client.write(obj, attributeIndex);
-        gurux.dlms.GXReplyData reply = new gurux.dlms.GXReplyData();
+        GXReplyData reply = new GXReplyData();
         for (byte[] frame : data) {
             reply.clear();
             reader.readDLMSPacket(frame, reply);

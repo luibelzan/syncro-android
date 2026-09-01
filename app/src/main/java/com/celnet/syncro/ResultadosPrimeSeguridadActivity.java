@@ -25,9 +25,10 @@ public class ResultadosPrimeSeguridadActivity extends BaseActivity {
             return insets;
         });
 
-        TextView tvDualStackVersion = findViewById(R.id.tvDualStackVersion);
         TextView tvSarSize = findViewById(R.id.tvSarSize);
         TextView tvArq = findViewById(R.id.tvArq);
+        TextView tvMacMin = findViewById(R.id.tvMacMin);
+        TextView tvMacMax = findViewById(R.id.tvMacMax);
         TextView tvConstellationCoding = findViewById(R.id.tvConstellationCoding);
 
         PrimeSecurityInfo datos = getIntent().getParcelableExtra(EXTRA_INFO);
@@ -36,9 +37,10 @@ public class ResultadosPrimeSeguridadActivity extends BaseActivity {
             return;
         }
 
-        tvDualStackVersion.setText(datos.getDualStackVersion());
         tvSarSize.setText(datos.getSarSize());
         tvArq.setText(datos.isArqEnabled() ? "Enabled" : "Disabled");
+        tvMacMin.setText(String.valueOf(datos.getMacMin()));
+        tvMacMax.setText(String.valueOf(datos.getMacMax()));
         tvConstellationCoding.setText(datos.getConstellationCoding().toString());
     }
 }
