@@ -77,12 +77,12 @@ public class ParametersActivity extends BaseActivity {
                 " Usag=\""           + p.thresholdVoltageSags                              + "\"" +
                 " Uswell=\""         + p.thresholdVoltageSwells                            + "\"" +
                 " Per=\""            + p.loadProfilePeriod1                                + "\"" +
-                " Dctcp=\""          + String.format("%.2f", p.demandCloseContractedPower) + "\"" +
+                " Dctcp=\""          + String.format("%.0f", p.demandCloseContractedPower) + "\"" +
                 " Vr=\""             + p.referenceVoltage                                  + "\"" +
                 " Ut=\""             + p.longPowerFailureThreshold                         + "\"" +
-                " UsubT=\""          + String.format("%.2f", p.voltageSagThreshold)        + "\"" +
-                " UsobT=\""          + String.format("%.2f", p.voltageSwellThreshold)      + "\"" +
-                " UcorteT=\""        + String.format("%.2f", p.voltageCutOffThreshold)     + "\"" +
+                " UsubT=\""          + String.format("%.0f", p.voltageSagThreshold)        + "\"" +
+                " UsobT=\""          + String.format("%.0f", p.voltageSwellThreshold)      + "\"" +
+                " UcorteT=\""        + String.format("%.0f", p.voltageCutOffThreshold)     + "\"" +
                 " AutMothBill=\""    + nvl(p.automaticMonthlyBilling)                      + "\"" +
                 " ScrollDispMode=\"" + nvl(p.scrollDisplayMode)                            + "\"" +
                 " ScrollDispTime=\"" + p.timeForScrollDisplay                              + "\"" +
