@@ -72,14 +72,6 @@ public class ReadsActivity extends BaseActivity {
             }
         });
 
-        btnSondaStatus.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(ReadsActivity.this, EstadoSondaActivity.class);
-                startActivity(intent);
-            }
-        });
-
         btnParams.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

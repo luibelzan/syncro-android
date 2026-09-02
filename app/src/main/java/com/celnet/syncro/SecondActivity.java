@@ -8,6 +8,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import android.content.Intent;
+import android.view.View;
 import android.widget.LinearLayout;
 
 public class SecondActivity extends BaseActivity {
@@ -30,6 +31,7 @@ public class SecondActivity extends BaseActivity {
         LinearLayout btnAbout = findViewById(R.id.btnAbout);
         LinearLayout btnReports = findViewById(R.id.btnReports);
         LinearLayout btnPrime = findViewById(R.id.btnPrime);
+        LinearLayout btnSondaStatus = findViewById(R.id.btnSondaStatus);
 
         btnReads.setOnClickListener(v -> {
             Intent intent = new Intent(SecondActivity.this, ReadsActivity.class);
@@ -64,6 +66,14 @@ public class SecondActivity extends BaseActivity {
         btnPrime.setOnClickListener(v -> {
             Intent intent = new Intent(SecondActivity.this, PrimeActivity.class);
             startActivity(intent);
+        });
+
+        btnSondaStatus.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(SecondActivity.this, EstadoSondaActivity.class);
+                startActivity(intent);
+            }
         });
     }
 }

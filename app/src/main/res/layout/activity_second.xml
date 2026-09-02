@@ -200,6 +200,30 @@
 
             <!-- ICONO 5 -->
             <LinearLayout
+                android:id="@+id/btnSondaStatus"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:clickable="true"
+                android:focusable="true">
+
+                <ImageView
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
+                    android:src="@drawable/sondastatus"
+                    android:padding="16dp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/sondastatus"
+                    android:textSize="20sp"/>
+            </LinearLayout>
+
+            <!-- ICONO 5 -->
+            <LinearLayout
                 android:id="@+id/btnAbout"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
