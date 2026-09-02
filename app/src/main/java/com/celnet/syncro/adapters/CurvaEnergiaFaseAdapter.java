@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.celnet.syncro.R;
 import com.celnet.syncro.models.curvas.CurvaEnergiaFaseFila;
+import com.celnet.syncro.utils.NumeroFormatUtils;
 
 import java.util.List;
 
@@ -31,12 +32,24 @@ public class CurvaEnergiaFaseAdapter extends RecyclerView.Adapter<CurvaEnergiaFa
     public void onBindViewHolder(ViewHolder holder, int position) {
         CurvaEnergiaFaseFila f = datos.get(position);
         holder.tvFechaHora.setText(f.fechaHora);
-        holder.tvEaPosR.setText(f.eaPosR); holder.tvEaNegR.setText(f.eaNegR);
-        holder.tvQ1R.setText(f.q1R); holder.tvQ2R.setText(f.q2R); holder.tvQ3R.setText(f.q3R); holder.tvQ4R.setText(f.q4R);
-        holder.tvEaPosS.setText(f.eaPosS); holder.tvEaNegS.setText(f.eaNegS);
-        holder.tvQ1S.setText(f.q1S); holder.tvQ2S.setText(f.q2S); holder.tvQ3S.setText(f.q3S); holder.tvQ4S.setText(f.q4S);
-        holder.tvEaPosT.setText(f.eaPosT); holder.tvEaNegT.setText(f.eaNegT);
-        holder.tvQ1T.setText(f.q1T); holder.tvQ2T.setText(f.q2T); holder.tvQ3T.setText(f.q3T); holder.tvQ4T.setText(f.q4T);
+        holder.tvEaPosR.setText(NumeroFormatUtils.sinDecimales(f.eaPosR));
+        holder.tvEaNegR.setText(NumeroFormatUtils.sinDecimales(f.eaNegR));
+        holder.tvQ1R.setText(NumeroFormatUtils.sinDecimales(f.q1R));
+        holder.tvQ2R.setText(NumeroFormatUtils.sinDecimales(f.q2R));
+        holder.tvQ3R.setText(NumeroFormatUtils.sinDecimales(f.q3R));
+        holder.tvQ4R.setText(NumeroFormatUtils.sinDecimales(f.q4R));
+        holder.tvEaPosS.setText(NumeroFormatUtils.sinDecimales(f.eaPosS));
+        holder.tvEaNegS.setText(NumeroFormatUtils.sinDecimales(f.eaNegS));
+        holder.tvQ1S.setText(NumeroFormatUtils.sinDecimales(f.q1S));
+        holder.tvQ2S.setText(NumeroFormatUtils.sinDecimales(f.q2S));
+        holder.tvQ3S.setText(NumeroFormatUtils.sinDecimales(f.q3S));
+        holder.tvQ4S.setText(NumeroFormatUtils.sinDecimales(f.q4S));
+        holder.tvEaPosT.setText(NumeroFormatUtils.sinDecimales(f.eaPosT));
+        holder.tvEaNegT.setText(NumeroFormatUtils.sinDecimales(f.eaNegT));
+        holder.tvQ1T.setText(NumeroFormatUtils.sinDecimales(f.q1T));
+        holder.tvQ2T.setText(NumeroFormatUtils.sinDecimales(f.q2T));
+        holder.tvQ3T.setText(NumeroFormatUtils.sinDecimales(f.q3T));
+        holder.tvQ4T.setText(NumeroFormatUtils.sinDecimales(f.q4T));
         holder.tvStatus.setText(f.status);
 
         boolean esPar = position % 2 == 0;

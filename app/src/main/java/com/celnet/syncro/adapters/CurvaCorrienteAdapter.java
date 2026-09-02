@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.celnet.syncro.R;
 import com.celnet.syncro.models.curvas.CurvaCorrienteFila;
+import com.celnet.syncro.utils.NumeroFormatUtils;
 
 import java.util.List;
 
@@ -31,18 +32,18 @@ public class CurvaCorrienteAdapter extends RecyclerView.Adapter<CurvaCorrienteAd
     public void onBindViewHolder(ViewHolder holder, int position) {
         CurvaCorrienteFila fila = datos.get(position);
         holder.tvFechaHora.setText(fila.fechaHora);
-        holder.tvMaxL1.setText(fila.maxL1);
-        holder.tvMaxL2.setText(fila.maxL2);
-        holder.tvMaxL3.setText(fila.maxL3);
-        holder.tvMaxN.setText(fila.maxN);
-        holder.tvAvL1.setText(fila.avL1);
-        holder.tvAvL2.setText(fila.avL2);
-        holder.tvAvL3.setText(fila.avL3);
-        holder.tvAvN.setText(fila.avN);
-        holder.tvMinL1.setText(fila.minL1);
-        holder.tvMinL2.setText(fila.minL2);
-        holder.tvMinL3.setText(fila.minL3);
-        holder.tvMinN.setText(fila.minN);
+        holder.tvMaxL1.setText(NumeroFormatUtils.unDecimal(fila.maxL1));
+        holder.tvMaxL2.setText(NumeroFormatUtils.unDecimal(fila.maxL2));
+        holder.tvMaxL3.setText(NumeroFormatUtils.unDecimal(fila.maxL3));
+        holder.tvMaxN.setText(NumeroFormatUtils.unDecimal(fila.maxN));
+        holder.tvAvL1.setText(NumeroFormatUtils.unDecimal(fila.avL1));
+        holder.tvAvL2.setText(NumeroFormatUtils.unDecimal(fila.avL2));
+        holder.tvAvL3.setText(NumeroFormatUtils.unDecimal(fila.avL3));
+        holder.tvAvN.setText(NumeroFormatUtils.unDecimal(fila.avN));
+        holder.tvMinL1.setText(NumeroFormatUtils.unDecimal(fila.minL1));
+        holder.tvMinL2.setText(NumeroFormatUtils.unDecimal(fila.minL2));
+        holder.tvMinL3.setText(NumeroFormatUtils.unDecimal(fila.minL3));
+        holder.tvMinN.setText(NumeroFormatUtils.unDecimal(fila.minN));
         holder.tvStatus.setText(fila.status);
 
         boolean esPar = position % 2 == 0;

@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.celnet.syncro.R;
 import com.celnet.syncro.models.curvas.CurvaVoltajeFila;
+import com.celnet.syncro.utils.NumeroFormatUtils;
 
 import java.util.List;
 
@@ -31,15 +32,15 @@ public class CurvaVoltajeAdapter extends RecyclerView.Adapter<CurvaVoltajeAdapte
     public void onBindViewHolder(ViewHolder holder, int position) {
         CurvaVoltajeFila fila = datos.get(position);
         holder.tvFechaHora.setText(fila.fechaHora);
-        holder.tvMaxL1.setText(fila.maxL1);
-        holder.tvMaxL2.setText(fila.maxL2);
-        holder.tvMaxL3.setText(fila.maxL3);
-        holder.tvAvL1.setText(fila.avL1);
-        holder.tvAvL2.setText(fila.avL2);
-        holder.tvAvL3.setText(fila.avL3);
-        holder.tvMinL1.setText(fila.minL1);
-        holder.tvMinL2.setText(fila.minL2);
-        holder.tvMinL3.setText(fila.minL3);
+        holder.tvMaxL1.setText(NumeroFormatUtils.sinDecimales(fila.maxL1));
+        holder.tvMaxL2.setText(NumeroFormatUtils.sinDecimales(fila.maxL2));
+        holder.tvMaxL3.setText(NumeroFormatUtils.sinDecimales(fila.maxL3));
+        holder.tvAvL1.setText(NumeroFormatUtils.sinDecimales(fila.avL1));
+        holder.tvAvL2.setText(NumeroFormatUtils.sinDecimales(fila.avL2));
+        holder.tvAvL3.setText(NumeroFormatUtils.sinDecimales(fila.avL3));
+        holder.tvMinL1.setText(NumeroFormatUtils.sinDecimales(fila.minL1));
+        holder.tvMinL2.setText(NumeroFormatUtils.sinDecimales(fila.minL2));
+        holder.tvMinL3.setText(NumeroFormatUtils.sinDecimales(fila.minL3));
         holder.tvStatus.setText(fila.status);
 
         boolean esPar = position % 2 == 0;

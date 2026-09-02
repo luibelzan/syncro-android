@@ -81,16 +81,16 @@ public class ResultadosCurvasActivity extends BaseActivity {
         for (CurvaVoltajeFila fila : datos) {
             sb.append("      <S44 ")
                     .append("Fh=\"").append(Utils.convertirFecha(fila.fechaHora)).append("\" ")
-                    .append("Bc=\"04\" ")
-                    .append("Max_L1v=\"").append(fila.maxL1).append("\" ")
-                    .append("Max_L2v=\"").append(fila.maxL2).append("\" ")
-                    .append("Max_L3v=\"").append(fila.maxL3).append("\" ")
-                    .append("Av_L1v=\"").append(fila.avL1).append("\" ")
-                    .append("Av_L2v=\"").append(fila.avL2).append("\" ")
-                    .append("Av_L3v=\"").append(fila.avL3).append("\" ")
-                    .append("Min_L1v=\"").append(fila.minL1).append("\" ")
-                    .append("Min_L2v=\"").append(fila.minL2).append("\" ")
-                    .append("Min_L3v=\"").append(fila.minL3).append("\"/>\n");
+                    .append("Bc=\"").append(quitarParentesis(fila.status)).append("\" ")
+                    .append("Max_L1v=\"").append(sinDecimales(fila.maxL1)).append("\" ")
+                    .append("Max_L2v=\"").append(sinDecimales(fila.maxL2)).append("\" ")
+                    .append("Max_L3v=\"").append(sinDecimales(fila.maxL3)).append("\" ")
+                    .append("Av_L1v=\"").append(sinDecimales(fila.avL1)).append("\" ")
+                    .append("Av_L2v=\"").append(sinDecimales(fila.avL2)).append("\" ")
+                    .append("Av_L3v=\"").append(sinDecimales(fila.avL3)).append("\" ")
+                    .append("Min_L1v=\"").append(sinDecimales(fila.minL1)).append("\" ")
+                    .append("Min_L2v=\"").append(sinDecimales(fila.minL2)).append("\" ")
+                    .append("Min_L3v=\"").append(sinDecimales(fila.minL3)).append("\"/>\n");
         }
 
         sb.append("    </Cnt>\n");
@@ -99,6 +99,15 @@ public class ResultadosCurvasActivity extends BaseActivity {
 
         return sb.toString();
     }
+
+    private String sinDecimales(String valor) {
+        return com.celnet.syncro.utils.NumeroFormatUtils.sinDecimales(valor);
+    }
+
+    private String unDecimal(String valor) {
+        return com.celnet.syncro.utils.NumeroFormatUtils.unDecimal(valor);
+    }
+
 
     // =========================
     // GENERAR XML (S45)
@@ -114,18 +123,18 @@ public class ResultadosCurvasActivity extends BaseActivity {
                     .append("Fh=\"").append(Utils.convertirFecha(fila.fechaHora)).append("\" ")
                     // El status ya viene formateado como "(8A)"; el XML necesita "8A" sin paréntesis.
                     .append("Bc=\"").append(quitarParentesis(fila.status)).append("\" ")
-                    .append("Max_L1i=\"").append(fila.maxL1).append("\" ")
-                    .append("Max_L2i=\"").append(fila.maxL2).append("\" ")
-                    .append("Max_L3i=\"").append(fila.maxL3).append("\" ")
-                    .append("Max_IN=\"").append(fila.maxN).append("\" ")
-                    .append("Av_L1i=\"").append(fila.avL1).append("\" ")
-                    .append("Av_L2i=\"").append(fila.avL2).append("\" ")
-                    .append("Av_L3i=\"").append(fila.avL3).append("\" ")
-                    .append("Av_IN=\"").append(fila.avN).append("\" ")
-                    .append("Min_L1i=\"").append(fila.minL1).append("\" ")
-                    .append("Min_L2i=\"").append(fila.minL2).append("\" ")
-                    .append("Min_L3i=\"").append(fila.minL3).append("\" ")
-                    .append("Min_IN=\"").append(fila.minN).append("\"/>\n");
+                    .append("Max_L1i=\"").append(unDecimal(fila.maxL1)).append("\" ")
+                    .append("Max_L2i=\"").append(unDecimal(fila.maxL2)).append("\" ")
+                    .append("Max_L3i=\"").append(unDecimal(fila.maxL3)).append("\" ")
+                    .append("Max_IN=\"").append(unDecimal(fila.maxN)).append("\" ")
+                    .append("Av_L1i=\"").append(unDecimal(fila.avL1)).append("\" ")
+                    .append("Av_L2i=\"").append(unDecimal(fila.avL2)).append("\" ")
+                    .append("Av_L3i=\"").append(unDecimal(fila.avL3)).append("\" ")
+                    .append("Av_IN=\"").append(unDecimal(fila.avN)).append("\" ")
+                    .append("Min_L1i=\"").append(unDecimal(fila.minL1)).append("\" ")
+                    .append("Min_L2i=\"").append(unDecimal(fila.minL2)).append("\" ")
+                    .append("Min_L3i=\"").append(unDecimal(fila.minL3)).append("\" ")
+                    .append("Min_IN=\"").append(unDecimal(fila.minN)).append("\"/>\n");
         }
 
         sb.append("    </Cnt>\n");
@@ -134,6 +143,7 @@ public class ResultadosCurvasActivity extends BaseActivity {
 
         return sb.toString();
     }
+
 
     private String quitarParentesis(String status) {
         if (status == null) return "";
@@ -154,24 +164,24 @@ public class ResultadosCurvasActivity extends BaseActivity {
             sb.append("      <S43 ")
                     .append("Fh=\"").append(Utils.convertirFecha(fila.fechaHora)).append("\" ")
                     .append("Bc=\"").append(quitarParentesis(fila.status)).append("\" ")
-                    .append("AI_L1=\"").append(fila.eaPosR).append("\" ")
-                    .append("AE_L1=\"").append(fila.eaNegR).append("\" ")
-                    .append("R1_L1=\"").append(fila.q1R).append("\" ")
-                    .append("R2_L1=\"").append(fila.q2R).append("\" ")
-                    .append("R3_L1=\"").append(fila.q3R).append("\" ")
-                    .append("R4_L1=\"").append(fila.q4R).append("\" ")
-                    .append("AI_L2=\"").append(fila.eaPosS).append("\" ")
-                    .append("AE_L2=\"").append(fila.eaNegS).append("\" ")
-                    .append("R1_L2=\"").append(fila.q1S).append("\" ")
-                    .append("R2_L2=\"").append(fila.q2S).append("\" ")
-                    .append("R3_L2=\"").append(fila.q3S).append("\" ")
-                    .append("R4_L2=\"").append(fila.q4S).append("\" ")
-                    .append("AI_L3=\"").append(fila.eaPosT).append("\" ")
-                    .append("AE_L3=\"").append(fila.eaNegT).append("\" ")
-                    .append("R1_L3=\"").append(fila.q1T).append("\" ")
-                    .append("R2_L3=\"").append(fila.q2T).append("\" ")
-                    .append("R3_L3=\"").append(fila.q3T).append("\" ")
-                    .append("R4_L3=\"").append(fila.q4T).append("\"/>\n");
+                    .append("AI_L1=\"").append(sinDecimales(fila.eaPosR)).append("\" ")
+                    .append("AE_L1=\"").append(sinDecimales(fila.eaNegR)).append("\" ")
+                    .append("R1_L1=\"").append(sinDecimales(fila.q1R)).append("\" ")
+                    .append("R2_L1=\"").append(sinDecimales(fila.q2R)).append("\" ")
+                    .append("R3_L1=\"").append(sinDecimales(fila.q3R)).append("\" ")
+                    .append("R4_L1=\"").append(sinDecimales(fila.q4R)).append("\" ")
+                    .append("AI_L2=\"").append(sinDecimales(fila.eaPosS)).append("\" ")
+                    .append("AE_L2=\"").append(sinDecimales(fila.eaNegS)).append("\" ")
+                    .append("R1_L2=\"").append(sinDecimales(fila.q1S)).append("\" ")
+                    .append("R2_L2=\"").append(sinDecimales(fila.q2S)).append("\" ")
+                    .append("R3_L2=\"").append(sinDecimales(fila.q3S)).append("\" ")
+                    .append("R4_L2=\"").append(sinDecimales(fila.q4S)).append("\" ")
+                    .append("AI_L3=\"").append(sinDecimales(fila.eaPosT)).append("\" ")
+                    .append("AE_L3=\"").append(sinDecimales(fila.eaNegT)).append("\" ")
+                    .append("R1_L3=\"").append(sinDecimales(fila.q1T)).append("\" ")
+                    .append("R2_L3=\"").append(sinDecimales(fila.q2T)).append("\" ")
+                    .append("R3_L3=\"").append(sinDecimales(fila.q3T)).append("\" ")
+                    .append("R4_L3=\"").append(sinDecimales(fila.q4T)).append("\"/>\n");
         }
 
         sb.append("    </Cnt>\n");
@@ -180,6 +190,7 @@ public class ResultadosCurvasActivity extends BaseActivity {
 
         return sb.toString();
     }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
