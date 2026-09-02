@@ -88,7 +88,7 @@ public class PowerQualityEventLog {
                     Object[] fila = (Object[]) row;
                     String fecha = fila[0].toString();
                     int id = Integer.parseInt(fila[1].toString());
-                    EventDescription info = getEventDescription(context, id, 99);
+                    EventDescription info = getEventDescription(context, id, 3);
 
                     EventFila evento = new EventFila(
                             fecha,
