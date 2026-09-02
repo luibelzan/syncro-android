@@ -6,6 +6,7 @@ import android.os.Environment;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -20,6 +21,7 @@ import com.google.android.material.floatingactionbutton.ExtendedFloatingActionBu
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 public class ReportesActivity extends BaseActivity {
 
@@ -39,6 +41,7 @@ public class ReportesActivity extends BaseActivity {
 
         RecyclerView rv = findViewById(R.id.rvReportes);
         ExtendedFloatingActionButton btnEnviar = findViewById(R.id.btnEnviar);
+        ExtendedFloatingActionButton btnEliminar = findViewById(R.id.btnEliminar);
 
         rv.setLayoutManager(new LinearLayoutManager(this));
 
@@ -48,6 +51,7 @@ public class ReportesActivity extends BaseActivity {
         rv.setAdapter(adapter);
 
         btnEnviar.setOnClickListener(v -> enviarSeleccionados(btnEnviar));
+        btnEliminar.setOnClickListener(v -> confirmarEliminarSeleccionados());
     }
 
     private void cargarReportes() {
@@ -72,6 +76,65 @@ public class ReportesActivity extends BaseActivity {
                 }
             }
         }
+    }
+
+    private void confirmarEliminarSeleccionados() {
+
+        int cantidadSeleccionada = 0;
+        for (ReportFile report : lista) {
+            if (report.isSeleccionado()) {
+                cantidadSeleccionada++;
+            }
+        }
+
+        if (cantidadSeleccionada == 0) {
+            Toast.makeText(this, "Selecciona al menos un reporte", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        final int cantidadFinal = cantidadSeleccionada;
+
+        new AlertDialog.Builder(this)
+                .setTitle("Eliminar reportes")
+                .setMessage("¿Seguro que quieres eliminar " + cantidadFinal
+                        + " reporte" + (cantidadFinal == 1 ? "" : "s")
+                        + " del dispositivo? Esta acción no se puede deshacer.")
+                .setPositiveButton("Eliminar", (dialog, which) -> eliminarSeleccionados())
+                .setNegativeButton("Cancelar", null)
+                .setCancelable(true)
+                .show();
+    }
+
+    private void eliminarSeleccionados() {
+
+        int eliminados = 0;
+        int fallidos = 0;
+
+        Iterator<ReportFile> iterator = lista.iterator();
+        while (iterator.hasNext()) {
+            ReportFile report = iterator.next();
+            if (!report.isSeleccionado()) {
+                continue;
+            }
+
+            boolean borrado = report.getFile().delete();
+            if (borrado) {
+                eliminados++;
+                iterator.remove();
+            } else {
+                fallidos++;
+                android.util.Log.e("ReportesActivity",
+                        "No se pudo eliminar el archivo: " + report.getFile().getName());
+            }
+        }
+
+        adapter.notifyDataSetChanged();
+
+        String resumen = eliminados + " reporte" + (eliminados == 1 ? "" : "s") + " eliminados";
+        if (fallidos > 0) {
+            resumen += ", " + fallidos + " con error";
+        }
+        Toast.makeText(this, resumen, Toast.LENGTH_LONG).show();
     }
 
     private void enviarSeleccionados(ExtendedFloatingActionButton btnEnviar) {

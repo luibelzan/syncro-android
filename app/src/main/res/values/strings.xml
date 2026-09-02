@@ -264,5 +264,7 @@
     <string name="corrienteDiferencialMedidaTitle">Valor medido</string>
     <string name="corrienteDiferencialHint">Corriente diferencial actual</string>
 
+    <string name="eliminarSeleccionados">Eliminar</string>
+
 
 </resources>
