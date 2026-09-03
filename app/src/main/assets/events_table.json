@@ -950,64 +950,64 @@
     "desc":"Fin de Deteccion de Alta Impedancia en Bornas de Salida (ICP abierto por comando)"
   },
   {
-    "grp":5,
-    "cod":1,
-    "desc":"Reception order management critic residual demand                                                   "
+    "grp": 5,
+    "cod": 1,
+    "desc": "Recepción de orden de gestión de demanda residual crítica"
   },
   {
-    "grp":5,
-    "cod":2,
-    "desc":"Reception order management critic % decrease demand                                                 "
+    "grp": 5,
+    "cod": 2,
+    "desc": "Recepción de orden de gestión de reducción porcentual de demanda crítica"
   },
   {
-    "grp":5,
-    "cod":3,
-    "desc":"Reception order management demand absolute value critic demand                                      "
+    "grp": 5,
+    "cod": 3,
+    "desc": "Recepción de orden de gestión de valor absoluto de demanda crítica"
   },
   {
-    "grp":5,
-    "cod":4,
-    "desc":"Reception order management no critic residual demand                                                "
+    "grp": 5,
+    "cod": 4,
+    "desc": "Recepción de orden de gestión de demanda residual no crítica"
   },
   {
-    "grp":5,
-    "cod":5,
-    "desc":"Client acceptance management  no critic residual demand                                             "
+    "grp": 5,
+    "cod": 5,
+    "desc": "Aceptación del cliente de gestión de demanda residual no crítica"
   },
   {
-    "grp":5,
-    "cod":6,
-    "desc":"Client rejection management no critic residual demand                                               "
+    "grp": 5,
+    "cod": 6,
+    "desc": "Rechazo del cliente de gestión de demanda residual no crítica"
   },
   {
-    "grp":5,
-    "cod":7,
-    "desc":"Reception order management  no critic demand % decrease                                             "
+    "grp": 5,
+    "cod": 7,
+    "desc": "Recepción de orden de gestión de reducción porcentual de demanda no crítica"
   },
   {
-    "grp":5,
-    "cod":8,
-    "desc":"Client acceptance management no critic demand % decrease                                            "
+    "grp": 5,
+    "cod": 8,
+    "desc": "Aceptación del cliente de gestión de reducción porcentual de demanda no crítica"
   },
   {
-    "grp":5,
-    "cod":9,
-    "desc":"Rejection management no critic demand % decrease                                                    "
+    "grp": 5,
+    "cod": 9,
+    "desc": "Rechazo del cliente de gestión de reducción porcentual de demanda no crítica"
   },
   {
-    "grp":5,
-    "cod":10,
-    "desc":"Reception order management no critic absolute demand                                                "
+    "grp": 5,
+    "cod": 10,
+    "desc": "Recepción de orden de gestión de demanda absoluta no crítica"
   },
   {
-    "grp":5,
-    "cod":11,
-    "desc":"Client acceptance management no critic absolute demand                                              "
+    "grp": 5,
+    "cod": 11,
+    "desc": "Aceptación del cliente de gestión de demanda absoluta no crítica"
   },
   {
-    "grp":5,
-    "cod":12,
-    "desc":"Client Rejection management no critic absolute demand                                               "
+    "grp": 5,
+    "cod": 12,
+    "desc": "Rechazo del cliente de gestión de demanda absoluta no crítica"
   },
   {
     "grp":5,
@@ -1078,5 +1078,250 @@
     "grp":6,
     "cod":6,
     "desc":"Fin de Comunicacioness Puerto Serial"
+  },
+  {
+    "grp":1,
+    "cod":110,
+    "desc":"Reinicio de Modem PLC PRIME"
+  },
+  {
+    "grp":1,
+    "cod":108,
+    "desc":"Modificacion de Modo de Display"
+  },
+  {
+    "grp":1,
+    "cod":113,
+    "desc":"ARC Habilitado"
+  },
+  {
+    "grp":1,
+    "cod":114,
+    "desc":"ARC Deshabilitado"
+  },
+  {
+    "grp":1,
+    "cod":115,
+    "desc":"Cambio en el Numero de Reconexiones ARC"
+  },
+  {
+    "grp":1,
+    "cod":116,
+    "desc":"Cambio en el Tiempo entre Reconexiones ARC"
+  },
+  {
+    "grp":1,
+    "cod":117,
+    "desc":"Cambio de Inyeccion PLC Monofasica a Trifasica"
+  },
+  {
+    "grp":1,
+    "cod":118,
+    "desc":"Cambio de Canal de Inyeccion PLC Trifasica"
+  },
+  {
+    "grp":1,
+    "cod":119,
+    "desc":"Desconexion por Sobretension o Perdida de Neutro Habilitada"
+  },
+  {
+    "grp":1,
+    "cod":120,
+    "desc":"Desconexion por Sobretension o Perdida de Neutro Deshabilitada"
+  },
+  {
+    "grp":1,
+    "cod":102,
+    "desc":"Potencias del Contrato Activadas (Exportacion)"
+  },
+  {
+    "grp":1,
+    "cod":26,
+    "desc":"LED de pulso (Energía Activa): ENCENDIDO (fijo) sin carga y ENCENDIDO (parpadeando) con carga (activado por pulsador)."
+  },
+  {
+    "grp":1,
+    "cod":27,
+    "desc":"LED de pulso (Energía Activa): APAGADO sin carga y ENCENDIDO (parpadeando) con carga (activado por pulsador)."
+  },
+  {
+    "grp":1,
+    "cod":28,
+    "desc":"LED de pulso (Energía Activa): ENCENDIDO (fijo) sin carga y ENCENDIDO (parpadeando) con carga (activado remotamente)."
+  },
+  {
+    "grp":1,
+    "cod":29,
+    "desc":"LED de pulso (Energía Activa): APAGADO sin carga y ENCENDIDO (parpadeando) con carga (activado remotamente)."
+  },
+  {
+    "grp":1,
+    "cod":68,
+    "desc":"LED de pulso (Energía Reactiva): ENCENDIDO (fijo) sin carga y ENCENDIDO (parpadeando) with carga (activado por pulsador)."
+  },
+  {
+    "grp":1,
+    "cod":69,
+    "desc":"LED de pulso (Energía Reactiva): APAGADO sin carga y ENCENDIDO (parpadeando) con carga (activado por pulsador)."
+  },
+  {
+    "grp":1,
+    "cod":70,
+    "desc":"LED de pulso (Energía Reactiva): ENCENDIDO (fijo) sin carga y ENCENDIDO (parpadeando) con carga (activado remotamente)."
+  },
+  {
+    "grp":1,
+    "cod":71,
+    "desc":"LED de pulso (Energía Reactiva): APAGADO sin carga y ENCENDIDO (parpadeando) con carga (activado remotamente)."
+  },
+  {
+    "grp":1,
+    "cod":72,
+    "desc":"LEDs de pulso (Activa y Reactiva): ENCENDIDOS (fijos) sin carga y ENCENDIDOS (parpadeando) con carga (activados por pulsador)."
+  },
+  {
+    "grp":1,
+    "cod":73,
+    "desc":"LEDs de pulso (Activa y Reactiva): ENCENDIDOS (fijos) sin carga y ENCENDIDOS (parpadeando) con carga (activados remotamente)."
+  },
+  {
+    "grp":1,
+    "cod":74,
+    "desc":"LEDs de pulso (Activa y Reactiva): APAGADOS sin carga y ENCENDIDOS (parpadeando) con carga (activados por pulsador)."
+  },
+  {
+    "grp":1,
+    "cod":75,
+    "desc":"LEDs de pulso (Activa y Reactiva): APAGADOS sin carga y ENCENDIDOS (parpadeando) con carga (activados remotamente)."
+  },
+  {
+    "grp":1,
+    "cod":35,
+    "desc":"Sobretensión o pérdida de neutro: Desconexión del relé interno (disparo automático)."
+  },
+  {
+    "grp":1,
+    "cod":43,
+    "desc":"Conectividad IRMS: (Corriente eficaz)."
+  },
+  {
+    "grp":1,
+    "cod":44,
+    "desc":"Fin de sobretensión o recuperación de neutro: Reconexión del relé interno."
+  },
+  {
+    "grp": 7,
+    "cod": 7,
+    "desc": "Error al cambiar la clave maestra (Master Key)"
+  },
+  {
+    "grp": 7,
+    "cod": 8,
+    "desc": "Error al cambiar la clave de cifrado unicast global (GUEK)"
+  },
+  {
+    "grp": 7,
+    "cod": 9,
+    "desc": "Error al cambiar la clave de autenticación"
+  },
+  {
+    "grp": 7,
+    "cod": 10,
+    "desc": "Error al establecer la asociación de cliente de seguridad PLC (Etiqueta de autenticación DED errónea)"
+  },
+  {
+    "grp": 7,
+    "cod": 11,
+    "desc": "Error en el mensaje del cliente de seguridad PLC con DED (Etiqueta de autenticación errónea)"
+  },
+  {
+    "grp": 7,
+    "cod": 12,
+    "desc": "Error al establecer la asociación de cliente de seguridad PLC (LLS erróneo)"
+  },
+  {
+    "grp": 7,
+    "cod": 13,
+    "desc": "Error al cambiar la política de seguridad"
+  },
+  {
+    "grp": 7,
+    "cod": 101,
+    "desc": "Error de actualización de LLS (Cliente de seguridad PLC)"
+  },
+  {
+    "grp": 7,
+    "cod": 102,
+    "desc": "Error de actualización de LLS (Cliente de seguridad local de puerto óptico)"
+  },
+  {
+    "grp": 7,
+    "cod": 103,
+    "desc": "Error de actualización de LLS (Cliente de lectura de puerto óptico)"
+  },
+  {
+    "grp": 7,
+    "cod": 104,
+    "desc": "Error al establecer la asociación de cliente de seguridad PLC (Contador de invocaciones erróneo)"
+  },
+  {
+    "grp": 7,
+    "cod": 105,
+    "desc": "Error al establecer la asociación de cliente de seguridad PLC (Tiempo de espera agotado por fallo de autenticación)"
+  },
+  {
+    "grp": 7,
+    "cod": 106,
+    "desc": "Error al establecer la asociación de cliente de seguridad local de puerto óptico (LLS erróneo)"
+  },
+  {
+    "grp": 7,
+    "cod": 107,
+    "desc": "Error al establecer la asociación de cliente de seguridad local de puerto óptico (Tiempo de espera agotado por fallo de autenticación)"
+  },
+  {
+    "grp": 7,
+    "cod": 108,
+    "desc": "Error en el mensaje del cliente de seguridad PLC con DED (Contador de invocaciones erróneo)"
+  },
+  {
+    "grp": 7,
+    "cod": 109,
+    "desc": "Error en el mensaje del cliente de seguridad PLC con GUEK (Etiqueta de autenticación errónea)"
+  },
+  {
+    "grp": 7,
+    "cod": 110,
+    "desc": "Error en el mensaje del cliente de seguridad PLC con GUEK (Contador de invocaciones erróneo)"
+  },
+  {
+    "grp": 7,
+    "cod": 111,
+    "desc": "Error en la actualización de clave pública para actualización de FW de Utility (Error al descifrar clave efímera)"
+  },
+  {
+    "grp": 7,
+    "cod": 112,
+    "desc": "Error en la actualización de clave pública para actualización de FW de Utility (Etiqueta de autenticación errónea)"
+  },
+  {
+    "grp": 7,
+    "cod": 113,
+    "desc": "Error en la actualización de clave pública para actualización de FW del fabricante (Error al descifrar clave efímera)"
+  },
+  {
+    "grp": 7,
+    "cod": 114,
+    "desc": "Error en la actualización de clave pública para actualización de FW del fabricante (Etiqueta de autenticación errónea)"
+  },
+  {
+    "grp": 7,
+    "cod": 115,
+    "desc": "Error en la actualización de FW: Error al verificar la firma de Utility"
+  },
+  {
+    "grp": 7,
+    "cod": 116,
+    "desc": "Error en la actualización de FW: Error al verificar la firma del fabricante"
   }
 ]

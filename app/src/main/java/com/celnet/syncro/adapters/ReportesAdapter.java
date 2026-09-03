@@ -46,7 +46,7 @@ public class ReportesAdapter extends RecyclerView.Adapter<ReportesAdapter.ViewHo
         holder.txtNombre.setText(report.getFile().getName());
 
         String info =
-                (report.getFile().length() / 1024) + " KB · " +
+                formatearTamano(report.getFile().length()) + " · " +
                         new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
                                 .format(new Date(report.getFile().lastModified()));
 
@@ -64,6 +64,22 @@ public class ReportesAdapter extends RecyclerView.Adapter<ReportesAdapter.ViewHo
                 esPar ? R.drawable.bg_row_fila : R.drawable.bg_row_fila_alt);
 
         pintarEstado(holder, report);
+    }
+
+    /**
+     * Formatea el tamaño de un archivo con la unidad más adecuada:
+     * bytes si es menor a 1 KB, KB si es menor a 1 MB, MB en adelante.
+     */
+    private String formatearTamano(long bytes) {
+        if (bytes < 1024) {
+            return bytes + " B";
+        }
+        double kb = bytes / 1024.0;
+        if (kb < 1024) {
+            return String.format(Locale.getDefault(), "%.1f KB", kb);
+        }
+        double mb = kb / 1024.0;
+        return String.format(Locale.getDefault(), "%.1f MB", mb);
     }
 
     private void pintarEstado(ViewHolder holder, ReportFile report) {
