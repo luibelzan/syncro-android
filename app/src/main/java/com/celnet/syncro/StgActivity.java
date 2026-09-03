@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -20,7 +19,7 @@ public class StgActivity extends AppCompatActivity {
 
     private static final int CNC_NAME_MAX_LENGTH = 13;
 
-    private AutoCompleteTextView spinnerAfterGenerate, spinnerAfterSend;
+    private AutoCompleteTextView spinnerAfterGenerate, spinnerAfterSend, spinnerStgVersion;
 
     private EditText editCncName;
     private TextInputLayout layoutCncName;
@@ -40,6 +39,7 @@ public class StgActivity extends AppCompatActivity {
 
         spinnerAfterGenerate = findViewById(R.id.spinnerAfterGenerate);
         spinnerAfterSend = findViewById(R.id.spinnerAfterSend);
+        spinnerStgVersion = findViewById(R.id.spinnerStgVersion);
         editCncName = findViewById(R.id.editCncName);
         layoutCncName = (TextInputLayout) editCncName.getParent().getParent();
         btnNext = findViewById(R.id.btnNext);
@@ -64,6 +64,17 @@ public class StgActivity extends AppCompatActivity {
         spinnerAfterSend.setAdapter(adapter2);
         if (adapter2.getCount() > 0) {
             spinnerAfterSend.setText(adapter2.getItem(0).toString(), false);
+        }
+
+        // Configurar desplegable de versión STG
+        ArrayAdapter<CharSequence> adapter3 = ArrayAdapter.createFromResource(
+                this,
+                R.array.stgVersion_array,
+                android.R.layout.simple_dropdown_item_1line
+        );
+        spinnerStgVersion.setAdapter(adapter3);
+        if (adapter3.getCount() > 0) {
+            spinnerStgVersion.setText(adapter3.getItem(0).toString(), false);
         }
 
         // 🔹 Cargar datos guardados
@@ -103,6 +114,7 @@ public class StgActivity extends AppCompatActivity {
         SharedPreferences.Editor editor = prefs.edit();
 
         editor.putString("cncName", editCncName.getText().toString());
+        editor.putString("stgVersion", spinnerStgVersion.getText().toString());
         editor.putString("afterGenerate", spinnerAfterGenerate.getText().toString());
         editor.putString("afterSend", spinnerAfterSend.getText().toString());
 
@@ -113,10 +125,16 @@ public class StgActivity extends AppCompatActivity {
         SharedPreferences prefs = getSharedPreferences("ftp_config", MODE_PRIVATE);
 
         String cncName = prefs.getString("cncName", "Syncro");
+        String stgVersion = prefs.getString("stgVersion", null);
         String afterGenerate = prefs.getString("afterGenerate", null);
         String afterSend = prefs.getString("afterSend", null);
 
         editCncName.setText(cncName);
+
+        // Restaurar spinnerStgVersion
+        if (stgVersion != null) {
+            spinnerStgVersion.setText(stgVersion, false);
+        }
 
         // Restaurar spinnerAfterGenerate
         if (afterGenerate != null) {

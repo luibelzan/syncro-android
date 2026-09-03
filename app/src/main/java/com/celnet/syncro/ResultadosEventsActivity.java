@@ -27,10 +27,10 @@ import java.util.Locale;
 
 public class ResultadosEventsActivity extends BaseActivity {
 
-    private String generarEventsXML(ArrayList<EventFila> datos, String cntId, String cncId) {
+    private String generarEventsXML(ArrayList<EventFila> datos, String cntId, String cncId, String stgVersion) {
         StringBuilder sb = new StringBuilder();
 
-        sb.append("<Report IdRpt=\"S09\" IdPet=\"0\" Version=\"3.1.c\">\n");
+        sb.append("<Report IdRpt=\"S09\" IdPet=\"0\" Version=\"").append(stgVersion).append("\">\n");
         sb.append("  <Cnc Id=\"").append(cncId).append("\">\n");
         sb.append("    <Cnt Id=\"").append(cntId).append("\">\n");
 
@@ -93,8 +93,9 @@ public class ResultadosEventsActivity extends BaseActivity {
                 // 🔹 Obtener configuración guardada
                 SharedPreferences prefs = getSharedPreferences("ftp_config", MODE_PRIVATE);
                 String cncName = prefs.getString("cncName", "Syncro");
+                String stgVersion = prefs.getString("stgVersion", "3.1.c");
 
-                String xml = generarEventsXML(datos, cntId, cncName);
+                String xml = generarEventsXML(datos, cntId, cncName, stgVersion);
 
                 // 🔹 Limpiar nombre (opcional pero recomendado)
                 cncName = cncName.replaceAll("\\s+", "_");

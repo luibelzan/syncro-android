@@ -44,9 +44,9 @@ public class ResultadosCurvasActivity extends BaseActivity {
     // =========================
     // GENERAR XML (S02)
     // =========================
-    private String generarCurvasXML(ArrayList<CurvaFila> datos, String cntId, String cncId) {
+    private String generarCurvasXML(ArrayList<CurvaFila> datos, String cntId, String cncId, String stgVersion) {
         StringBuilder sb = new StringBuilder();
-        sb.append("<Report IdRpt=\"S02\" IdPet=\"0\" Version=\"3.1.c\">\n");
+        sb.append("<Report IdRpt=\"S02\" IdPet=\"0\" Version=\"").append(stgVersion).append("\">\n");
         sb.append("  <Cnc Id=\"").append(cncId).append("\">\n");
         sb.append(" <Cnt Id=\"").append(cntId).append("\" Magn=\"1\">\n");
 
@@ -72,9 +72,9 @@ public class ResultadosCurvasActivity extends BaseActivity {
     // =========================
     // GENERAR XML (S44)
     // =========================
-    private String generarCurvasS44XML(ArrayList<CurvaVoltajeFila> datos, String cntId, String cncId) {
+    private String generarCurvasS44XML(ArrayList<CurvaVoltajeFila> datos, String cntId, String cncId, String stgVersion) {
         StringBuilder sb = new StringBuilder();
-        sb.append("<Report IdRpt=\"S44\" IdPet=\"0\" Version=\"3.1.c\">\n");
+        sb.append("<Report IdRpt=\"S44\" IdPet=\"0\" Version=\"").append(stgVersion).append("\">\n");
         sb.append("  <Cnc Id=\"").append(cncId).append("\">\n");
         sb.append(" <Cnt Id=\"").append(cntId).append("\">\n");
 
@@ -112,9 +112,9 @@ public class ResultadosCurvasActivity extends BaseActivity {
     // =========================
     // GENERAR XML (S45)
     // =========================
-    private String generarCurvasS45XML(ArrayList<CurvaCorrienteFila> datos, String cntId, String cncId) {
+    private String generarCurvasS45XML(ArrayList<CurvaCorrienteFila> datos, String cntId, String cncId, String stgVersion) {
         StringBuilder sb = new StringBuilder();
-        sb.append("<Report IdRpt=\"S45\" IdPet=\"0\" Version=\"3.1.c\">\n");
+        sb.append("<Report IdRpt=\"S45\" IdPet=\"0\" Version=\"").append(stgVersion).append("\">\n");
         sb.append("  <Cnc Id=\"").append(cncId).append("\">\n");
         sb.append(" <Cnt Id=\"").append(cntId).append("\">\n");
 
@@ -153,9 +153,9 @@ public class ResultadosCurvasActivity extends BaseActivity {
     // =========================
     // GENERAR XML (S43)
     // =========================
-    private String generarCurvasS43XML(ArrayList<CurvaEnergiaFaseFila> datos, String cntId, String cncId) {
+    private String generarCurvasS43XML(ArrayList<CurvaEnergiaFaseFila> datos, String cntId, String cncId, String stgVersion) {
         StringBuilder sb = new StringBuilder();
-        sb.append("<Report IdRpt=\"S43\" IdPet=\"0\" Version=\"3.1.c\">\n");
+        sb.append("<Report IdRpt=\"S43\" IdPet=\"0\" Version=\"").append(stgVersion).append("\">\n");
         sb.append("  <Cnc Id=\"").append(cncId).append("\">\n");
         sb.append(" <Cnt Id=\"").append(cntId).append("\">\n");
 
@@ -297,20 +297,21 @@ public class ResultadosCurvasActivity extends BaseActivity {
 
             SharedPreferences prefs = getSharedPreferences("ftp_config", MODE_PRIVATE);
             String cncName = prefs.getString("cncName", "Syncro");
+            String stgVersion = prefs.getString("stgVersion", "3.1.c");
 
             String xml;
             String idReporte;
             if (esS44) {
-                xml = generarCurvasS44XML(finalDatosS44, cntId, cncName);
+                xml = generarCurvasS44XML(finalDatosS44, cntId, cncName, stgVersion);
                 idReporte = "S44";
             } else if (esS45) {
-                xml = generarCurvasS45XML(finalDatosS45, cntId, cncName);
+                xml = generarCurvasS45XML(finalDatosS45, cntId, cncName, stgVersion);
                 idReporte = "S45";
             } else if (esS43) {
-                xml = generarCurvasS43XML(finalDatosS43, cntId, cncName);
+                xml = generarCurvasS43XML(finalDatosS43, cntId, cncName, stgVersion);
                 idReporte = "S43";
             } else {
-                xml = generarCurvasXML(finalDatosS02, cntId, cncName);
+                xml = generarCurvasXML(finalDatosS02, cntId, cncName, stgVersion);
                 idReporte = "S02";
             }
 

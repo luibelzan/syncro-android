@@ -38,7 +38,7 @@ public class ParametersActivity extends BaseActivity {
 
     // ── XML generation ───────────────────────────────────────────────────────
 
-    private String generateXml(ParametrosS06 p, String cncId, String cntId) {
+    private String generateXml(ParametrosS06 p, String cncId, String cntId, String stgVersion) {
         String fh = "";
         if (p.fecha != null && !p.fecha.equals("N/A")) {
             try {
@@ -55,7 +55,7 @@ public class ParametersActivity extends BaseActivity {
                 : "";
 
         return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-                "<Report IdRpt=\"S06\" IdPet=\"0\" Version=\"3.1.c\">\n" +
+                "<Report IdRpt=\"S06\" IdPet=\"0\" Version=\"" + stgVersion + "\">\n" +
                 "\t<Cnc Id=\"" + cncId + "\">\n" +
                 "\t\t<Cnt Id=\"" + cntId + "\">\n" +
                 "\t\t\t<S06" +
@@ -102,8 +102,9 @@ public class ParametersActivity extends BaseActivity {
 
         SharedPreferences prefs = getSharedPreferences("ftp_config", MODE_PRIVATE);
         String cncName = prefs.getString("cncName", "Syncro");
+        String stgVersion = prefs.getString("stgVersion", "3.1.c");
 
-        String xml = generateXml(p, cncName, cntId);
+        String xml = generateXml(p, cncName, cntId, stgVersion);
 
         String cncNameClean = cncName.replaceAll("\\s+", "_");
         String fechaActual  = new SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault())

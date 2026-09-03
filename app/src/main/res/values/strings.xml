@@ -149,6 +149,13 @@
         <item>Eliminar del dispositivo</item>
     </string-array>
     <string name="infoStg">Los reportes se eliminan de la carpeta backup de forma automatica transcurrido 30 dias. En ese periodo puede reenviar cualquier reporte del backup al FTP</string>
+    <string name="stgVersion">Versión STG</string>
+    <string-array name="stgVersion_array">
+        <item>3.1.c</item>
+        <item>3.2</item>
+        <item>3.4</item>
+        <item>4.0</item>
+    </string-array>
 
     <!-- PARAMETROS MENU -->
     <string name="paramsMenu">Menu de Parametros</string>

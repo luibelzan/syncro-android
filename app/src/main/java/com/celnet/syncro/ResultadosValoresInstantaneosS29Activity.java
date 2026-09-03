@@ -49,9 +49,9 @@ public class ResultadosValoresInstantaneosS29Activity extends BaseActivity {
     // =========================
     // GENERAR XML (S29)
     // =========================
-    private String generarS29XML(List<RegistroS29> datos, String cntId, String cncId) {
+    private String generarS29XML(List<RegistroS29> datos, String cntId, String cncId, String stgVersion) {
         StringBuilder sb = new StringBuilder();
-        sb.append("<Report IdRpt=\"S29\" IdPet=\"0\" Version=\"3.1.c\">\n");
+        sb.append("<Report IdRpt=\"S29\" IdPet=\"0\" Version=\"").append(stgVersion).append("\">\n");
         sb.append("  <Cnc Id=\"").append(cncId).append("\">\n");
         sb.append(" <Cnt Id=\"").append(cntId).append("\">\n");
 
@@ -135,8 +135,9 @@ public class ResultadosValoresInstantaneosS29Activity extends BaseActivity {
 
             SharedPreferences prefs = getSharedPreferences("ftp_config", MODE_PRIVATE);
             String cncName = prefs.getString("cncName", "Syncro");
+            String stgVersion = prefs.getString("stgVersion", "3.1.c");
 
-            String xml = generarS29XML(registros, cntId, cncName);
+            String xml = generarS29XML(registros, cntId, cncName, stgVersion);
 
             cncName = cncName.replaceAll("\\s+", "_");
 

@@ -28,11 +28,11 @@ import java.util.Locale;
 
 public class ResultadosCierresMensualesActivity extends AppCompatActivity {
 
-    private String generarCierresMensualesXML(ArrayList<CierreMensualFila> datos, String cntId, String cncId) {
+    private String generarCierresMensualesXML(ArrayList<CierreMensualFila> datos, String cntId, String cncId, String stgVersion) {
 
         StringBuilder sb = new StringBuilder();
 
-        sb.append("<Report IdRpt=\"S04\" IdPet=\"0\" Version=\"3.1.c\">\n");
+        sb.append("<Report IdRpt=\"S04\" IdPet=\"0\" Version=\"").append(stgVersion).append("\">\n");
         sb.append("    <Cnc Id=\"").append(cncId).append("\">\n");
         sb.append("        <Cnt Id=\"").append(cntId).append("\">\n");
 
@@ -101,8 +101,9 @@ public class ResultadosCierresMensualesActivity extends AppCompatActivity {
             if (datos != null && !datos.isEmpty()) {
                 SharedPreferences prefs = getSharedPreferences("ftp_config", MODE_PRIVATE);
                 String cncName = prefs.getString("cncName", "Syncro");
+                String stgVersion = prefs.getString("stgVersion", "3.1.c");
 
-                String xml = generarCierresMensualesXML(datos, cntId, cncName);
+                String xml = generarCierresMensualesXML(datos, cntId, cncName, stgVersion);
 
                 // 🔹 Limpiar nombre (opcional pero recomendado)
                 cncName = cncName.replaceAll("\\s+", "_");
