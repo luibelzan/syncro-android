@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -13,13 +14,16 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
-import com.google.android.material.textfield.MaterialAutoCompleteTextView;
+import com.google.android.material.textfield.TextInputLayout;
 
 public class StgActivity extends AppCompatActivity {
+
+    private static final int CNC_NAME_MAX_LENGTH = 13;
 
     private AutoCompleteTextView spinnerAfterGenerate, spinnerAfterSend;
 
     private EditText editCncName;
+    private TextInputLayout layoutCncName;
 
     private ExtendedFloatingActionButton btnNext;
 
@@ -37,6 +41,7 @@ public class StgActivity extends AppCompatActivity {
         spinnerAfterGenerate = findViewById(R.id.spinnerAfterGenerate);
         spinnerAfterSend = findViewById(R.id.spinnerAfterSend);
         editCncName = findViewById(R.id.editCncName);
+        layoutCncName = (TextInputLayout) editCncName.getParent().getParent();
         btnNext = findViewById(R.id.btnNext);
 
         // Configurar desplegable 1
@@ -66,9 +71,31 @@ public class StgActivity extends AppCompatActivity {
 
         // 🔹 Guardar datos al pulsar botón
         btnNext.setOnClickListener(v -> {
+            if (!validarFormulario()) {
+                return;
+            }
             guardarConfiguracion();
             finish();
         });
+    }
+
+    /**
+     * Valida que el nombre del concentrador no supere CNC_NAME_MAX_LENGTH
+     * caracteres. El XML ya limita la escritura con android:maxLength, pero
+     * se revalida aquí por si el valor llega de otra fuente (p.ej. una
+     * preferencia guardada previamente con un valor más largo).
+     */
+    private boolean validarFormulario() {
+        String cncName = editCncName.getText() != null ? editCncName.getText().toString() : "";
+
+        if (cncName.length() > CNC_NAME_MAX_LENGTH) {
+            layoutCncName.setError("Máximo " + CNC_NAME_MAX_LENGTH + " caracteres");
+            editCncName.requestFocus();
+            return false;
+        }
+
+        layoutCncName.setError(null);
+        return true;
     }
 
     private void guardarConfiguracion() {
