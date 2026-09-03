@@ -200,7 +200,10 @@ public class CurrentBillingReader {
             int c = e / 10;
             int n = e % 10;
             if (c != contract) return -1;
-            return (n == 0) ? 6 : n - 1;
+            // Índice 0 = Total (P0), índices 1-6 = periodos P1-P6.
+            // n=0 -> Total -> índice 0
+            // n=1..6 -> P1..P6 -> índice 1..6 (mismo valor, sin desplazar)
+            return n;
         } catch (Exception e) {
             return -1;
         }
