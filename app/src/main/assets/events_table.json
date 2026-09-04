@@ -1195,17 +1195,17 @@
     "desc":"LEDs de pulso (Activa y Reactiva): APAGADOS sin carga y ENCENDIDOS (parpadeando) con carga (activados remotamente)."
   },
   {
-    "grp":1,
+    "grp":3,
     "cod":35,
     "desc":"Sobretensión o pérdida de neutro: Desconexión del relé interno (disparo automático)."
   },
   {
-    "grp":1,
+    "grp":3,
     "cod":43,
     "desc":"Conectividad IRMS: (Corriente eficaz)."
   },
   {
-    "grp":1,
+    "grp":3,
     "cod":44,
     "desc":"Fin de sobretensión o recuperación de neutro: Reconexión del relé interno."
   },
