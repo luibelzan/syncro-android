@@ -97,6 +97,7 @@ public class ValoresInstantaneosActivity extends BaseActivity {
                         // S29: histórico completo, se muestra en su propia pantalla
                         // como tabla (RecyclerView + adapter, igual que CurvaFila).
                         List<RegistroS29> registros = InstantaneousValuesReader.leerValoresS29(res.reader);
+                        //Intent intent = new Intent(ValoresInstantaneosActivity.this, ResultadosValoresInstantaneosS29Activity.class);
 
                         runOnUiThread(() -> {
                             progressBar.setVisibility(View.GONE);
@@ -107,6 +108,7 @@ public class ValoresInstantaneosActivity extends BaseActivity {
                             intent.putParcelableArrayListExtra(
                                     ResultadosValoresInstantaneosS29Activity.EXTRA_REGISTROS,
                                     new ArrayList<>(registros));
+                            intent.putExtra("cntId", res.serialNumber);
                             startActivity(intent);
                         });
                     }

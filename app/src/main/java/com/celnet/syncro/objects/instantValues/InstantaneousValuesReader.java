@@ -10,6 +10,7 @@ import gurux.dlms.objects.GXDLMSRegister;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class InstantaneousValuesReader {
 
@@ -288,9 +289,16 @@ public class InstantaneousValuesReader {
     /**
      * Convierte una fila cruda del buffer (Object[] con el orden de
      * {@link #COLUMNAS_S29}) en un {@link RegistroS29} con todos los
-     * valores ya escalados y formateados como String. Mismos escalados
-     * que antes: tensión/corriente x0.1, potencias/FP x1e-3, ángulos y
-     * secuencia de fases sin escalar (crudos, escalador no documentado).
+     * valores ya escalados y formateados como String, replicando
+     * exactamente el formato de referencia:
+     *   - Tensión: x0.1, 1 decimal ("215.9")
+     *   - Corriente: x0.1, 1 decimal ("1.9")
+     *   - Potencia activa/reactiva (P/Q): SIN escalar, sin decimales ("394")
+     *   - Factor de potencia: x1e-3, 3 decimales ("0.957")
+     *   - Ángulos: x1e-3, 3 decimales ("343.233")
+     *   - Secuencia de fases: texto crudo
+     *   - Columnas null (fase no disponible): cadena vacía ""
+     *   - Locale.US en todos los formatos (punto decimal, no coma)
      */
     private static RegistroS29 parseFilaS29(Object[] fila) {
 
@@ -300,7 +308,7 @@ public class InstantaneousValuesReader {
             Object clockValue = fila[0];
             if (clockValue instanceof gurux.dlms.GXDateTime) {
                 java.util.Calendar c = ((gurux.dlms.GXDateTime) clockValue).getMeterCalendar();
-                fecha = String.format("%04d/%02d/%02d %02d:%02d:%02d.000S",
+                fecha = String.format(Locale.US, "%04d/%02d/%02d %02d:%02d:%02d.000S",
                         c.get(java.util.Calendar.YEAR),
                         c.get(java.util.Calendar.MONTH) + 1,
                         c.get(java.util.Calendar.DAY_OF_MONTH),
@@ -312,54 +320,69 @@ public class InstantaneousValuesReader {
             }
         } catch (Exception ignored) {}
 
-        double v1 = numeroEn(fila, 1) * 0.1, i1 = numeroEn(fila, 2) * 0.1;
-        double v2 = numeroEn(fila, 3) * 0.1, i2 = numeroEn(fila, 4) * 0.1;
-        double v3 = numeroEn(fila, 5) * 0.1, i3 = numeroEn(fila, 6) * 0.1;
-        double iSuma = numeroEn(fila, 7) * 0.1;
-        double iNeutro = numeroEn(fila, 8) * 0.1;
-        double iDif = numeroEn(fila, 9) * 0.1;
-
-        double pTotal = numeroEn(fila, 10) * 1e-3;
-        double p1 = numeroEn(fila, 11) * 1e-3;
-        double p2 = numeroEn(fila, 12) * 1e-3;
-        double p3 = numeroEn(fila, 13) * 1e-3;
-
-        double qTotal = numeroEn(fila, 14) * 1e-3;
-        double q1 = numeroEn(fila, 15) * 1e-3;
-        double q2 = numeroEn(fila, 16) * 1e-3;
-        double q3 = numeroEn(fila, 17) * 1e-3;
-
-        double fpTotal = numeroEn(fila, 18) * 1e-3;
-        double fp1 = numeroEn(fila, 19) * 1e-3;
-        double fp2 = numeroEn(fila, 20) * 1e-3;
-        double fp3 = numeroEn(fila, 21) * 1e-3;
-
-        String secuenciaFases = String.valueOf(valorEn(fila, 22));
-        String angleU1 = String.valueOf(valorEn(fila, 23));
-        String angleU2 = String.valueOf(valorEn(fila, 24));
-        String angleU3 = String.valueOf(valorEn(fila, 25));
-        String angleI1 = String.valueOf(valorEn(fila, 26));
-        String angleI2 = String.valueOf(valorEn(fila, 27));
-        String angleI3 = String.valueOf(valorEn(fila, 28));
-        String angleIN = String.valueOf(valorEn(fila, 29));
-        String angleIdif = String.valueOf(valorEn(fila, 30));
-
         return new RegistroS29(
                 fecha,
-                String.format("%,.1f", v1), String.format("%,.1f", v2), String.format("%,.1f", v3),
-                String.format("%,.2f", i1), String.format("%,.2f", i2), String.format("%,.2f", i3),
-                String.format("%,.2f", iSuma), String.format("%,.2f", iNeutro), String.format("%,.2f", iDif),
-                String.format("%,.3f", pTotal), String.format("%,.3f", p1), String.format("%,.3f", p2), String.format("%,.3f", p3),
-                String.format("%,.3f", qTotal), String.format("%,.3f", q1), String.format("%,.3f", q2), String.format("%,.3f", q3),
-                String.format("%,.3f", fpTotal), String.format("%,.3f", fp1), String.format("%,.3f", fp2), String.format("%,.3f", fp3),
-                secuenciaFases,
-                angleU1, angleU2, angleU3,
-                angleI1, angleI2, angleI3,
-                angleIN, angleIdif);
+                // Tensión: x0.1, 1 decimal
+                formatEscalado(fila, 1, 0.1, "%.1f"),
+                formatEscalado(fila, 3, 0.1, "%.1f"),
+                formatEscalado(fila, 5, 0.1, "%.1f"),
+                // Corriente: x0.1, 1 decimal (antes %.2f, corregido a %.1f)
+                formatEscalado(fila, 2, 0.1, "%.1f"),
+                formatEscalado(fila, 4, 0.1, "%.1f"),
+                formatEscalado(fila, 6, 0.1, "%.1f"),
+                formatEscalado(fila, 7, 0.1, "%.1f"),
+                formatEscalado(fila, 8, 0.1, "%.1f"),
+                formatEscalado(fila, 9, 0.1, "%.1f"),
+                // Potencia activa/reactiva: SIN escalar, sin decimales
+                // (antes se dividía x1e-3 y se mostraba con 3 decimales, incorrecto)
+                formatEscalado(fila, 10, 1.0, "%.0f"),
+                formatEscalado(fila, 11, 1.0, "%.0f"),
+                formatEscalado(fila, 12, 1.0, "%.0f"),
+                formatEscalado(fila, 13, 1.0, "%.0f"),
+                formatEscalado(fila, 14, 1.0, "%.0f"),
+                formatEscalado(fila, 15, 1.0, "%.0f"),
+                formatEscalado(fila, 16, 1.0, "%.0f"),
+                formatEscalado(fila, 17, 1.0, "%.0f"),
+                // Factor de potencia: x1e-3, 3 decimales
+                formatEscalado(fila, 18, 1e-3, "%.3f"),
+                formatEscalado(fila, 19, 1e-3, "%.3f"),
+                formatEscalado(fila, 20, 1e-3, "%.3f"),
+                formatEscalado(fila, 21, 1e-3, "%.3f"),
+                // Secuencia de fases: texto crudo, sin escalar
+                textoOVacio(fila, 22),
+                // Ángulos: x1e-3, 3 decimales (antes texto crudo sin escalar, incorrecto)
+                formatEscalado(fila, 23, 1e-3, "%.3f"),
+                formatEscalado(fila, 24, 1e-3, "%.3f"),
+                formatEscalado(fila, 25, 1e-3, "%.3f"),
+                formatEscalado(fila, 26, 1e-3, "%.3f"),
+                formatEscalado(fila, 27, 1e-3, "%.3f"),
+                formatEscalado(fila, 28, 1e-3, "%.3f"),
+                formatEscalado(fila, 29, 1e-3, "%.3f"),
+                formatEscalado(fila, 30, 1e-3, "%.3f"));
+    }
+    /**
+     * Formatea la columna [indice] de la fila aplicando el factor de escala
+     * y el patrón indicados, con Locale.US. Si la columna no existe o su
+     * valor crudo es null, devuelve cadena vacía en vez de "0.0".
+     */
+    private static String formatEscalado(Object[] fila, int indice, double factor, String patron) {
+        if (indice >= fila.length || fila[indice] == null) {
+            return "";
+        }
+        double numero = numeroEn(fila, indice) * factor;
+        return String.format(Locale.US, patron, numero);
     }
 
-    private static Object valorEn(Object[] fila, int indice) {
-        return (indice < fila.length) ? fila[indice] : "-";
+    /**
+     * Devuelve el valor crudo de la columna [indice] como texto, o cadena
+     * vacía si la columna no existe o es null (en vez del texto "null").
+     * Usado para columnas sin escalado conocido (secuencia de fases, ángulos).
+     */
+    private static String textoOVacio(Object[] fila, int indice) {
+        if (indice >= fila.length || fila[indice] == null) {
+            return "";
+        }
+        return String.valueOf(fila[indice]);
     }
 
     private static double numeroEn(Object[] fila, int indice) {
