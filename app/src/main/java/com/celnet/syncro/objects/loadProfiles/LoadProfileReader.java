@@ -78,7 +78,7 @@ public class LoadProfileReader {
                     Object[] cols = (Object[]) row;
 
                     String fechaHora = cols[0].toString();
-                    String bc = cols.length > 1 ? cols[1].toString() : "-";
+                    String bc = formatStatus(cols.length > 1 ? cols[1] : null);
                     String ai = cols.length > 2 ? cols[2].toString() : "-";
                     String ae = cols.length > 3 ? cols[3].toString() : "-";
                     String r1 = cols.length > 4 ? cols[4].toString() : "-";
