@@ -21,6 +21,7 @@ import androidx.core.view.WindowInsetsCompat;
 import com.celnet.syncro.session.ConnectionConfig;
 import com.celnet.syncro.session.SessionManager;
 import com.celnet.syncro.utils.PasswordHelper;
+import com.celnet.syncro.utils.ProbeBrands;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.radiobutton.MaterialRadioButton;
 import com.google.android.material.textfield.TextInputEditText;
@@ -90,10 +91,11 @@ public class MainActivity extends BaseActivity {
             }
         });
 
-        // 🔹 Desplegable de sondas
+        // 🔹 Desplegable de sondas: se muestran las ETIQUETAS visibles
+        // (p. ej. "TesPro", "Otros"), no los IDs internos reales de marca.
         AutoCompleteTextView spinnerSonda = findViewById(R.id.spinnerSonda);
 
-        String[] sondas = getResources().getStringArray(R.array.sondas_array);
+        String[] sondas = ProbeBrands.etiquetasVisibles();
         ArrayAdapter<String> adapter = new ArrayAdapter<>(
                 this, android.R.layout.simple_dropdown_item_1line, sondas);
         spinnerSonda.setAdapter(adapter);
@@ -112,7 +114,12 @@ public class MainActivity extends BaseActivity {
 
             if (rbBluetooth.isChecked()) {
                 config = new ConnectionConfig(ConnectionConfig.ConnectionType.BLUETOOTH);
-                String deviceName = spinnerSonda.getText().toString();
+                // Traducir la etiqueta visible elegida (p. ej. "Otros") a su
+                // ID interno real (p. ej. "bigrid") antes de guardarla — el
+                // filtrado por nombre en DLMSConnection/ProbeBrands trabaja
+                // siempre con IDs internos, nunca con las etiquetas de la UI.
+                String etiquetaElegida = spinnerSonda.getText().toString();
+                String deviceName = ProbeBrands.idInternoParaEtiqueta(etiquetaElegida);
                 config.setBluetoothDeviceName(deviceName);
             } else {
 

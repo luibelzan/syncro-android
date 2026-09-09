@@ -16,6 +16,8 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.celnet.syncro.utils.ProbeBrands;
+
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Set;
@@ -28,8 +30,6 @@ public class EstadoSondaActivity extends BaseActivity {
 
     private BluetoothSocket socket;
     private BluetoothDevice targetDevice;
-
-    private final String TARGET_NAME = "TesPro";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,11 +72,11 @@ public class EstadoSondaActivity extends BaseActivity {
                     return;
                 }
 
-                // ── Buscar dispositivo emparejado ──────────────────────────
+                // ── Buscar dispositivo emparejado (cualquier marca soportada) ──
                 Set<BluetoothDevice> pairedDevices = adapter.getBondedDevices();
                 targetDevice = null;
                 for (BluetoothDevice device : pairedDevices) {
-                    if (device.getName() != null && device.getName().contains(TARGET_NAME)) {
+                    if (ProbeBrands.coincideNombreSonda(device.getName())) {
                         targetDevice = device;
                         break;
                     }
@@ -101,8 +101,17 @@ public class EstadoSondaActivity extends BaseActivity {
                 OutputStream out = socket.getOutputStream();
                 InputStream  in  = socket.getInputStream();
 
+                // ⚠️ TODO Bigrid: los comandos "GetBatteryVolt" / "AT+ADDR" y el
+                // formato de respuesta "V=XXXX" son específicos del firmware de
+                // TesPro. Si la sonda emparejada es Bigrid, este protocolo
+                // probablemente NO es el correcto y devolverá una lectura sin
+                // sentido (o vacía) sin lanzar ningún error visible. En cuanto
+                // tengas el protocolo de comandos de Bigrid, aquí hay que
+                // ramificar según targetDevice.getName() para usar el conjunto
+                // de comandos correcto según la marca.
+
                 // ── PASO 1: Leer batería ───────────────────────────────────
-                // Comando del fabricante: "GetBatteryVolt"
+                // Comando del fabricante (TesPro): "GetBatteryVolt"
                 // Respuesta esperada: "V=4027" (valor en milivoltios)
                 runOnUiThread(() -> tvBateria.setText("Leyendo batería..."));
 

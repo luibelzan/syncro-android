@@ -21,6 +21,7 @@ import com.celnet.syncro.MainActivity;
 import com.celnet.syncro.R;
 import com.celnet.syncro.licenses.LicenseCheckActivity;
 import com.celnet.syncro.licenses.LicenseManager;
+import com.celnet.syncro.utils.ProbeBrands;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +30,8 @@ import java.util.Set;
 /**
  * BluetoothScanActivity
  *
- * Muestra los dispositivos Bluetooth vinculados cuyo nombre contiene "tespro".
+ * Muestra los dispositivos Bluetooth vinculados cuyo nombre corresponde a
+ * alguna de las marcas de sonda soportadas (ver ProbeBrands: TesPro, Bigrid).
  * Al seleccionar uno:
  *   - Si ya hay licencia guardada para esa MAC → va a MainActivity
  *   - Si no → va a LicenseCheckActivity pasando la MAC
@@ -37,8 +39,6 @@ import java.util.Set;
  * Esta actividad es el punto de entrada principal de la app.
  */
 public class BluetoothScanActivity extends AppCompatActivity {
-
-    private static final String DEVICE_FILTER = "tespro"; // filtro por nombre
 
     private ListView   lvDevices;
     private Button     btnScan;
@@ -96,11 +96,12 @@ public class BluetoothScanActivity extends AppCompatActivity {
         progressContainer.setVisibility(View.VISIBLE);
         tvEmpty.setVisibility(View.GONE);
 
-        // Buscar entre dispositivos ya vinculados (paired)
+        // Buscar entre dispositivos ya vinculados (paired) cuyo nombre
+        // corresponda a alguna marca de sonda soportada (TesPro, Bigrid...)
         Set<BluetoothDevice> paired = btAdapter.getBondedDevices();
         for (BluetoothDevice device : paired) {
             String name = device.getName();
-            if (name != null && name.toLowerCase().contains(DEVICE_FILTER)) {
+            if (ProbeBrands.coincideNombreSonda(name)) {
                 foundDevices.add(device);
                 deviceLabels.add(name + "\n" + device.getAddress());
             }
@@ -110,8 +111,8 @@ public class BluetoothScanActivity extends AppCompatActivity {
         adapter.notifyDataSetChanged();
 
         if (foundDevices.isEmpty()) {
-            tvEmpty.setText("No se encontraron sondas \"" + DEVICE_FILTER +
-                    "\".\nAsegúrate de que está vinculada en Ajustes de Bluetooth.");
+            tvEmpty.setText("No se encontraron sondas compatibles."
+                    + "\nAsegúrate de que está vinculada en Ajustes de Bluetooth.");
             tvEmpty.setVisibility(View.VISIBLE);
         }
     }

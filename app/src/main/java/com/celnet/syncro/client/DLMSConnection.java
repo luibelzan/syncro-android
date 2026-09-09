@@ -17,6 +17,7 @@ import gurux.common.enums.TraceLevel;
 
 import com.celnet.syncro.ConfigContadorActivity;
 import com.celnet.syncro.objects.params.SerialNumberReader;
+import com.celnet.syncro.utils.ProbeBrands;
 
 import gurux.dlms.GXDLMSClient;
 import gurux.dlms.enums.InterfaceType;
@@ -128,13 +129,13 @@ public class DLMSConnection {
         }
 
         BluetoothDevice targetDevice = findBluetoothDevice(adapter, context);
-        if (targetDevice == null) throw new Exception("No se encontró la sonda TesPro emparejada");
+        if (targetDevice == null) throw new Exception("No se encontró la sonda emparejada");
 
         UUID SPP = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
         BluetoothSocket socket = targetDevice.createRfcommSocketToServiceRecord(SPP);
 
         try {
-            Log.d(TAG, "Conectando a TesPro...");
+            Log.d(TAG, "Conectando a la sonda...");
             socket.connect();
             Log.d(TAG, "Conexión Bluetooth SPP establecida.");
 
@@ -204,12 +205,25 @@ public class DLMSConnection {
                 != PackageManager.PERMISSION_GRANTED) {
             return null;
         }
+
+        // 'device' es el ID INTERNO de la marca elegida en MainActivity
+        // (p. ej. "tespro" o "bigrid", ya traducido desde la etiqueta visible
+        // por ProbeBrands.idInternoParaEtiqueta). Comparamos por substring
+        // (no igualdad exacta) porque el nombre real del dispositivo suele
+        // llevar un sufijo (p. ej. "TesPro_A1B2"), pero SIEMPRE contra la
+        // marca seleccionada — nunca contra "cualquier marca reconocida",
+        // o dejaría de importar qué elige el usuario en el desplegable.
         Set<BluetoothDevice> paired = adapter.getBondedDevices();
         if (paired == null) return null;
+
         for (BluetoothDevice d : paired) {
             Log.d(TAG, "Emparejado: " + d.getName() + " (" + d.getAddress() + ")");
-            if (d.getName() != null && d.getName().contains("TesPro")) return d;
+            if (d.getName() != null && device != null
+                    && d.getName().toLowerCase().contains(device.toLowerCase())) {
+                return d;
+            }
         }
+
         return null;
     }
 
