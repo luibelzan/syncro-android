@@ -18,7 +18,11 @@ import gurux.dlms.enums.DataType;
 import gurux.dlms.enums.DateTimeSkips;
 import gurux.dlms.objects.GXDLMSCaptureObject;
 import gurux.dlms.objects.GXDLMSClock;
+import gurux.dlms.objects.GXDLMSData;
+import gurux.dlms.objects.GXDLMSDemandRegister;
+import gurux.dlms.objects.GXDLMSObject;
 import gurux.dlms.objects.GXDLMSProfileGeneric;
+import gurux.dlms.objects.GXDLMSRegister;
 
 public class MonthlyBillingS04 {
 
@@ -40,12 +44,68 @@ public class MonthlyBillingS04 {
             // Necesario: Gurux requiere capture objects antes de readRowsByRange
             reader.read(s04, 3);
 
-            // Columna dummy para medidores con 99 columnas
-            if (s04.getCaptureObjects().size() == 99) {
+            if (s04.getCaptureObjects().isEmpty()) {
+                // Algunos contadores devuelven el atributo 3 como un array vacío
+                // (mismo caso ya visto en S05 y en las curvas de carga S44/S45/S46).
+                // Mapeo manual completo según documentación oficial "Stored Billing
+                // Values Profile" (0-0:98.1.c.255):
+                //   {1,0-0:94.34.z.255,2}  -> inicio del periodo (z = 10+contrato)
+                //   {8,0-0:1.0.0.255,2}    -> fin del periodo (Clock)
+                //   6 grupos x 7 {3,1-0:y.8.x.255,2}  -> energía absoluta (y=1,2,5,6,7,8)
+                //   6 grupos x 7 {3,1-0:y.9.x.255,2}  -> energía incremental del periodo
+                //   7 pares {4,1-0:C.6.x.255,2}/{...,5} -> maxímetro (valor/fecha),
+                //     C=1 (importación) para contratos 1 y 2, C=2 (exportación) para contrato 3
+                //   Total: 100 columnas
+                // donde x = 10*contrato + n (n = 0..6, 0 = total)
+                AppLogger.w("MonthlyBilling",
+                        "Estructura vacía en S04 (contrato " + contract + "): aplicando mapeo manual según documentación.");
+
+                int z = 10 + contract; // z = 11,12,13 para contrato 1,2,3
+
+                addObject(s04, new GXDLMSData(String.format(Locale.US, "0.0.94.34.%d.255", z)));
+                addObject(s04, new GXDLMSClock("0.0.1.0.0.255"));
+
+                int[] codigosEnergia = {1, 2, 5, 6, 7, 8}; // A+, A-, QI, QII, QIII, QIV
+
+                // Bloque de valores absolutos (atributo .8, no reseteable)
+                for (int y : codigosEnergia) {
+                    for (int n = 0; n <= 6; n++) {
+                        int x = 10 * contract + n;
+                        addObject(s04, new GXDLMSRegister(
+                                String.format(Locale.US, "1.0.%d.8.%d.255", y, x)));
+                    }
+                }
+
+                // Bloque de valores incrementales del periodo (atributo .9)
+                for (int y : codigosEnergia) {
+                    for (int n = 0; n <= 6; n++) {
+                        int x = 10 * contract + n;
+                        addObject(s04, new GXDLMSRegister(
+                                String.format(Locale.US, "1.0.%d.9.%d.255", y, x)));
+                    }
+                }
+
+                // Maxímetro: UN SOLO bloque de 7 periodos, valor (attr 2) + fecha (attr 5).
+                // Contratos 1 y 2 -> importación (1.6); contrato 3 -> exportación (2.6).
+                // Total: 2 + 42 + 42 + 14 = 100 columnas.
+                int codigoMaximetro = (contract == 3) ? 2 : 1;
+                for (int n = 0; n <= 6; n++) {
+                    int x = 10 * contract + n;
+                    String obisDemanda = String.format(Locale.US, "1.0.%d.6.%d.255", codigoMaximetro, x);
+                    addObject(s04, new GXDLMSDemandRegister(obisDemanda), 2);
+                    addObject(s04, new GXDLMSDemandRegister(obisDemanda), 5);
+                }
+
+            } else if (s04.getCaptureObjects().size() == 99) {
+                // Columna dummy para medidores con 99 columnas (caso ya existente)
                 GXDLMSClock dummyClock = new GXDLMSClock("0.0.1.0.0.255");
                 s04.getCaptureObjects().add(
                         new GXSimpleEntry<>(dummyClock, new GXDLMSCaptureObject(2, 0))
                 );
+            } else {
+                AppLogger.i("MonthlyBilling",
+                        "Estructura S04 recibida del medidor (contrato " + contract + "). Columnas: "
+                                + s04.getCaptureObjects().size());
             }
 
             SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd", Locale.US);
@@ -139,6 +199,15 @@ public class MonthlyBillingS04 {
         }
 
         return result;
+    }
+
+    private static void addObject(GXDLMSProfileGeneric pg, GXDLMSObject obj) {
+        addObject(pg, obj, 2);
+    }
+
+    private static void addObject(GXDLMSProfileGeneric pg, GXDLMSObject obj, int attributeIndex) {
+        pg.getCaptureObjects().add(
+                new GXSimpleEntry<>(obj, new GXDLMSCaptureObject(attributeIndex, 0)));
     }
 
     private static String wattsAKilowatts(Object valorWh) {

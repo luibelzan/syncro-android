@@ -34,6 +34,32 @@ public class DailyBillingS05 {
             // Necesario: Gurux requiere capture objects antes de readRowsByRange
             reader.read(s05, 3);
 
+            if (s05.getCaptureObjects().isEmpty()) {
+                // Algunos contadores devuelven el atributo 3 como un array vacío
+                // (mismo caso "ZIV" ya visto en las curvas de carga S44/S45/S46).
+                // Mapeo manual según documentación oficial "Stored Billing Values
+                // Profile" (0-0:98.2.c.255): Clock + 6 grupos de 7 registros
+                // (y=1,2,5,6,7,8 -> A+,A-,QI,QII,QIII,QIV; n=0..6 -> total+6
+                // periodos tarifarios), OBIS 1-0:y.8.(10*contrato+n).255.
+                AppLogger.w("DailyBilling",
+                        "Estructura vacía en S05 (contrato " + contract + "): aplicando mapeo manual según documentación.");
+
+                addObject(s05, new gurux.dlms.objects.GXDLMSClock("0.0.1.0.0.255"));
+
+                int[] codigosEnergia = {1, 2, 5, 6, 7, 8}; // A+, A-, QI, QII, QIII, QIV
+                for (int y : codigosEnergia) {
+                    for (int n = 0; n <= 6; n++) {
+                        int x = 10 * contract + n;
+                        String obisRegistro = String.format(Locale.US, "1.0.%d.8.%d.255", y, x);
+                        addObject(s05, new gurux.dlms.objects.GXDLMSRegister(obisRegistro));
+                    }
+                }
+            } else {
+                AppLogger.i("DailyBilling",
+                        "Estructura S05 recibida del medidor (contrato " + contract + "). Columnas: "
+                                + s05.getCaptureObjects().size());
+            }
+
             SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd", Locale.US);
 
             Calendar calStart = Calendar.getInstance();
@@ -96,6 +122,11 @@ public class DailyBillingS05 {
         }
 
         return result;
+    }
+
+    private static void addObject(GXDLMSProfileGeneric pg, gurux.dlms.objects.GXDLMSObject obj) {
+        pg.getCaptureObjects().add(new java.util.AbstractMap.SimpleEntry<>(obj,
+                new gurux.dlms.objects.GXDLMSCaptureObject(2, 0)));
     }
 
     private static String wattsAKilowatts(Object valorWh) {
