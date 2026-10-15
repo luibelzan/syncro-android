@@ -91,6 +91,13 @@ public class MainActivity extends BaseActivity {
             }
         });
 
+        // 🔹 Selector de protocolo (v3.0): DLMS / IEC-870
+        RadioGroup radioGroupProtocolo = findViewById(R.id.radioGroupProtocolo);
+        LinearLayout layoutIec870 = findViewById(R.id.layoutIec870);
+        radioGroupProtocolo.setOnCheckedChangeListener((group, checkedId) ->
+                layoutIec870.setVisibility(
+                        checkedId == R.id.rbIec870 ? View.VISIBLE : View.GONE));
+
         // 🔹 Desplegable de sondas: se muestran las ETIQUETAS visibles
         // (p. ej. "TesPro", "Otros"), no los IDs internos reales de marca.
         AutoCompleteTextView spinnerSonda = findViewById(R.id.spinnerSonda);
@@ -179,11 +186,49 @@ public class MainActivity extends BaseActivity {
                 config.setPort(port);
             }
 
+            // Protocolo elegido y, si es IEC-870, sus parámetros
+            boolean esIec = radioGroupProtocolo.getCheckedRadioButtonId() == R.id.rbIec870;
+            if (esIec) {
+                TextInputEditText etLink = findViewById(R.id.etIecLinkAddress);
+                TextInputEditText etPunto = findViewById(R.id.etIecMeasuringPoint);
+                TextInputEditText etClave = findViewById(R.id.etIecPassword);
+
+                String linkTxt = etLink.getText().toString().trim();
+                String puntoTxt = etPunto.getText().toString().trim();
+                String claveTxt = etClave.getText().toString().trim();
+
+                if (linkTxt.isEmpty()) {
+                    etLink.setError("Introduzca la dirección de enlace");
+                    etLink.requestFocus();
+                    return;
+                }
+                if (puntoTxt.isEmpty()) {
+                    etPunto.setError("Introduzca el punto de medida");
+                    etPunto.requestFocus();
+                    return;
+                }
+
+                try {
+                    config.setIecLinkAddress(Integer.parseInt(linkTxt));
+                    config.setIecMeasuringPoint(Integer.parseInt(puntoTxt));
+                    config.setIecPassword(claveTxt.isEmpty() ? 0L : Long.parseLong(claveTxt));
+                } catch (NumberFormatException e) {
+                    etLink.setError("Valor numérico inválido");
+                    etLink.requestFocus();
+                    return;
+                }
+                config.setProtocol(ConnectionConfig.Protocol.IEC870);
+            } else {
+                config.setProtocol(ConnectionConfig.Protocol.DLMS);
+            }
+
             // Guardamos la configuración actual
             SessionManager.getInstance().setConnectionConfig(config);
 
             // Ir a la siguiente actividad
-            startActivity(new Intent(MainActivity.this, SecondActivity.class));
+            // v3.0: menú propio para IEC-870, el de siempre para DLMS.
+            startActivity(new Intent(MainActivity.this,
+                    config.isIec870() ? IecMenuActivity.class : SecondActivity.class));
         });
 
     }

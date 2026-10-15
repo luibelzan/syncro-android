@@ -259,14 +259,49 @@ public class Utils {
 
             String host = prefs.getString("dir", "");
             int port = Integer.parseInt(prefs.getString("port", "21"));
-            String user = prefs.getString("user", "");
-            String pass = prefs.getString("pass", "");
+            String user = prefs.getString("user", "").trim();
+            String pass = prefs.getString("pass", "").trim();
             String folder = prefs.getString("folder", "/folder");
 
             AppLogger.i("Utils", "FTP: conectando a " + host + ":" + port
                     + " usuario=" + user + " carpeta=" + folder);
 
+            AppLogger.i("Utils-DEBUG", "user=[" + user + "] len=" + user.length());
+            AppLogger.i("Utils-DEBUG", "pass=[" + pass + "] len=" + pass.length());
+            AppLogger.i("Utils-DEBUG", "host=[" + host + "] len=" + pass.length());
+            AppLogger.i("Utils-DEBUG", "port=[" + port + "] len=" + pass.length());
+
+
             FTPClient ftp = new FTPClient();
+
+            java.io.Writer logWriter = new java.io.Writer() {
+                private final StringBuilder buffer = new StringBuilder();
+
+                @Override
+                public void write(char[] cbuf, int off, int len) {
+                    buffer.append(cbuf, off, len);
+                    int idx;
+                    while ((idx = buffer.indexOf("\n")) >= 0) {
+                        String line = buffer.substring(0, idx).trim();
+                        buffer.delete(0, idx + 1);
+                        if (!line.isEmpty()) {
+                            AppLogger.i("Utils-FTP-RAW", line);
+                        }
+                    }
+                }
+
+                @Override
+                public void flush() {}
+
+                @Override
+                public void close() {}
+            };
+
+            ftp.addProtocolCommandListener(
+                    new org.apache.commons.net.PrintCommandListener(new java.io.PrintWriter(logWriter), true)
+            );
+
+            ftp.connect(host, port);
 
             ftp.connect(host, port);
 

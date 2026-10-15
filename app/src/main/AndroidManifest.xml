@@ -28,6 +28,15 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Syncro">
         <activity
+            android:name=".IecCurvasActivity"
+            android:exported="false" />
+        <activity
+            android:name=".IecReadsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".IecMenuActivity"
+            android:exported="false" />
+        <activity
             android:name=".ResultadosPrimeSeguridadActivity"
             android:exported="false" />
         <activity

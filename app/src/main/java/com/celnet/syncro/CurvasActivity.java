@@ -23,6 +23,7 @@ import com.celnet.syncro.models.curvas.CurvaEnergiaFaseFila;
 import com.celnet.syncro.models.curvas.CurvaFila;
 import com.celnet.syncro.models.curvas.CurvaVoltajeFila;
 import com.celnet.syncro.models.curvas.TipoCurva;
+import com.celnet.syncro.objects.iec870.curvas.Iec870LoadProfileReader;
 import com.celnet.syncro.objects.loadProfiles.LoadProfileReader;
 import com.celnet.syncro.session.ConnectionConfig;
 import com.celnet.syncro.session.SessionManager;
@@ -125,6 +126,46 @@ public class CurvasActivity extends BaseActivity {
             editFechaInicio.setEnabled(false);
             editFechaFin.setEnabled(false);
             progressBar.setVisibility(View.VISIBLE);
+
+            // ---- v3.0: lectura por IEC-870 (de momento solo curva de carga S02) ----
+            if (config.isIec870()) {
+                new Thread(() -> {
+                    try {
+                        if (tipoFinal != TipoCurva.INCREMENTAL_S02) {
+                            throw new Exception("Por IEC-870 solo está disponible la curva de carga (S02).");
+                        }
+                        Iec870LoadProfileReader.Resultado res = Iec870LoadProfileReader
+                                .leerCurvaCarga(CurvasActivity.this, config, fechaInicio, fechaFin);
+
+                        Intent intent = new Intent(CurvasActivity.this, ResultadosCurvasActivity.class);
+                        intent.putExtra("tipoCurva", tipoFinal.name());
+                        intent.putExtra("cntId", res.serie);
+                        intent.putParcelableArrayListExtra("datos_curva_tabla", res.filas);
+
+                        runOnUiThread(() -> {
+                            progressBar.setVisibility(View.GONE);
+                            btnNext.setEnabled(true);
+                            editFechaInicio.setEnabled(true);
+                            editFechaFin.setEnabled(true);
+                            startActivity(intent);
+                        });
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        runOnUiThread(() -> {
+                            progressBar.setVisibility(View.GONE);
+                            btnNext.setEnabled(true);
+                            editFechaInicio.setEnabled(true);
+                            editFechaFin.setEnabled(true);
+                            new androidx.appcompat.app.AlertDialog.Builder(CurvasActivity.this)
+                                    .setTitle("Error de lectura (IEC-870)")
+                                    .setMessage("No se pudo leer la curva.\n\n" + e.getMessage())
+                                    .setPositiveButton("Aceptar", null)
+                                    .show();
+                        });
+                    }
+                }).start();
+                return;
+            }
 
             new Thread(() -> {
                 DLMSConnection conn = (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH)

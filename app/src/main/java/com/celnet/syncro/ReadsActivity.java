@@ -29,7 +29,6 @@ public class ReadsActivity extends BaseActivity {
         LinearLayout btnEvents = findViewById(R.id.btnEvents);
         LinearLayout btnIds = findViewById(R.id.btnIds);
         LinearLayout btnInstantValues = findViewById(R.id.btnInstantValues);
-        LinearLayout btnSondaStatus = findViewById(R.id.btnSondaStatus);
         LinearLayout btnParams = findViewById(R.id.btnParameters);
 
         btnCurvas.setOnClickListener(new View.OnClickListener() {

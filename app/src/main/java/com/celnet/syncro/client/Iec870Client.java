@@ -1,0 +1,405 @@
+package com.celnet.syncro.client;
+
+import com.celnet.syncro.models.iec870.curvas.Iec870LoadProfileRow;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
+
+/**
+ * Cliente IEC 60870-5-102 (REE) sobre un par de streams (Bluetooth SPP o TCP).
+ * Independiente de Android: solo usa InputStream/OutputStream.
+ *
+ * Secuencia (idéntica a la del software funcional):
+ *   estado enlace -> reposición -> estado enlace -> sondeo clase 2 ->
+ *   clave (ASDU 183) -> [lecturas] -> fin de sesión (ASDU 187)
+ */
+public class Iec870Client {
+
+    public interface Trace {
+        void line(String text);
+    }
+
+    public enum Periodo {
+        HORARIA(11),
+        CUARTOHORARIA(12); // sin verificar con un log real
+
+        public final int registro;
+
+        Periodo(int registro) {
+            this.registro = registro;
+        }
+    }
+
+    // Tipos de ASDU
+    private static final int TYPE_READ_ID = 100;
+    private static final int TYPE_ID_RESPONSE = 71;
+    private static final int TYPE_READ_INCREMENTAL = 123;
+    private static final int TYPE_INCREMENTAL = 11;
+    private static final int TYPE_AUTH = 183;
+    private static final int TYPE_END_SESSION = 187;
+
+    private final InputStream in;
+    private final OutputStream out;
+    private final int linkAddress;
+    private final int measuringPoint;
+    private final long password;
+
+    private int fcb = 0;
+    private Trace trace;
+
+    private long frameTimeoutMs = 10_000;
+    private long contentTimeoutMs = 120_000;
+    private int maxEmptyPolls = 200;
+
+    public Iec870Client(InputStream in, OutputStream out,
+                        int linkAddress, int measuringPoint, long password) {
+        this.in = in;
+        this.out = out;
+        this.linkAddress = linkAddress;
+        this.measuringPoint = measuringPoint;
+        this.password = password;
+    }
+
+    public void setTrace(Trace trace) {
+        this.trace = trace;
+    }
+
+    public void setFrameTimeoutMs(long ms) {
+        this.frameTimeoutMs = ms;
+    }
+
+    // ------------------------------------------------------------------
+    // Sesión
+    // ------------------------------------------------------------------
+
+    public void openSession() throws Iec870Exception {
+        log("Solicitando Estado de Enlace...(dirección : " + linkAddress + ")");
+        requestLinkState();
+        log("Contador Encontrado - \"Remote link reposition\"");
+        sendFixedExpectAck(Iec870Frame.controlByte(0, false, Iec870Frame.CF_REPOSITION));
+        fcb = 0;
+        requestLinkState();
+        // El software funcional hace un sondeo de clase 2 antes de la clave
+        // (respuesta "sin datos"); además fija la paridad inicial del FCB.
+        try {
+            poll();
+        } catch (Iec870Exception ignored) {
+        }
+
+        log("Enviando clave de acceso");
+        byte[] data = new byte[]{
+                (byte) password, (byte) (password >> 8), (byte) (password >> 16), (byte) (password >> 24)
+        };
+        sendVariableExpectAck(TYPE_AUTH, 1, Iec870Frame.CAUSE_ACTIVATION, 0, data);
+        Iec870Frame resp = awaitCause(Iec870Frame.CAUSE_ACTIVATION_CONFIRM);
+        if (resp.negative) {
+            throw new Iec870Exception("Clave de acceso rechazada por el contador");
+        }
+        log("Clave de acceso OK");
+        log("Sesión abierta");
+    }
+
+    public void closeSession() {
+        log("Cerrando session IEC");
+        try {
+            sendVariableExpectAck(TYPE_END_SESSION, 0, Iec870Frame.CAUSE_ACTIVATION, 0, new byte[0]);
+            awaitCause(Iec870Frame.CAUSE_ACTIVATION_CONFIRM);
+        } catch (Iec870Exception e) {
+            log("Error cerrando sesión: " + e.getMessage());
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Lecturas
+    // ------------------------------------------------------------------
+
+    /** Lee el identificador del equipo y devuelve p. ej. "C50991687". */
+    public String readSerial() throws Iec870Exception {
+        log("Leyendo Serial...");
+        sendVariableExpectAck(TYPE_READ_ID, 0, Iec870Frame.CAUSE_REQUESTED, 0, new byte[0]);
+        Iec870Frame r = awaitCause(Iec870Frame.CAUSE_REQUESTED);
+        if (r.type != TYPE_ID_RESPONSE || r.data.length < 6) {
+            throw new Iec870Exception("Respuesta de identificación inesperada (tipo " + r.type + ")");
+        }
+        int fabricante = r.data[1] & 0xFF;
+        long equipo = (r.data[2] & 0xFFL) | ((r.data[3] & 0xFFL) << 8)
+                | ((r.data[4] & 0xFFL) << 16) | ((r.data[5] & 0xFFL) << 24);
+        return String.valueOf((char) fabricante) + equipo;
+    }
+
+    /**
+     * Lee la curva de carga (totales integrados incrementales, ASDU 123).
+     * Fechas "yyyy/MM/dd"; se pide de las 00:00 de inicio a las 00:00 de fin.
+     */
+    public List<Iec870LoadProfileRow> readLoadProfile(String fechaInicio, String fechaFin,
+                                                      Periodo periodo) throws Iec870Exception {
+        byte[] ini = timeA(fechaInicio);
+        byte[] fin = timeA(fechaFin);
+
+        byte[] data = new byte[12];
+        data[0] = 1;  // primer total integrado
+        data[1] = 6;  // último total integrado
+        System.arraycopy(ini, 0, data, 2, 5);
+        System.arraycopy(fin, 0, data, 7, 5);
+
+        log("Leyendo curvas...");
+        sendVariableExpectAck(TYPE_READ_INCREMENTAL, 1, Iec870Frame.CAUSE_ACTIVATION,
+                periodo.registro, data);
+        awaitCause(Iec870Frame.CAUSE_ACTIVATION_CONFIRM);
+
+        List<Iec870LoadProfileRow> rows = new ArrayList<>();
+        long lastContent = System.currentTimeMillis();
+        int empty = 0;
+
+        while (true) {
+            Iec870Frame f = poll();
+            if (!f.variable) {
+                empty++;
+                if (empty > maxEmptyPolls
+                        || System.currentTimeMillis() - lastContent > contentTimeoutMs) {
+                    throw new Iec870Exception("Tiempo agotado esperando datos de la curva");
+                }
+                continue;
+            }
+            empty = 0;
+            lastContent = System.currentTimeMillis();
+            checkErrorCause(f);
+
+            if (f.type == TYPE_INCREMENTAL) {
+                rows.add(parseIncremental(f));
+            }
+            if (f.cause == Iec870Frame.CAUSE_ACTIVATION_END) {
+                break;
+            }
+            // cause 5: hay más datos; seguir sondeando
+        }
+
+        // Igual que el software funcional: dos sondeos finales para vaciar el enlace.
+        for (int i = 0; i < 2; i++) {
+            try {
+                poll();
+            } catch (Iec870Exception ignored) {
+            }
+        }
+        log("Load Profile successfully read");
+        return rows;
+    }
+
+    // ------------------------------------------------------------------
+    // Análisis de ASDU 11 (totales integrados incrementales)
+    // ------------------------------------------------------------------
+
+    private Iec870LoadProfileRow parseIncremental(Iec870Frame f) throws Iec870Exception {
+        int n = f.qualifier;
+        byte[] d = f.data;
+        if (d.length < n * 6 + 5) {
+            throw new Iec870Exception("ASDU 11 truncado: " + Iec870Frame.hex(f.raw));
+        }
+        long[] val = new long[9];
+        int calidad = -1;
+        boolean invalido = false;
+        for (int i = 0; i < n; i++) {
+            int p = i * 6;
+            int addr = d[p] & 0xFF;
+            long total = (d[p + 1] & 0xFFL) | ((d[p + 2] & 0xFFL) << 8)
+                    | ((d[p + 3] & 0xFFL) << 16) | ((d[p + 4] & 0xFFL) << 24);
+            int q = d[p + 5] & 0xFF;
+            if (addr >= 1 && addr <= 8) val[addr] = total;
+            if (calidad < 0) calidad = q;
+            if ((q & 0x80) != 0) invalido = true;
+        }
+        int t = n * 6;
+        int minuto = d[t] & 0x3F;
+        int hora = d[t + 1] & 0x1F;
+        boolean verano = (d[t + 1] & 0x80) != 0;
+        int dia = d[t + 2] & 0x1F;
+        if (dia == 0) dia = 1;
+        int mes = d[t + 3] & 0x0F;
+        if (mes == 0) mes = 1;
+        int anio = 2000 + (d[t + 4] & 0x7F);
+
+        String fh = String.format("%04d/%02d/%02d %02d:%02d:00%s",
+                anio, mes, dia, hora, minuto, verano ? "S" : "W");
+        return new Iec870LoadProfileRow(fh, verano, val[1], val[2], val[3], val[4],
+                val[5], val[6], Math.max(calidad, 0), invalido);
+    }
+
+    /** Tiempo tipo A (5 octetos) a las 00:00 de "yyyy/MM/dd". SU=0 como el software funcional. */
+    static byte[] timeA(String fecha) throws Iec870Exception {
+        String[] p = fecha.trim().split("[/\\-]");
+        if (p.length != 3) {
+            throw new Iec870Exception("Fecha inválida (se esperaba yyyy/MM/dd): " + fecha);
+        }
+        int y, m, d;
+        try {
+            y = Integer.parseInt(p[0]);
+            m = Integer.parseInt(p[1]);
+            d = Integer.parseInt(p[2]);
+        } catch (NumberFormatException e) {
+            throw new Iec870Exception("Fecha inválida: " + fecha);
+        }
+        Calendar c = Calendar.getInstance();
+        c.clear();
+        c.set(y, m - 1, d);
+        int dow = c.get(Calendar.DAY_OF_WEEK);       // domingo = 1
+        int iso = (dow == Calendar.SUNDAY) ? 7 : dow - 1; // lunes = 1 .. domingo = 7
+        return new byte[]{
+                0,                                    // minuto, TIS, IV
+                0,                                    // hora, SU
+                (byte) ((iso << 5) | (d & 0x1F)),     // día del mes + día de la semana
+                (byte) (m & 0x0F),                    // mes (ETI/PTI = 0)
+                (byte) ((y % 100) & 0x7F)             // año
+        };
+    }
+
+    // ------------------------------------------------------------------
+    // Capa de enlace
+    // ------------------------------------------------------------------
+
+    private void requestLinkState() throws Iec870Exception {
+        send(Iec870Frame.buildFixed(
+                Iec870Frame.controlByte(0, false, Iec870Frame.CF_LINK_STATE), linkAddress));
+        Iec870Frame r = readFrame();
+        if (r.variable) {
+            throw new Iec870Exception("Respuesta de estado de enlace inesperada");
+        }
+    }
+
+    private void sendFixedExpectAck(int control) throws Iec870Exception {
+        send(Iec870Frame.buildFixed(control, linkAddress));
+        readFrame();
+    }
+
+    private int nextFcb() {
+        fcb = (fcb + 1) & 1;
+        return fcb;
+    }
+
+    private void sendVariableExpectAck(int type, int qualifier, int cause, int register,
+                                       byte[] data) throws Iec870Exception {
+        int control = Iec870Frame.controlByte(nextFcb(), true, Iec870Frame.CF_USER_DATA);
+        send(Iec870Frame.buildVariable(control, linkAddress, type, qualifier, cause,
+                measuringPoint, register, data));
+        Iec870Frame ack = readFrame();
+        if (ack.variable || ack.functionCode != 0) {
+            throw new Iec870Exception("El contador no confirma la petición (trama: "
+                    + Iec870Frame.hex(ack.raw) + ")");
+        }
+    }
+
+    /** Sondeo de datos de clase 2. */
+    private Iec870Frame poll() throws Iec870Exception {
+        int control = Iec870Frame.controlByte(nextFcb(), true, Iec870Frame.CF_REQUEST_CLASS2);
+        send(Iec870Frame.buildFixed(control, linkAddress));
+        return readFrame();
+    }
+
+    /** Sondea hasta recibir una trama variable con la causa esperada. */
+    private Iec870Frame awaitCause(int expected) throws Iec870Exception {
+        long last = System.currentTimeMillis();
+        int empty = 0;
+        while (true) {
+            Iec870Frame f = poll();
+            if (!f.variable) {
+                empty++;
+                if (empty > maxEmptyPolls || System.currentTimeMillis() - last > contentTimeoutMs) {
+                    throw new Iec870Exception("Tiempo agotado esperando respuesta del contador");
+                }
+                continue;
+            }
+            checkErrorCause(f);
+            if (f.cause == expected) return f;
+            last = System.currentTimeMillis();
+        }
+    }
+
+    private void checkErrorCause(Iec870Frame f) throws Iec870Exception {
+        switch (f.cause) {
+            case Iec870Frame.CAUSE_TYPE_UNAVAILABLE:
+                throw new Iec870Exception("Tipo de ASDU no disponible en este contador");
+            case Iec870Frame.CAUSE_DIRECTION_UNKNOWN:
+                throw new Iec870Exception("Dirección de ASDU desconocida");
+            case Iec870Frame.CAUSE_OBJECT_UNAVAILABLE:
+                throw new Iec870Exception("Objeto de información no disponible");
+            case Iec870Frame.CAUSE_PERIOD_UNAVAILABLE:
+                throw new Iec870Exception("Periodo de integración no disponible");
+            default:
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Entrada/salida
+    // ------------------------------------------------------------------
+
+    private void send(byte[] frame) throws Iec870Exception {
+        try {
+            log(">> " + Iec870Frame.hex(frame));
+            out.write(frame);
+            out.flush();
+        } catch (IOException e) {
+            throw new Iec870Exception("Error enviando datos: " + e.getMessage(), e);
+        }
+    }
+
+    private Iec870Frame readFrame() throws Iec870Exception {
+        long deadline = System.currentTimeMillis() + frameTimeoutMs;
+        int b;
+        do {
+            b = readByte(deadline);
+        } while (b == 0xFF);
+
+        byte[] raw;
+        Iec870Frame f;
+        if (b == Iec870Frame.START_FIXED) {
+            raw = new byte[6];
+            raw[0] = (byte) b;
+            for (int i = 1; i < 6; i++) raw[i] = (byte) readByte(deadline);
+            f = Iec870Frame.parseFixed(raw);
+        } else if (b == Iec870Frame.START_VARIABLE) {
+            int len = readByte(deadline);
+            int len2 = readByte(deadline);
+            if (len != len2) throw new Iec870Exception("Longitud incoherente en trama variable");
+            raw = new byte[len + 6];
+            raw[0] = (byte) b;
+            raw[1] = (byte) len;
+            raw[2] = (byte) len2;
+            for (int i = 3; i < raw.length; i++) raw[i] = (byte) readByte(deadline);
+            f = Iec870Frame.parseVariable(raw);
+        } else {
+            throw new Iec870Exception("Byte de inicio inesperado: 0x" + Integer.toHexString(b));
+        }
+        log("<< " + Iec870Frame.hex(raw));
+        return f;
+    }
+
+    private int readByte(long deadline) throws Iec870Exception {
+        try {
+            while (true) {
+                if (in.available() > 0) {
+                    int b = in.read();
+                    if (b < 0) throw new Iec870Exception("Conexión cerrada por el contador/sonda");
+                    return b;
+                }
+                if (System.currentTimeMillis() > deadline) {
+                    throw new Iec870Exception("Tiempo de espera agotado (sin respuesta del contador)");
+                }
+                try {
+                    Thread.sleep(2);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new Iec870Exception("Operación interrumpida");
+                }
+            }
+        } catch (IOException e) {
+            throw new Iec870Exception("Error leyendo datos: " + e.getMessage(), e);
+        }
+    }
+
+    private void log(String s) {
+        if (trace != null) trace.line(s);
+    }
+}

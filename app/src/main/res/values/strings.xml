@@ -274,5 +274,14 @@
 
     <string name="eliminarSeleccionados">Eliminar</string>
 
+    <!-- IEC -->
+    <string name="protocolo">Protocolo</string>
+    <string name="protocolo_dlms">DLMS</string>
+    <string name="protocolo_iec870">IEC-870</string>
+    <string name="iec_link_address">Dirección de enlace</string>
+    <string name="iec_measuring_point">Punto de medida</string>
+    <string name="iec_password">Clave (opcional)</string>
+    <string name="iecLoadProfiles">Curvas de carga</string>
+
 
 </resources>
