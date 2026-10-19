@@ -1,9 +1,9 @@
 package com.celnet.syncro.client;
 
-import com.celnet.syncro.client.Iec870Frame;
 import com.celnet.syncro.models.iec870.curvas.Iec870LoadProfileRow;
 import com.celnet.syncro.models.iec870.eventos.Iec870Event;
 import com.celnet.syncro.models.iec870.eventos.Iec870Events;
+import com.celnet.syncro.models.iec870.instantValues.Iec870InstantValues;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,6 +11,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Cliente IEC 60870-5-102 (REE) sobre un par de streams (Bluetooth SPP o TCP).
@@ -44,6 +45,19 @@ public class Iec870Client {
     private static final int TYPE_INCREMENTAL = 11;
     private static final int TYPE_READ_EVENTS = 102;
     private static final int TYPE_EVENT = 1;
+    // Ampliación del protocolo (ASDU privados): configuración del registrador
+    // (156/157) y valores instantáneos (162/163)
+    private static final int TYPE_READ_RM2 = 156;
+    private static final int TYPE_RM2 = 157;
+    private static final int TYPE_READ_INSTANT = 162;
+    private static final int TYPE_INSTANT = 163;
+    private static final int OBJ_TRAFO_RATIO = 0xC6;   // 198: relación de transformación
+    private static final int OBJ_TOTALS = 0xC0;        // 192: totalizadores de energía
+    private static final int OBJ_POWERS = 0xC1;        // 193: potencias
+    private static final int OBJ_VOLT_CURR = 0xC2;     // 194: tensiones e intensidades
+    private static final int LEN_TOTALS = 29;          // 6 x uint32 + TimeA
+    private static final int LEN_POWERS = 37;          // 4 x 8 octetos + TimeA
+    private static final int LEN_VOLT_CURR = 26;       // 3 x 7 octetos + TimeA
     private static final int TYPE_AUTH = 183;
     private static final int TYPE_END_SESSION = 187;
 
@@ -199,6 +213,141 @@ public class Iec870Client {
         }
         log("Evento/s recuperado/s");
         return eventos;
+    }
+
+    /**
+     * Lee los valores instantáneos: relación de transformación (ASDU 156, objeto
+     * 0xC6) y totalizadores, potencias y tensiones/intensidades (ASDU 162,
+     * objetos 0xC0, 0xC1 y 0xC2). Cada petición se responde con una sola trama
+     * de causa 5 (sin confirmación ni "activación terminada").
+     * El campo {@code serie} lo rellena quien llama.
+     */
+    public Iec870InstantValues readInstantValues() throws Iec870Exception {
+        Iec870InstantValues v = new Iec870InstantValues();
+
+        log("Leyendo...");
+        sendVariableExpectAck(TYPE_READ_RM2, 1, Iec870Frame.CAUSE_REQUESTED, 0,
+                new byte[]{(byte) OBJ_TRAFO_RATIO});
+        parseTrafoRatio(awaitCause(Iec870Frame.CAUSE_REQUESTED), v);
+        log("Leidos datos de RT");
+
+        sendVariableExpectAck(TYPE_READ_INSTANT, 3, Iec870Frame.CAUSE_REQUESTED, 0,
+                new byte[]{(byte) OBJ_TOTALS, (byte) OBJ_POWERS, (byte) OBJ_VOLT_CURR});
+        parseInstant(awaitCause(Iec870Frame.CAUSE_REQUESTED), v);
+        log("Valores instantáneos recuperados");
+        return v;
+    }
+
+    private void parseTrafoRatio(Iec870Frame f, Iec870InstantValues v) throws Iec870Exception {
+        byte[] d = f.data;
+        if (f.negative || f.type != TYPE_RM2 || d.length < 17
+                || (d[0] & 0xFF) != OBJ_TRAFO_RATIO) {
+            throw new Iec870Exception("Respuesta de relación de transformación inesperada: "
+                    + Iec870Frame.hex(f.raw));
+        }
+        v.tensionPrimariaDv = le(d, 1, 4);
+        v.tensionSecundariaDv = le(d, 5, 4);
+        v.corrientePrimariaDa = le(d, 9, 4);
+        v.corrienteSecundariaDa = le(d, 13, 4);
+    }
+
+    private void parseInstant(Iec870Frame f, Iec870InstantValues v) throws Iec870Exception {
+        byte[] d = f.data;
+        if (f.negative || f.type != TYPE_INSTANT) {
+            throw new Iec870Exception("Respuesta de valores instantáneos inesperada: "
+                    + Iec870Frame.hex(f.raw));
+        }
+        boolean totales = false, potencias = false, ivs = false;
+        int pos = 0;
+        for (int i = 0; i < f.qualifier; i++) {
+            if (pos >= d.length) {
+                throw new Iec870Exception("ASDU 163 truncado: " + Iec870Frame.hex(f.raw));
+            }
+            int id = d[pos++] & 0xFF;
+            int need;
+            switch (id) {
+                case OBJ_TOTALS: need = LEN_TOTALS; break;
+                case OBJ_POWERS: need = LEN_POWERS; break;
+                case OBJ_VOLT_CURR: need = LEN_VOLT_CURR; break;
+                default:
+                    throw new Iec870Exception("Objeto de valores instantáneos desconocido: 0x"
+                            + Integer.toHexString(id).toUpperCase());
+            }
+            if (pos + need > d.length) {
+                throw new Iec870Exception("ASDU 163 truncado: " + Iec870Frame.hex(f.raw));
+            }
+
+            if (id == OBJ_TOTALS) {
+                // 6 x uint32: bits 0..26 valor, bit 27 = no válido
+                for (int k = 0; k < 6; k++) {
+                    long raw = le(d, pos + k * 4, 4);
+                    v.energia[k] = raw & 0x07FFFFFFL;
+                    v.energiaInvalida[k] = (raw & 0x08000000L) != 0;
+                }
+                v.fechaHora = timeAText(d, pos + 24);
+                totales = true;
+            } else if (id == OBJ_POWERS) {
+                // Total, fase 1, 2 y 3. Cada grupo (8 octetos, campos de bits LSB primero):
+                // activa 24 b (kW) | reactiva 24 b (kVAr) | FP 10 b (milésimas)
+                // | exportada 1 b | cuadrante Q3/Q4 1 b | 3 b sin uso | no válido 1 b
+                for (int k = 0; k < 4; k++) {
+                    int o = pos + k * 8;
+                    long w = le(d, o + 6, 2);
+                    v.potenciaActiva[k] = le(d, o, 3);
+                    v.potenciaReactiva[k] = le(d, o + 3, 3);
+                    v.factorPotenciaMilesimas[k] = (int) (w & 0x3FF);
+                    v.exportada[k] = (w & 0x0400) != 0;
+                    v.cuadrante34[k] = (w & 0x0800) != 0;
+                    v.potenciaInvalida[k] = (w & 0x8000) != 0;
+                }
+                potencias = true;
+            } else {
+                // Fases 1, 2 y 3, 7 octetos cada una: intensidad 24 b (dA)
+                // | tensión 30 b (dV) | 1 b sin uso | no válido 1 b
+                for (int k = 0; k < 3; k++) {
+                    int o = pos + k * 7;
+                    long w = le(d, o + 3, 4);
+                    v.corrienteDa[k] = le(d, o, 3);
+                    v.tensionDv[k] = w & 0x3FFFFFFFL;
+                    v.ivInvalido[k] = (w & 0x80000000L) != 0;
+                }
+                if (v.fechaHora.isEmpty()) {
+                    v.fechaHora = timeAText(d, pos + 21);
+                }
+                ivs = true;
+            }
+            pos += need;
+        }
+        if (!totales || !potencias || !ivs) {
+            throw new Iec870Exception("El contador no devolvió todos los valores instantáneos: "
+                    + Iec870Frame.hex(f.raw));
+        }
+    }
+
+    /** Entero sin signo little-endian de n octetos. */
+    private static long le(byte[] d, int off, int n) {
+        long v = 0;
+        for (int i = n - 1; i >= 0; i--) {
+            v = (v << 8) | (d[off + i] & 0xFFL);
+        }
+        return v;
+    }
+
+    /**
+     * TimeA (5 octetos) como "yyyy/MM/dd HH:mm:00X". La letra sigue al software
+     * funcional: SU=0 -> "S" y SU=1 -> "W" (así lo imprime su informe).
+     */
+    private static String timeAText(byte[] d, int off) {
+        int minuto = d[off] & 0x3F;
+        int hora = d[off + 1] & 0x1F;
+        boolean su = (d[off + 1] & 0x80) != 0;
+        int dia = d[off + 2] & 0x1F;
+        if (dia == 0) dia = 1;
+        int mes = d[off + 3] & 0x0F;
+        if (mes == 0) mes = 1;
+        int anio = 2000 + (d[off + 4] & 0x7F);
+        return String.format(Locale.US, "%04d/%02d/%02d %02d:%02d:00%s",
+                anio, mes, dia, hora, minuto, su ? "W" : "S");
     }
 
     /**

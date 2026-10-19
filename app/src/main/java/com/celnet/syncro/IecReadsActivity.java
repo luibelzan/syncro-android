@@ -45,6 +45,16 @@ public class IecReadsActivity extends BaseActivity {
             }
         });
 
+        btnInstantValues.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(IecReadsActivity.this, IecInstantValuesActivity.class);
+                startActivity(intent);
+            }
+        });
+
+
+
         /*
         btnCierres.setOnClickListener(new View.OnClickListener() {
             @Override

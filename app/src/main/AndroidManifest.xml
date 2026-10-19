@@ -28,6 +28,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Syncro">
         <activity
+            android:name=".ResultadosIecValoresInstantaneosActivity"
+            android:exported="false" />
+        <activity
+            android:name=".IecInstantValuesActivity"
+            android:exported="false" />
+        <activity
             android:name=".IecEventsActivity"
             android:exported="false" />
         <activity
