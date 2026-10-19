@@ -30,11 +30,33 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
-/** Lectura de eventos por IEC-870. De momento: "Arranques y tensión bajo límites" (registro 52). */
+/** Lectura de eventos por IEC-870. Registros: 52 (arranques y tensión bajo límites), 53 (sincronización y cambio de hora) 54 (cambio de parámetros), 55 (errores internos), 128 (intrusismo), 129 (comunicaciones), 130 (clave privada), 131 (contrato I), 132 (contrato II) y 133 (contrato III). */
 public class IecEventsActivity extends BaseActivity {
 
-    private static final String[] TIPOS = {"Arranques y tensión bajo límites"};
-    private static final int[] REGISTROS = {Iec870Events.REG_ARRANQUES_TENSION};
+    private static final String[] TIPOS = {
+            "Arranques y tensión bajo límites",
+            "Sincronización y cambio de hora",
+            "Cambio de parámetros",
+            "Errores internos",
+            "Intrusismo",
+            "Comunicaciones",
+            "Clave privada",
+            "Contrato I",
+            "Contrato II",
+            "Contrato III"
+    };
+    private static final int[] REGISTROS = {
+            Iec870Events.REG_ARRANQUES_TENSION,
+            Iec870Events.REG_SINCRONIZACION_HORA,
+            Iec870Events.REG_CAMBIO_PARAMETROS,
+            Iec870Events.REG_ERRORES_INTERNOS,
+            Iec870Events.REG_INTRUSISMO,
+            Iec870Events.REG_COMUNICACIONES,
+            Iec870Events.REG_CLAVE_PRIVADA,
+            Iec870Events.REG_CONTRATO_1,
+            Iec870Events.REG_CONTRATO_2,
+            Iec870Events.REG_CONTRATO_3
+    };
 
     private void showDatePicker(EditText editText) {
         Calendar c = Calendar.getInstance();
@@ -108,6 +130,18 @@ public class IecEventsActivity extends BaseActivity {
                 try {
                     Iec870EventsReader.Resultado res = Iec870EventsReader.leerEventos(
                             IecEventsActivity.this, config, registroFinal, fechaInicio, fechaFin);
+
+                    if (res.filas.isEmpty()) {
+                        runOnUiThread(() -> {
+                            restaurarUi(progressBar, btnNext, editFechaInicio, editFechaFin);
+                            new androidx.appcompat.app.AlertDialog.Builder(IecEventsActivity.this)
+                                    .setTitle("Sin eventos")
+                                    .setMessage("El contador no tiene eventos de este tipo en el rango seleccionado.")
+                                    .setPositiveButton("Aceptar", null)
+                                    .show();
+                        });
+                        return;
+                    }
 
                     Intent intent = new Intent(IecEventsActivity.this, ResultadosEventsActivity.class);
                     intent.putParcelableArrayListExtra("datos_event_tabla", res.filas);

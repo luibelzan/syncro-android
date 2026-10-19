@@ -21,6 +21,7 @@ public class Iec870Frame {
     public static final int CAUSE_ACTIVATION = 0x06;
     public static final int CAUSE_ACTIVATION_CONFIRM = 0x07;
     public static final int CAUSE_ACTIVATION_END = 0x0A;
+    public static final int CAUSE_NO_DATA = 0x0D;
     public static final int CAUSE_TYPE_UNAVAILABLE = 0x0E;
     public static final int CAUSE_DIRECTION_UNKNOWN = 0x10;
     public static final int CAUSE_OBJECT_UNAVAILABLE = 0x11;

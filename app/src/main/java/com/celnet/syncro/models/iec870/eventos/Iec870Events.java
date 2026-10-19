@@ -12,6 +12,15 @@ public final class Iec870Events {
 
     /** Registros de eventos conocidos (dirección de registro en la petición ASDU 102). */
     public static final int REG_ARRANQUES_TENSION = 52;
+    public static final int REG_SINCRONIZACION_HORA = 53;
+    public static final int REG_CAMBIO_PARAMETROS = 54;
+    public static final int REG_ERRORES_INTERNOS = 55;
+    public static final int REG_INTRUSISMO = 128;
+    public static final int REG_COMUNICACIONES = 129;
+    public static final int REG_CLAVE_PRIVADA = 130;
+    public static final int REG_CONTRATO_1 = 131;
+    public static final int REG_CONTRATO_2 = 132;
+    public static final int REG_CONTRATO_3 = 133;
 
     private static final class Entry {
         final String[] spi;

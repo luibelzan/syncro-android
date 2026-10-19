@@ -1,5 +1,6 @@
 package com.celnet.syncro.client;
 
+import com.celnet.syncro.client.Iec870Frame;
 import com.celnet.syncro.models.iec870.curvas.Iec870LoadProfileRow;
 import com.celnet.syncro.models.iec870.eventos.Iec870Event;
 import com.celnet.syncro.models.iec870.eventos.Iec870Events;
@@ -153,7 +154,11 @@ public class Iec870Client {
         log("Leyendo curvas...");
         sendVariableExpectAck(TYPE_READ_INCREMENTAL, 1, Iec870Frame.CAUSE_ACTIVATION,
                 periodo.registro, data);
-        awaitCause(Iec870Frame.CAUSE_ACTIVATION_CONFIRM);
+        if (awaitConfirmation().cause == Iec870Frame.CAUSE_NO_DATA) {
+            drain();
+            log("Datos no disponibles");
+            return new ArrayList<>();
+        }
 
         List<Iec870LoadProfileRow> rows = new ArrayList<>();
         for (Iec870Frame f : collectData()) {
@@ -180,7 +185,11 @@ public class Iec870Client {
 
         log("Leyendo Eventos (registro " + registro + ")...");
         sendVariableExpectAck(TYPE_READ_EVENTS, 0, Iec870Frame.CAUSE_ACTIVATION, registro, data);
-        awaitCause(Iec870Frame.CAUSE_ACTIVATION_CONFIRM);
+        if (awaitConfirmation().cause == Iec870Frame.CAUSE_NO_DATA) {
+            drain();
+            log("Datos no disponibles");
+            return new ArrayList<>();
+        }
 
         List<Iec870Event> eventos = new ArrayList<>();
         for (Iec870Frame f : collectData()) {
@@ -221,15 +230,46 @@ public class Iec870Client {
             frames.add(f); // causa 5: datos; seguir sondeando
         }
 
-        // Como el software funcional: al menos un sondeo final, y los que hagan falta
-        // para que la siguiente petición (cierre de sesión) salga con FCB = 0.
+        drain();
+        return frames;
+    }
+
+    /**
+     * Como el software funcional: al menos un sondeo final, y los que hagan falta
+     * para que la siguiente petición (cierre de sesión) salga con FCB = 0.
+     */
+    private void drain() {
         do {
             try {
                 poll();
             } catch (Iec870Exception ignored) {
             }
         } while (fcb != 1);
-        return frames;
+    }
+
+    /**
+     * Espera la confirmación de activación (causa 7) o la respuesta "datos no
+     * disponibles" (causa 13, el contador no tiene datos en ese rango).
+     */
+    private Iec870Frame awaitConfirmation() throws Iec870Exception {
+        long last = System.currentTimeMillis();
+        int empty = 0;
+        while (true) {
+            Iec870Frame f = poll();
+            if (!f.variable) {
+                empty++;
+                if (empty > maxEmptyPolls || System.currentTimeMillis() - last > contentTimeoutMs) {
+                    throw new Iec870Exception("Tiempo agotado esperando respuesta del contador");
+                }
+                continue;
+            }
+            checkErrorCause(f);
+            if (f.cause == Iec870Frame.CAUSE_ACTIVATION_CONFIRM
+                    || f.cause == Iec870Frame.CAUSE_NO_DATA) {
+                return f;
+            }
+            last = System.currentTimeMillis();
+        }
     }
 
     private void parseEvents(Iec870Frame f, List<Iec870Event> out) throws Iec870Exception {
