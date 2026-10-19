@@ -18,6 +18,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.celnet.syncro.models.curvas.TipoCurva;
+import com.celnet.syncro.client.Iec870Client;
 import com.celnet.syncro.objects.iec870.curvas.Iec870LoadProfileReader;
 import com.celnet.syncro.session.ConnectionConfig;
 import com.celnet.syncro.session.SessionManager;
@@ -31,8 +32,8 @@ import java.util.Date;
 import java.util.Locale;
 
 /**
- * Curvas de carga por IEC-870. Periodos: Horaria (implementada), Cuartihoraria y
- * Diaria (pendientes).
+ * Curvas de carga por IEC-870. Periodos: Horaria y Cuartihoraria (implementadas),
+ * Diaria (pendiente).
  */
 public class IecCurvasActivity extends BaseActivity {
 
@@ -98,12 +99,15 @@ public class IecCurvasActivity extends BaseActivity {
             if (!validarFechas(editFechaInicio, editFechaFin)) return;
 
             String periodo = spinnerTipo.getText().toString();
-            if (!HORARIA.equals(periodo)) {
+            if (DIARIA.equals(periodo)) {
                 Toast.makeText(this, "La curva " + periodo.toLowerCase(Locale.ROOT)
                         + " aún no está disponible por IEC-870", Toast.LENGTH_LONG).show();
                 return;
             }
 
+            Iec870Client.Periodo periodoIec = CUARTIHORARIA.equals(periodo)
+                    ? Iec870Client.Periodo.CUARTOHORARIA
+                    : Iec870Client.Periodo.HORARIA;
             String fechaInicio = obtenerFechaInterna(editFechaInicio);
             String fechaFin = obtenerFechaInterna(editFechaFin);
             ConnectionConfig config = SessionManager.getInstance().getConnectionConfig();
@@ -116,7 +120,7 @@ public class IecCurvasActivity extends BaseActivity {
             new Thread(() -> {
                 try {
                     Iec870LoadProfileReader.Resultado res = Iec870LoadProfileReader
-                            .leerCurvaCarga(IecCurvasActivity.this, config, fechaInicio, fechaFin);
+                            .leerCurvaCarga(IecCurvasActivity.this, config, fechaInicio, fechaFin, periodoIec);
 
                     Intent intent = new Intent(IecCurvasActivity.this, ResultadosCurvasActivity.class);
                     intent.putExtra("tipoCurva", TipoCurva.INCREMENTAL_S02.name());
