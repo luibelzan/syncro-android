@@ -33,6 +33,15 @@ public class Iec870LoadProfileReader {
     public static Resultado leerCurvaCarga(Context context, ConnectionConfig config,
                                            String fechaInicio, String fechaFin)
             throws Iec870Exception {
+        return leerCurvaCarga(context, config, fechaInicio, fechaFin,
+                Iec870Client.Periodo.HORARIA);
+    }
+
+    /** Bloqueante: llamar siempre desde un hilo secundario. */
+    public static Resultado leerCurvaCarga(Context context, ConnectionConfig config,
+                                           String fechaInicio, String fechaFin,
+                                           Iec870Client.Periodo periodo)
+            throws Iec870Exception {
 
         try (Iec870Connection conn = new Iec870Connection(config)) {
             Iec870Client client = conn.open(context);
@@ -44,7 +53,7 @@ public class Iec870LoadProfileReader {
                 AppLogger.i("IEC870", "Serial del contador : " + serie);
 
                 List<Iec870LoadProfileRow> filas = client.readLoadProfile(
-                        fechaInicio, fechaFin, Iec870Client.Periodo.HORARIA);
+                        fechaInicio, fechaFin, periodo);
                 AppLogger.i("IEC870", "Filas recibidas: " + filas.size());
 
                 ArrayList<CurvaFila> resultado = new ArrayList<>();

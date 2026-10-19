@@ -1,6 +1,8 @@
 package com.celnet.syncro.client;
 
 import com.celnet.syncro.models.iec870.curvas.Iec870LoadProfileRow;
+import com.celnet.syncro.models.iec870.eventos.Iec870Event;
+import com.celnet.syncro.models.iec870.eventos.Iec870Events;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,7 +27,7 @@ public class Iec870Client {
 
     public enum Periodo {
         HORARIA(11),
-        CUARTOHORARIA(12); // sin verificar con un log real
+        CUARTOHORARIA(12);
 
         public final int registro;
 
@@ -39,6 +41,8 @@ public class Iec870Client {
     private static final int TYPE_ID_RESPONSE = 71;
     private static final int TYPE_READ_INCREMENTAL = 123;
     private static final int TYPE_INCREMENTAL = 11;
+    private static final int TYPE_READ_EVENTS = 102;
+    private static final int TYPE_EVENT = 1;
     private static final int TYPE_AUTH = 183;
     private static final int TYPE_END_SESSION = 187;
 
@@ -152,6 +156,48 @@ public class Iec870Client {
         awaitCause(Iec870Frame.CAUSE_ACTIVATION_CONFIRM);
 
         List<Iec870LoadProfileRow> rows = new ArrayList<>();
+        for (Iec870Frame f : collectData()) {
+            if (f.type == TYPE_INCREMENTAL) {
+                rows.add(parseIncremental(f));
+            }
+        }
+        log("Load Profile successfully read");
+        return rows;
+    }
+
+    /**
+     * Lee los eventos de un registro (ASDU 102). Para "Arranques y tensión bajo
+     * límites" el registro es {@link Iec870Events#REG_ARRANQUES_TENSION} (52).
+     */
+    public List<Iec870Event> readEvents(int registro, String fechaInicio, String fechaFin)
+            throws Iec870Exception {
+        byte[] ini = timeA(fechaInicio);
+        byte[] fin = timeA(fechaFin);
+
+        byte[] data = new byte[10];
+        System.arraycopy(ini, 0, data, 0, 5);
+        System.arraycopy(fin, 0, data, 5, 5);
+
+        log("Leyendo Eventos (registro " + registro + ")...");
+        sendVariableExpectAck(TYPE_READ_EVENTS, 0, Iec870Frame.CAUSE_ACTIVATION, registro, data);
+        awaitCause(Iec870Frame.CAUSE_ACTIVATION_CONFIRM);
+
+        List<Iec870Event> eventos = new ArrayList<>();
+        for (Iec870Frame f : collectData()) {
+            if (f.type == TYPE_EVENT) {
+                parseEvents(f, eventos);
+            }
+        }
+        log("Evento/s recuperado/s");
+        return eventos;
+    }
+
+    /**
+     * Sondea y devuelve las tramas de datos hasta la "activación terminada"
+     * (causa 0x0A), y hace los dos sondeos finales del software funcional.
+     */
+    private List<Iec870Frame> collectData() throws Iec870Exception {
+        List<Iec870Frame> frames = new ArrayList<>();
         long lastContent = System.currentTimeMillis();
         int empty = 0;
 
@@ -161,7 +207,7 @@ public class Iec870Client {
                 empty++;
                 if (empty > maxEmptyPolls
                         || System.currentTimeMillis() - lastContent > contentTimeoutMs) {
-                    throw new Iec870Exception("Tiempo agotado esperando datos de la curva");
+                    throw new Iec870Exception("Tiempo agotado esperando datos del contador");
                 }
                 continue;
             }
@@ -169,24 +215,52 @@ public class Iec870Client {
             lastContent = System.currentTimeMillis();
             checkErrorCause(f);
 
-            if (f.type == TYPE_INCREMENTAL) {
-                rows.add(parseIncremental(f));
-            }
             if (f.cause == Iec870Frame.CAUSE_ACTIVATION_END) {
                 break;
             }
-            // cause 5: hay más datos; seguir sondeando
+            frames.add(f); // causa 5: datos; seguir sondeando
         }
 
-        // Igual que el software funcional: dos sondeos finales para vaciar el enlace.
-        for (int i = 0; i < 2; i++) {
+        // Como el software funcional: al menos un sondeo final, y los que hagan falta
+        // para que la siguiente petición (cierre de sesión) salga con FCB = 0.
+        do {
             try {
                 poll();
             } catch (Iec870Exception ignored) {
             }
+        } while (fcb != 1);
+        return frames;
+    }
+
+    private void parseEvents(Iec870Frame f, List<Iec870Event> out) throws Iec870Exception {
+        byte[] d = f.data;
+        int n = f.qualifier;
+        if (d.length < n * 9) {
+            throw new Iec870Exception("ASDU 1 truncado: " + Iec870Frame.hex(f.raw));
         }
-        log("Load Profile successfully read");
-        return rows;
+        for (int i = 0; i < n; i++) {
+            int p = i * 9;
+            int spa = d[p] & 0xFF;
+            int spqi = d[p + 1] & 0xFF;
+            int spq = (spqi & 0xF7) >> 1;
+            int spi = spqi & 0x01;
+
+            int msSeg = (d[p + 2] & 0xFF) | ((d[p + 3] & 0xFF) << 8);
+            int seg = (msSeg >> 10) & 0x3F;
+            int min = d[p + 4] & 0x3F;
+            int hora = d[p + 5] & 0x1F;
+            boolean verano = (d[p + 5] & 0x80) != 0;
+            int dia = d[p + 6] & 0x1F;
+            if (dia == 0) dia = 1;
+            int mes = d[p + 7] & 0x0F;
+            if (mes == 0) mes = 1;
+            int anio = d[p + 8] & 0x7F;
+
+            // Mismo formato que los eventos DLMS: "d/M/yy H:mm:ss"
+            String fh = String.format("%d/%d/%02d %d:%02d:%02d", dia, mes, anio, hora, min, seg);
+            out.add(new Iec870Event(fh, verano, spa, spq, spi,
+                    Iec870Events.descripcion(spa, spq, spi)));
+        }
     }
 
     // ------------------------------------------------------------------

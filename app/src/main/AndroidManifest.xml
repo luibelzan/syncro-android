@@ -28,6 +28,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Syncro">
         <activity
+            android:name=".IecEventsActivity"
+            android:exported="false" />
+        <activity
             android:name=".IecCurvasActivity"
             android:exported="false" />
         <activity
