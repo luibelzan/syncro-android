@@ -1,5 +1,6 @@
 package com.celnet.syncro.client;
 
+import com.celnet.syncro.models.iec870.cierres.Iec870BillingRecord;
 import com.celnet.syncro.models.iec870.curvas.Iec870LoadProfileRow;
 import com.celnet.syncro.models.iec870.eventos.Iec870Event;
 import com.celnet.syncro.models.iec870.eventos.Iec870Events;
@@ -58,6 +59,14 @@ public class Iec870Client {
     private static final int LEN_TOTALS = 29;          // 6 x uint32 + TimeA
     private static final int LEN_POWERS = 37;          // 4 x 8 octetos + TimeA
     private static final int LEN_VOLT_CURR = 26;       // 3 x 7 octetos + TimeA
+    // Tarificación: lectura de valores memorizados (134) y respuesta (136)
+    private static final int TYPE_READ_BILLING_STORED = 134;
+    private static final int TYPE_BILLING_STORED = 136;
+    // Valores en curso: lectura (133) y respuesta (135), mismo registro de 63 octetos
+    private static final int TYPE_READ_BILLING_CURRENT = 133;
+    private static final int TYPE_BILLING_CURRENT = 135;
+    private static final int LEN_BILLING = 63;
+    private static final int BILLING_FIRST_ADDRESS = 0x14; // tarifa 0 (total)
     private static final int TYPE_AUTH = 183;
     private static final int TYPE_END_SESSION = 187;
 
@@ -348,6 +357,109 @@ public class Iec870Client {
         int anio = 2000 + (d[off + 4] & 0x7F);
         return String.format(Locale.US, "%04d/%02d/%02d %02d:%02d:00%s",
                 anio, mes, dia, hora, minuto, su ? "W" : "S");
+    }
+
+    /**
+     * Lee los valores memorizados de tarificación de un contrato (1..3): ASDU 134
+     * con registro 134 + (contrato - 1) y rango de fechas. El contador devuelve un
+     * ASDU 136 por cada tarifa (0 = total, 1..6) de cada cierre del rango.
+     * Fechas "yyyy/MM/dd"; el software funcional pide desde las 01:00 de la fecha
+     * de inicio hasta las 00:00 de la de fin.
+     */
+    public List<Iec870BillingRecord> readStoredBilling(int contrato, String fechaInicio,
+                                                       String fechaFin) throws Iec870Exception {
+        if (contrato < 1 || contrato > 3) {
+            throw new Iec870Exception("Contrato inválido: " + contrato);
+        }
+        byte[] ini = timeA(fechaInicio);
+        byte[] fin = timeA(fechaFin);
+        ini[1] = 1; // hora = 1, como la petición del software funcional
+
+        byte[] data = new byte[10];
+        System.arraycopy(ini, 0, data, 0, 5);
+        System.arraycopy(fin, 0, data, 5, 5);
+
+        log("Leyendo Contrato " + contrato);
+        sendVariableExpectAck(TYPE_READ_BILLING_STORED, 1, Iec870Frame.CAUSE_ACTIVATION,
+                133 + contrato, data);
+        if (awaitConfirmation().cause == Iec870Frame.CAUSE_NO_DATA) {
+            drain();
+            log("Datos no disponibles");
+            return new ArrayList<>();
+        }
+
+        List<Iec870BillingRecord> registros = new ArrayList<>();
+        for (Iec870Frame f : collectData()) {
+            if (f.type == TYPE_BILLING_STORED) {
+                parseBilling(f, contrato, registros);
+            }
+        }
+        log("Registros de cierre recuperados");
+        return registros;
+    }
+
+    /**
+     * Lee los valores de tarificación en curso de un contrato (1..3): ASDU 133 sin
+     * datos, registro 133 + contrato. Responde con un ASDU 135 por tarifa; el
+     * periodo va desde el último cierre hasta ahora.
+     */
+    public List<Iec870BillingRecord> readCurrentBilling(int contrato) throws Iec870Exception {
+        if (contrato < 1 || contrato > 3) {
+            throw new Iec870Exception("Contrato inválido: " + contrato);
+        }
+        log("Leyendo Contrato " + contrato);
+        sendVariableExpectAck(TYPE_READ_BILLING_CURRENT, 0, Iec870Frame.CAUSE_ACTIVATION,
+                133 + contrato, new byte[0]);
+        if (awaitConfirmation().cause == Iec870Frame.CAUSE_NO_DATA) {
+            drain();
+            log("Datos no disponibles");
+            return new ArrayList<>();
+        }
+
+        List<Iec870BillingRecord> registros = new ArrayList<>();
+        for (Iec870Frame f : collectData()) {
+            if (f.type == TYPE_BILLING_CURRENT) {
+                parseBilling(f, contrato, registros);
+            }
+        }
+        log("Registros de cierre recuperados");
+        return registros;
+    }
+
+    private void parseBilling(Iec870Frame f, int contrato, List<Iec870BillingRecord> out)
+            throws Iec870Exception {
+        byte[] d = f.data;
+        int n = Math.max(f.qualifier, 1);
+        if (d.length < n * LEN_BILLING) {
+            throw new Iec870Exception("ASDU 136 truncado: " + Iec870Frame.hex(f.raw));
+        }
+        for (int i = 0; i < n; i++) {
+            int p = i * LEN_BILLING;
+            Iec870BillingRecord r = new Iec870BillingRecord();
+            r.contrato = contrato;
+            r.tarifa = (d[p] & 0xFF) - BILLING_FIRST_ADDRESS;
+            r.activaAbs = le(d, p + 1, 4);
+            r.activaInc = le(d, p + 5, 4);
+            r.activaCal = d[p + 9] & 0xFF;
+            r.reactivaIndAbs = le(d, p + 10, 4);
+            r.reactivaIndInc = le(d, p + 14, 4);
+            r.reactivaIndCal = d[p + 18] & 0xFF;
+            r.reactivaCapAbs = le(d, p + 19, 4);
+            r.reactivaCapInc = le(d, p + 23, 4);
+            r.reactivaCapCal = d[p + 27] & 0xFF;
+            r.reservado7 = le(d, p + 28, 4);
+            r.reservado7Cal = d[p + 32] & 0xFF;
+            r.reservado8 = le(d, p + 33, 4);
+            r.reservado8Cal = d[p + 37] & 0xFF;
+            r.maximetro = le(d, p + 38, 4);
+            r.maximetroFecha = timeAText(d, p + 42);
+            r.maximetroCal = d[p + 47] & 0xFF;
+            r.exceso = le(d, p + 48, 4);
+            r.excesoCal = d[p + 52] & 0xFF;
+            r.inicio = timeAText(d, p + 53);
+            r.fin = timeAText(d, p + 58);
+            out.add(r);
+        }
     }
 
     /**

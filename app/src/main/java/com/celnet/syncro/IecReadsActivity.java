@@ -53,6 +53,14 @@ public class IecReadsActivity extends BaseActivity {
             }
         });
 
+        btnCierres.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(IecReadsActivity.this, IecCierresActivity.class);
+                startActivity(intent);
+            }
+        });
+
 
 
         /*
