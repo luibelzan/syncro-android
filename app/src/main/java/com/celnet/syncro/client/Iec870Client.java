@@ -5,6 +5,8 @@ import com.celnet.syncro.models.iec870.curvas.Iec870LoadProfileRow;
 import com.celnet.syncro.models.iec870.eventos.Iec870Event;
 import com.celnet.syncro.models.iec870.eventos.Iec870Events;
 import com.celnet.syncro.models.iec870.instantValues.Iec870InstantValues;
+import com.celnet.syncro.models.iec870.params.Iec870DateTime;
+import com.celnet.syncro.models.iec870.params.Iec870DaylightChange;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -67,6 +69,13 @@ public class Iec870Client {
     private static final int TYPE_BILLING_CURRENT = 135;
     private static final int LEN_BILLING = 63;
     private static final int BILLING_FIRST_ADDRESS = 0x14; // tarifa 0 (total)
+    // Fecha y hora: lectura (103 -> 72) y modificación (181)
+    private static final int TYPE_READ_TIME = 103;
+    private static final int TYPE_TIME = 72;
+    private static final int TYPE_SET_TIME = 181;
+    // Información de cambio de hora oficial: lectura (185) y respuesta (131)
+    private static final int TYPE_READ_DST = 185;
+    private static final int TYPE_DST = 131;
     private static final int TYPE_AUTH = 183;
     private static final int TYPE_END_SESSION = 187;
 
@@ -222,6 +231,83 @@ public class Iec870Client {
         }
         log("Evento/s recuperado/s");
         return eventos;
+    }
+
+    /** Lee la fecha y hora del contador (ASDU 103, respuesta ASDU 72 con tiempo tipo B). */
+    public Iec870DateTime readDateTime() throws Iec870Exception {
+        log("Reading meter date time");
+        sendVariableExpectAck(TYPE_READ_TIME, 0, Iec870Frame.CAUSE_REQUESTED, 0, new byte[0]);
+        Iec870Frame r = awaitCause(Iec870Frame.CAUSE_REQUESTED);
+        if (r.negative || r.type != TYPE_TIME || r.data.length < 7) {
+            throw new Iec870Exception("Respuesta de fecha y hora inesperada: "
+                    + Iec870Frame.hex(r.raw));
+        }
+        return Iec870DateTime.fromTimeB(r.data, 0);
+    }
+
+    /**
+     * Programa la fecha y hora del contador (ASDU 181 con tiempo tipo B, causa 6).
+     * Espera la primera trama ASDU 181 de respuesta (confirmación de activación).
+     */
+    public void writeDateTime(Iec870DateTime dateTime) throws Iec870Exception {
+        log("Setting meter date time: " + dateTime.toText());
+        sendVariableExpectAck(TYPE_SET_TIME, 1, Iec870Frame.CAUSE_ACTIVATION, 0,
+                dateTime.toTimeB());
+        Iec870Frame r = awaitType(TYPE_SET_TIME);
+        // Confirmación esperada: causa 7 (activación confirmada). Con el contador de
+        // pruebas, el software funcional recibió la misma ASDU 181 con causa 0x0E y
+        // lo mostró como "Error Updating clock".
+        if (r.negative || r.cause != Iec870Frame.CAUSE_ACTIVATION_CONFIRM) {
+            throw new Iec870Exception(String.format(
+                    "El contador rechazó el cambio de fecha y hora (causa 0x%02X)", r.cause));
+        }
+    }
+
+    /**
+     * Lee las fechas oficiales de cambio de hora (ASDU 185, respuesta ASDU 131): dos
+     * tiempos tipo A, el del cambio a verano (SU = 1) y el del cambio a invierno (SU = 0).
+     */
+    public Iec870DaylightChange readDaylightChange() throws Iec870Exception {
+        log("Leyendo Información de cambio de hora oficial");
+        sendVariableExpectAck(TYPE_READ_DST, 0, Iec870Frame.CAUSE_REQUESTED, 0, new byte[0]);
+        Iec870Frame r = awaitCause(Iec870Frame.CAUSE_REQUESTED);
+        if (r.negative || r.type != TYPE_DST || r.data.length < 10) {
+            throw new Iec870Exception("Respuesta de cambio de hora inesperada: "
+                    + Iec870Frame.hex(r.raw));
+        }
+        Iec870DaylightChange c = new Iec870DaylightChange();
+        for (int i = 0; i < 2; i++) {
+            Iec870DateTime t = Iec870DateTime.fromTimeA(r.data, i * 5);
+            if (t.summer) c.inicioVerano = t; else c.inicioInvierno = t;
+        }
+        if (c.inicioVerano == null || c.inicioInvierno == null) {
+            throw new Iec870Exception("Las fechas de cambio de hora no incluyen verano e invierno: "
+                    + Iec870Frame.hex(r.raw));
+        }
+        log("Leída información de cambio de hora oficial");
+        return c;
+    }
+
+    /**
+     * Sondea hasta recibir una trama variable del tipo indicado, sea cual sea su
+     * causa (quien llama decide si es una confirmación o un rechazo).
+     */
+    private Iec870Frame awaitType(int type) throws Iec870Exception {
+        long last = System.currentTimeMillis();
+        int empty = 0;
+        while (true) {
+            Iec870Frame f = poll();
+            if (!f.variable) {
+                empty++;
+                if (empty > maxEmptyPolls || System.currentTimeMillis() - last > contentTimeoutMs) {
+                    throw new Iec870Exception("Tiempo agotado esperando respuesta del contador");
+                }
+                continue;
+            }
+            if (f.type == type) return f;
+            checkErrorCause(f);
+            last = System.currentTimeMillis();
+        }
     }
 
     /**

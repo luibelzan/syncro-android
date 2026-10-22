@@ -28,6 +28,15 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Syncro">
         <activity
+            android:name=".ResultadosIecDateActivity"
+            android:exported="false" />
+        <activity
+            android:name=".IecDateActivity"
+            android:exported="false" />
+        <activity
+            android:name=".IecParametrosActivity"
+            android:exported="false" />
+        <activity
             android:name=".ResultadosIecCierresActivity"
             android:exported="false" />
         <activity

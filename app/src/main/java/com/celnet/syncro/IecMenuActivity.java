@@ -40,10 +40,10 @@ public class IecMenuActivity extends BaseActivity {
         */
         btnReads.setOnClickListener(v ->
                 startActivity(new Intent(this, IecReadsActivity.class)));
-        /*
+
         btnParams.setOnClickListener(v ->
                 startActivity(new Intent(this, IecParametrosActivity.class)));
-         */
+
         btnReports.setOnClickListener(v ->
                 startActivity(new Intent(this, ReportesActivity.class)));
 
