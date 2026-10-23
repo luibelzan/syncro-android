@@ -282,6 +282,7 @@
     <string name="iec_measuring_point">Punto de medida</string>
     <string name="iec_password">Clave (opcional)</string>
     <string name="iecLoadProfiles">Curvas de carga</string>
+    <string name="relTrans">Relacion Trans.</string>
 
 
 </resources>

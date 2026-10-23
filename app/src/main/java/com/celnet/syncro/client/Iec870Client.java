@@ -7,6 +7,7 @@ import com.celnet.syncro.models.iec870.eventos.Iec870Events;
 import com.celnet.syncro.models.iec870.instantValues.Iec870InstantValues;
 import com.celnet.syncro.models.iec870.params.Iec870DateTime;
 import com.celnet.syncro.models.iec870.params.Iec870DaylightChange;
+import com.celnet.syncro.models.iec870.params.Iec870TrafoRatio;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -320,11 +321,11 @@ public class Iec870Client {
     public Iec870InstantValues readInstantValues() throws Iec870Exception {
         Iec870InstantValues v = new Iec870InstantValues();
 
-        log("Leyendo...");
-        sendVariableExpectAck(TYPE_READ_RM2, 1, Iec870Frame.CAUSE_REQUESTED, 0,
-                new byte[]{(byte) OBJ_TRAFO_RATIO});
-        parseTrafoRatio(awaitCause(Iec870Frame.CAUSE_REQUESTED), v);
-        log("Leidos datos de RT");
+        Iec870TrafoRatio rt = readTransformerRatio();
+        v.tensionPrimariaDv = rt.tensionPrimariaDv;
+        v.tensionSecundariaDv = rt.tensionSecundariaDv;
+        v.corrientePrimariaDa = rt.corrientePrimariaDa;
+        v.corrienteSecundariaDa = rt.corrienteSecundariaDa;
 
         sendVariableExpectAck(TYPE_READ_INSTANT, 3, Iec870Frame.CAUSE_REQUESTED, 0,
                 new byte[]{(byte) OBJ_TOTALS, (byte) OBJ_POWERS, (byte) OBJ_VOLT_CURR});
@@ -333,7 +334,18 @@ public class Iec870Client {
         return v;
     }
 
-    private void parseTrafoRatio(Iec870Frame f, Iec870InstantValues v) throws Iec870Exception {
+    /** Lee la relación de transformación (ASDU 156, objeto 0xC6; respuesta ASDU 157). */
+    public Iec870TrafoRatio readTransformerRatio() throws Iec870Exception {
+        log("Leyendo...");
+        sendVariableExpectAck(TYPE_READ_RM2, 1, Iec870Frame.CAUSE_REQUESTED, 0,
+                new byte[]{(byte) OBJ_TRAFO_RATIO});
+        Iec870TrafoRatio rt = new Iec870TrafoRatio();
+        parseTrafoRatio(awaitCause(Iec870Frame.CAUSE_REQUESTED), rt);
+        log("Leidos datos de RT");
+        return rt;
+    }
+
+    private void parseTrafoRatio(Iec870Frame f, Iec870TrafoRatio v) throws Iec870Exception {
         byte[] d = f.data;
         if (f.negative || f.type != TYPE_RM2 || d.length < 17
                 || (d[0] & 0xFF) != OBJ_TRAFO_RATIO) {

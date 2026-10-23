@@ -24,7 +24,7 @@ public class IecParametrosActivity extends AppCompatActivity {
             return insets;
         });
 
-        LinearLayout btnIcp = findViewById(R.id.btnIcp);
+        LinearLayout btnRelTrans = findViewById(R.id.btnRelTrans);
         LinearLayout btnDate = findViewById(R.id.btnDate);
         LinearLayout btnScreen = findViewById(R.id.btnScreen);
         LinearLayout btnNeutral = findViewById(R.id.btnNeutral);
@@ -37,16 +37,15 @@ public class IecParametrosActivity extends AppCompatActivity {
             }
         });
 
-        /*
-        btnIcp.setOnClickListener(new View.OnClickListener() {
+        btnRelTrans.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(ParametrosActivity.this, IcpActivity.class);
+                Intent intent = new Intent(IecParametrosActivity.this, IecTrafoActivity.class);
                 startActivity(intent);
             }
         });
 
-
+        /*
         btnScreen.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
