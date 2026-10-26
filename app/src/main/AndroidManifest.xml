@@ -28,6 +28,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Syncro">
         <activity
+            android:name=".IecInfoActivity"
+            android:exported="false" />
+        <activity
             android:name=".IecTrafoActivity"
             android:exported="false" />
         <activity
