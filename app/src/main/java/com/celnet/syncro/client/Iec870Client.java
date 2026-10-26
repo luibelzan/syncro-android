@@ -7,6 +7,8 @@ import com.celnet.syncro.models.iec870.eventos.Iec870Events;
 import com.celnet.syncro.models.iec870.instantValues.Iec870InstantValues;
 import com.celnet.syncro.models.iec870.params.Iec870DateTime;
 import com.celnet.syncro.models.iec870.params.Iec870DaylightChange;
+import com.celnet.syncro.models.iec870.params.Iec870DeviceInfo;
+import com.celnet.syncro.models.iec870.params.Iec870PortConfig;
 import com.celnet.syncro.models.iec870.params.Iec870TrafoRatio;
 
 import java.io.IOException;
@@ -43,6 +45,10 @@ public class Iec870Client {
     }
 
     // Tipos de ASDU
+    private static final int TYPE_SET_PORTS = 143;
+    private static final int TYPE_SET_RM2 = 158;
+    private static final int TYPE_READ_INFO = 141;
+    private static final int TYPE_INFO = 142;
     private static final int TYPE_READ_ID = 100;
     private static final int TYPE_ID_RESPONSE = 71;
     private static final int TYPE_READ_INCREMENTAL = 123;
@@ -332,6 +338,114 @@ public class Iec870Client {
         parseInstant(awaitCause(Iec870Frame.CAUSE_REQUESTED), v);
         log("Valores instantáneos recuperados");
         return v;
+    }
+
+    /**
+     * Programa la configuración de puertos (ASDU 143, causa 6). Datos (27 octetos): puerto 1
+     * (velocidad, params, modo, cadena de 20) | puerto 2 (velocidad, params) | óptico (velocidad,
+     * params). Un puerto nulo, o un código 0, se envía a 0 = no modificar. Confirmación: eco de la
+     * ASDU con causa 7, sin "activación terminada".
+     * Verificado con el log del software funcional para los tres puertos (serie 1, serie 2 y óptico).
+     */
+    public void writePortConfig(Iec870PortConfig p1, Iec870PortConfig p2, Iec870PortConfig po)
+            throws Iec870Exception {
+        byte[] d = new byte[27];
+        if (p1 != null) {
+            d[0] = (byte) p1.velocidadCodigo;
+            d[1] = (byte) p1.paramsCodigo;
+            d[2] = (byte) p1.modo;
+        }
+        if (p2 != null) {
+            d[23] = (byte) p2.velocidadCodigo;
+            d[24] = (byte) p2.paramsCodigo;
+        }
+        if (po != null) {
+            d[25] = (byte) po.velocidadCodigo;
+            d[26] = (byte) po.paramsCodigo;
+        }
+        log("Programando configuración puertos");
+        sendVariableExpectAck(TYPE_SET_PORTS, 1, Iec870Frame.CAUSE_ACTIVATION, 0, d);
+        Iec870Frame r = awaitType(TYPE_SET_PORTS);
+        if (r.negative || r.cause != Iec870Frame.CAUSE_ACTIVATION_CONFIRM) {
+            throw new Iec870Exception(String.format(
+                    "El contador rechazó la configuración de puertos (causa 0x%02X)", r.cause));
+        }
+        log("Configuración puertos programada");
+    }
+
+    /**
+     * Lee la información de configuración del equipo (ASDU 141; respuesta ASDU 142).
+     * Octetos: 0 fabricante | 1-2 modelo (ASCII) | 3 firmware | 4-7 nº de equipo | 8 mes/año del
+     * protocolo | 9-13 TimeA | 14 batería | 15-17 puerto 1 (velocidad, params, modo) | 18-37 cadena
+     * ASCII | 38-39 puerto 2 | 40-41 puerto óptico | 42-57 relación de transformación (4 x uint32,
+     * dV/dA) | 58-60 periodos de integración | 61 contratos activos (bits 1, 3 y 5).
+     */
+    public Iec870DeviceInfo readDeviceInfo() throws Iec870Exception {
+        log("Leyendo información de configuración del equipo");
+        sendVariableExpectAck(TYPE_READ_INFO, 0, Iec870Frame.CAUSE_REQUESTED, 0, new byte[0]);
+        Iec870Frame f = awaitCause(Iec870Frame.CAUSE_REQUESTED);
+        byte[] d = f.data;
+        if (f.negative || f.type != TYPE_INFO || d.length < 62) {
+            throw new Iec870Exception("Respuesta de configuración del equipo inesperada: "
+                    + Iec870Frame.hex(f.raw));
+        }
+        Iec870DeviceInfo i = new Iec870DeviceInfo();
+        i.codigoFabricante = d[0] & 0xFF;
+        i.modelo = "" + (char) (d[1] & 0xFF) + (char) (d[2] & 0xFF);
+        i.firmware = d[3] & 0xFF;
+        i.serie = String.valueOf((char) i.codigoFabricante) + le(d, 4, 4);
+        i.fechaProtocolo = String.format(java.util.Locale.US, "%02d/%04d", d[8] & 15,
+                2000 + ((d[8] & 0xF0) >> 4));
+        i.fechaVersion = String.format(java.util.Locale.US, "%02d/%02d/%04d", d[11] & 0x1F,
+                d[12] & 0x0F, 2000 + (d[13] & 0x7F));
+        i.bateria = d[14] & 0xFF;
+        i.puerto1.velocidadCodigo = d[15] & 0xFF;
+        i.puerto1.paramsCodigo = d[16] & 0xFF;
+        i.puerto1.modo = d[17] & 0xFF;
+        StringBuilder sb = new StringBuilder();
+        for (int k = 18; k < 38 && d[k] != 0; k++) sb.append((char) (d[k] & 0xFF));
+        i.puerto1.cadena = sb.toString();
+        i.puerto2.velocidadCodigo = d[38] & 0xFF;
+        i.puerto2.paramsCodigo = d[39] & 0xFF;
+        i.puertoOptico.velocidadCodigo = d[40] & 0xFF;
+        i.puertoOptico.paramsCodigo = d[41] & 0xFF;
+        i.trafo.tensionPrimariaDv = le(d, 42, 4);
+        i.trafo.tensionSecundariaDv = le(d, 46, 4);
+        i.trafo.corrientePrimariaDa = le(d, 50, 4);
+        i.trafo.corrienteSecundariaDa = le(d, 54, 4);
+        for (int k = 0; k < 3; k++) {
+            i.periodoIntegracion[k] = d[58 + k] & 0xFF;
+            i.contratoActivo[k] = (d[61] & (2 << (2 * k))) != 0;
+        }
+        log("Leída información de configuración del equipo");
+        return i;
+    }
+
+    /**
+     * Programa la relación de transformación (ASDU 158, causa 6, objeto 0xC6 + 4 x uint32 LE:
+     * tensión primario, tensión secundario [dV], intensidad primario, intensidad secundario [dA]).
+     * Confirmación: eco con causa 7, sin "activación terminada". Requiere el modo de escritura
+     * activado en el CN; si no, el contador rechaza la escritura.
+     */
+    public void writeTransformerRatio(Iec870TrafoRatio rt) throws Iec870Exception {
+        byte[] d = new byte[17];
+        d[0] = (byte) OBJ_TRAFO_RATIO;
+        long[] v = {rt.tensionPrimariaDv, rt.tensionSecundariaDv,
+                rt.corrientePrimariaDa, rt.corrienteSecundariaDa};
+        for (int k = 0; k < 4; k++) {
+            for (int b = 0; b < 4; b++) {
+                d[1 + k * 4 + b] = (byte) (v[k] >> (8 * b));
+            }
+        }
+        log("Set transformer ratio...");
+        sendVariableExpectAck(TYPE_SET_RM2, 1, Iec870Frame.CAUSE_ACTIVATION, 0, d);
+        Iec870Frame r = awaitType(TYPE_SET_RM2);
+        if (r.negative || r.cause != Iec870Frame.CAUSE_ACTIVATION_CONFIRM) {
+            throw new Iec870Exception(String.format(
+                    "El contador rechazó la relación de transformación (causa 0x%02X). "
+                            + "Compruebe que el modo de escritura está activado en el CN.", r.cause));
+        }
+        log("Actualizados datos de RT");
     }
 
     /** Lee la relación de transformación (ASDU 156, objeto 0xC6; respuesta ASDU 157). */

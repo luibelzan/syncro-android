@@ -9,7 +9,7 @@ import com.celnet.syncro.session.ConnectionConfig;
 import com.celnet.syncro.session.Iec870Connection;
 import com.celnet.syncro.utils.AppLogger;
 
-/** Lectura (y, más adelante, programación) de la relación de transformación por IEC-870. */
+/** Lectura y programación de la relación de transformación por IEC-870. */
 public class Iec870TrafoReader {
 
     /** Bloqueante: llamar siempre desde un hilo secundario. */
@@ -26,6 +26,26 @@ public class Iec870TrafoReader {
                 AppLogger.i("IEC870", "Serial del contador : " + serie);
 
                 return client.readTransformerRatio();
+            } finally {
+                client.closeSession();
+            }
+        }
+    }
+
+    /** Bloqueante: llamar siempre desde un hilo secundario. */
+    public static void programar(Context context, ConnectionConfig config, Iec870TrafoRatio rt)
+            throws Iec870Exception {
+
+        try (Iec870Connection conn = new Iec870Connection(config)) {
+            Iec870Client client = conn.open(context);
+            client.setTrace(linea -> AppLogger.i("IEC870", linea));
+
+            client.openSession();
+            try {
+                String serie = client.readSerial();
+                AppLogger.i("IEC870", "Serial del contador : " + serie);
+
+                client.writeTransformerRatio(rt);
             } finally {
                 client.closeSession();
             }

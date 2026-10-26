@@ -22,8 +22,8 @@ import com.google.android.material.floatingactionbutton.ExtendedFloatingActionBu
  * Relación de transformación por IEC-870: tensión (deciVolts) e intensidad
  * (deciAmps), primario / secundario.
  * - "Leer": lee los cuatro valores del contador y los vuelca en el formulario.
- * - "Programar": valida el formulario. La escritura en el contador aún no está
- *   implementada (falta el log del software funcional).
+ * - "Programar": valida y escribe los cuatro valores (ASDU 158); el contador exige el modo de
+ *   escritura activado en el CN.
  */
 public class IecTrafoActivity extends BaseActivity {
 
@@ -85,14 +85,34 @@ public class IecTrafoActivity extends BaseActivity {
                 return;
             }
 
-            // TODO: escritura por IEC-870 pendiente del log del software funcional.
+            Iec870TrafoRatio rt = new Iec870TrafoRatio(vPrim, vSec, iPrim, iSec);
+
             new AlertDialog.Builder(this)
-                    .setTitle("Programación no disponible")
-                    .setMessage("La programación de la relación de transformación por IEC-870 "
-                            + "todavía no está implementada.\n\nValores del formulario:\n"
-                            + "Tensión: " + vPrim + " / " + vSec + " dV\n"
-                            + "Corriente: " + iPrim + " / " + iSec + " dA")
-                    .setPositiveButton("Aceptar", null)
+                    .setTitle("Programar relación de transformación")
+                    .setMessage("Tensión: " + vPrim + " / " + vSec + " dV\n"
+                            + "Corriente: " + iPrim + " / " + iSec + " dA\n\n"
+                            + "Recuerde tener activado el modo de escritura en el CN.")
+                    .setNegativeButton("Cancelar", null)
+                    .setPositiveButton("Programar", (d, w) -> {
+                        bloquear(true, btnRead, btnNext, progressBar);
+                        new Thread(() -> {
+                            try {
+                                Iec870TrafoReader.programar(IecTrafoActivity.this, config, rt);
+                                runOnUiThread(() -> {
+                                    bloquear(false, btnRead, btnNext, progressBar);
+                                    Toast.makeText(IecTrafoActivity.this,
+                                            "Relación de transformación programada",
+                                            Toast.LENGTH_LONG).show();
+                                });
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                runOnUiThread(() -> {
+                                    bloquear(false, btnRead, btnNext, progressBar);
+                                    mostrarError("No se pudo programar la relación de transformación.", e);
+                                });
+                            }
+                        }).start();
+                    })
                     .show();
         });
     }
