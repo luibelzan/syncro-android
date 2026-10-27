@@ -46,6 +46,7 @@ public class Iec870Client {
 
     // Tipos de ASDU
     private static final int TYPE_SET_PORTS = 143;
+    private static final int TYPE_SET_DST = 186;
     private static final int TYPE_SET_RM2 = 158;
     private static final int TYPE_READ_INFO = 141;
     private static final int TYPE_INFO = 142;
@@ -271,6 +272,26 @@ public class Iec870Client {
     }
 
     /**
+     * Programa las fechas oficiales de cambio de hora (ASDU 186, causa 6): dos tiempos tipo A,
+     * primero el cambio a horario de verano y después el de invierno. Confirmación: eco con
+     * causa 7. Como el software funcional, se envían ambas con el indicador SU = 0 (hora
+     * estándar de entrada), salvo que el objeto traiga {@code summer} activado.
+     */
+    public void writeDaylightChange(Iec870DaylightChange cambio) throws Iec870Exception {
+        byte[] d = new byte[10];
+        System.arraycopy(cambio.inicioVerano.toTimeA(), 0, d, 0, 5);
+        System.arraycopy(cambio.inicioInvierno.toTimeA(), 0, d, 5, 5);
+        log("Programando las fechas y horas de cambio de hora oficial");
+        sendVariableExpectAck(TYPE_SET_DST, 1, Iec870Frame.CAUSE_ACTIVATION, 0, d);
+        Iec870Frame r = awaitType(TYPE_SET_DST);
+        if (r.negative || r.cause != Iec870Frame.CAUSE_ACTIVATION_CONFIRM) {
+            throw new Iec870Exception(String.format(
+                    "El contador rechazó las fechas de cambio de hora (causa 0x%02X)", r.cause));
+        }
+        log("Fechas y horas de cambio de hora oficial programadas");
+    }
+
+    /**
      * Lee las fechas oficiales de cambio de hora (ASDU 185, respuesta ASDU 131): dos
      * tiempos tipo A, el del cambio a verano (SU = 1) y el del cambio a invierno (SU = 0).
      */
@@ -283,13 +304,16 @@ public class Iec870Client {
                     + Iec870Frame.hex(r.raw));
         }
         Iec870DaylightChange c = new Iec870DaylightChange();
-        for (int i = 0; i < 2; i++) {
-            Iec870DateTime t = Iec870DateTime.fromTimeA(r.data, i * 5);
-            if (t.summer) c.inicioVerano = t; else c.inicioInvierno = t;
-        }
-        if (c.inicioVerano == null || c.inicioInvierno == null) {
-            throw new Iec870Exception("Las fechas de cambio de hora no incluyen verano e invierno: "
-                    + Iec870Frame.hex(r.raw));
+        Iec870DateTime t0 = Iec870DateTime.fromTimeA(r.data, 0);
+        Iec870DateTime t1 = Iec870DateTime.fromTimeA(r.data, 5);
+        if (t1.summer && !t0.summer) {
+            c.inicioVerano = t1;
+            c.inicioInvierno = t0;
+        } else {
+            // Normal: la primera es el cambio a verano y la segunda, a invierno. Si el indicador
+            // SU no las distingue (el software funcional programa ambas con SU = 0), vale el orden.
+            c.inicioVerano = t0;
+            c.inicioInvierno = t1;
         }
         log("Leída información de cambio de hora oficial");
         return c;

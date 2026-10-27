@@ -77,6 +77,17 @@ public class Iec870DateTime implements Serializable {
         };
     }
 
+    /** Codifica a 5 octetos de tiempo tipo A (sin segundos). */
+    public byte[] toTimeA() {
+        return new byte[]{
+                (byte) (minute & 0x3F),
+                (byte) ((hour & 0x1F) | (summer ? 0x80 : 0)),
+                (byte) ((day & 0x1F) | (diaSemanaIso() << 5)),
+                (byte) (month & 0x0F),
+                (byte) ((year % 100) & 0x7F)
+        };
+    }
+
     /**
      * Fecha del móvil en la zona horaria dada, sin milisegundos. El horario de
      * verano se deduce de esa zona (en España, CEST).

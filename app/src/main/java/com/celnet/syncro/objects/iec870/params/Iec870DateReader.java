@@ -48,12 +48,21 @@ public class Iec870DateReader {
         }
     }
 
-    /**
-     * Programa la fecha y hora y devuelve la que el contador tiene a continuación
-     * (se vuelve a leer para comprobar el resultado). Bloqueante: hilo secundario.
-     */
+    /** Programa solo la fecha y hora (ver {@link #programar}). */
     public static Iec870DateTime programarFecha(Context context, ConnectionConfig config,
                                                 Iec870DateTime nueva) throws Iec870Exception {
+        return programar(context, config, nueva, null);
+    }
+
+    /**
+     * Programa en una sola sesión la fecha y hora ({@code nueva}, puede ser null) y/o las fechas
+     * oficiales de cambio de hora ({@code cambio}, puede ser null). Devuelve la fecha que el
+     * contador tiene a continuación (se vuelve a leer), o null si no se programó la fecha.
+     * Bloqueante: llamar desde un hilo secundario.
+     */
+    public static Iec870DateTime programar(Context context, ConnectionConfig config,
+                                           Iec870DateTime nueva, Iec870DaylightChange cambio)
+            throws Iec870Exception {
 
         try (Iec870Connection conn = new Iec870Connection(config)) {
             Iec870Client client = conn.open(context);
@@ -64,9 +73,15 @@ public class Iec870DateReader {
                 String serie = client.readSerial();
                 AppLogger.i("IEC870", "Serial del contador : " + serie);
 
-                client.writeDateTime(nueva);
-                Iec870DateTime leida = client.readDateTime();
-                AppLogger.i("IEC870", "Nueva hora del contador : " + leida.toText());
+                Iec870DateTime leida = null;
+                if (nueva != null) {
+                    client.writeDateTime(nueva);
+                    leida = client.readDateTime();
+                    AppLogger.i("IEC870", "Nueva hora del contador : " + leida.toText());
+                }
+                if (cambio != null) {
+                    client.writeDaylightChange(cambio);
+                }
                 return leida;
             } finally {
                 client.closeSession();
