@@ -6,6 +6,7 @@ import com.celnet.syncro.client.Iec870Client;
 import com.celnet.syncro.client.Iec870Exception;
 import com.celnet.syncro.models.events.EventFila;
 import com.celnet.syncro.models.iec870.eventos.Iec870Event;
+import com.celnet.syncro.models.iec870.eventos.Iec870Events;
 import com.celnet.syncro.session.ConnectionConfig;
 import com.celnet.syncro.session.Iec870Connection;
 import com.celnet.syncro.utils.AppLogger;
@@ -15,17 +16,21 @@ import java.util.List;
 
 /**
  * Lectura de eventos por IEC-870, devolviendo las mismas {@link EventFila} que la
- * lectura DLMS para reutilizar ResultadosEventsActivity.
+ * lectura DLMS para reutilizar ResultadosEventsActivity. Con {@link Iec870Events#REG_TODOS}
+ * lee todos los registros de eventos.
  */
 public class Iec870EventsReader {
 
     public static class Resultado {
         public final String serie;
         public final ArrayList<EventFila> filas;
+        /** Registros que no se pudieron leer con "todos los eventos" (vacío si no hubo fallos). */
+        public final List<String> avisos;
 
-        Resultado(String serie, ArrayList<EventFila> filas) {
+        Resultado(String serie, ArrayList<EventFila> filas, List<String> avisos) {
             this.serie = serie;
             this.filas = filas;
+            this.avisos = avisos;
         }
     }
 
@@ -43,7 +48,10 @@ public class Iec870EventsReader {
                 String serie = client.readSerial();
                 AppLogger.i("IEC870", "Serial del contador : " + serie);
 
-                List<Iec870Event> eventos = client.readEvents(registro, fechaInicio, fechaFin);
+                List<String> avisos = new ArrayList<>();
+                List<Iec870Event> eventos = registro == Iec870Events.REG_TODOS
+                        ? client.readAllEvents(fechaInicio, fechaFin, avisos)
+                        : client.readEvents(registro, fechaInicio, fechaFin);
                 AppLogger.i("IEC870", "Eventos recibidos: " + eventos.size());
 
                 ArrayList<EventFila> filas = new ArrayList<>();
@@ -51,7 +59,7 @@ public class Iec870EventsReader {
                     // id = código del evento (SPQ), cod = grupo (SPA)
                     filas.add(new EventFila(e.fechaHora, e.spq, e.descripcion, e.spa));
                 }
-                return new Resultado(serie, filas);
+                return new Resultado(serie, filas, avisos);
             } finally {
                 client.closeSession();
             }

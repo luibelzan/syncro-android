@@ -30,10 +30,11 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
-/** Lectura de eventos por IEC-870. Registros: 52 (arranques y tensión bajo límites), 53 (sincronización y cambio de hora) 54 (cambio de parámetros), 55 (errores internos), 128 (intrusismo), 129 (comunicaciones), 130 (clave privada), 131 (contrato I), 132 (contrato II) y 133 (contrato III). */
+/** Lectura de eventos por IEC-870. Opción "Todos los eventos": lee todos los registros en el rango. Registros: 52 (arranques y tensión bajo límites), 53 (sincronización y cambio de hora) 54 (cambio de parámetros), 55 (errores internos), 128 (intrusismo), 129 (comunicaciones), 130 (clave privada), 131 (contrato I), 132 (contrato II) y 133 (contrato III). */
 public class IecEventsActivity extends BaseActivity {
 
     private static final String[] TIPOS = {
+            "Todos los eventos",
             "Arranques y tensión bajo límites",
             "Sincronización y cambio de hora",
             "Cambio de parámetros",
@@ -46,6 +47,7 @@ public class IecEventsActivity extends BaseActivity {
             "Contrato III"
     };
     private static final int[] REGISTROS = {
+            Iec870Events.REG_TODOS,
             Iec870Events.REG_ARRANQUES_TENSION,
             Iec870Events.REG_SINCRONIZACION_HORA,
             Iec870Events.REG_CAMBIO_PARAMETROS,
@@ -136,7 +138,7 @@ public class IecEventsActivity extends BaseActivity {
                             restaurarUi(progressBar, btnNext, editFechaInicio, editFechaFin);
                             new androidx.appcompat.app.AlertDialog.Builder(IecEventsActivity.this)
                                     .setTitle("Sin eventos")
-                                    .setMessage("El contador no tiene eventos de este tipo en el rango seleccionado.")
+                                    .setMessage("El contador no tiene eventos " + (registroFinal == Iec870Events.REG_TODOS ? "" : "de este tipo ") + "en el rango seleccionado.")
                                     .setPositiveButton("Aceptar", null)
                                     .show();
                         });
@@ -149,6 +151,12 @@ public class IecEventsActivity extends BaseActivity {
 
                     runOnUiThread(() -> {
                         restaurarUi(progressBar, btnNext, editFechaInicio, editFechaFin);
+                        if (!res.avisos.isEmpty()) {
+                            Toast.makeText(IecEventsActivity.this,
+                                    "Algunos registros no se pudieron leer:\n"
+                                            + android.text.TextUtils.join("\n", res.avisos),
+                                    Toast.LENGTH_LONG).show();
+                        }
                         startActivity(intent);
                     });
                 } catch (Exception e) {

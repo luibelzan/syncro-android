@@ -22,6 +22,16 @@ public final class Iec870Events {
     public static final int REG_CONTRATO_2 = 132;
     public static final int REG_CONTRATO_3 = 133;
 
+    /** Valor especial de la pantalla: leer todos los registros de eventos. */
+    public static final int REG_TODOS = -1;
+
+    /** Todos los registros de eventos, en el orden en que se leen con "Todos los eventos". */
+    public static final int[] TODOS_LOS_REGISTROS = {
+            REG_ARRANQUES_TENSION, REG_SINCRONIZACION_HORA, REG_CAMBIO_PARAMETROS,
+            REG_ERRORES_INTERNOS, REG_INTRUSISMO, REG_COMUNICACIONES, REG_CLAVE_PRIVADA,
+            REG_CONTRATO_1, REG_CONTRATO_2, REG_CONTRATO_3
+    };
+
     private static final class Entry {
         final String[] spi;
         final String desc;

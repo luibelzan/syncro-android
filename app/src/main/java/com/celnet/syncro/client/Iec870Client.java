@@ -241,6 +241,41 @@ public class Iec870Client {
         return eventos;
     }
 
+    /**
+     * Lee los eventos de todos los registros (52, 53, 54, 55, 128..133) en el rango de fechas, en
+     * la misma sesión, y los devuelve ordenados por fecha. Un registro que falle se omite y se
+     * anota en {@code avisos}; si fallan todos se lanza la primera excepción.
+     */
+    public List<Iec870Event> readAllEvents(String fechaInicio, String fechaFin, List<String> avisos)
+            throws Iec870Exception {
+        List<Iec870Event> todos = new ArrayList<>();
+        Iec870Exception primero = null;
+        int fallidos = 0;
+        for (int registro : Iec870Events.TODOS_LOS_REGISTROS) {
+            try {
+                todos.addAll(readEvents(registro, fechaInicio, fechaFin));
+            } catch (Iec870Exception e) {
+                fallidos++;
+                if (primero == null) primero = e;
+                log("Registro " + registro + " omitido: " + e.getMessage());
+                if (avisos != null) avisos.add("Registro " + registro + ": " + e.getMessage());
+            }
+        }
+        if (fallidos == Iec870Events.TODOS_LOS_REGISTROS.length) {
+            throw primero;
+        }
+        final java.text.SimpleDateFormat sdf =
+                new java.text.SimpleDateFormat("d/M/yy H:mm:ss", Locale.US);
+        java.util.Collections.sort(todos, (a, b) -> {
+            try {
+                return sdf.parse(a.fechaHora).compareTo(sdf.parse(b.fechaHora));
+            } catch (java.text.ParseException e) {
+                return 0;
+            }
+        });
+        return todos;
+    }
+
     /** Lee la fecha y hora del contador (ASDU 103, respuesta ASDU 72 con tiempo tipo B). */
     public Iec870DateTime readDateTime() throws Iec870Exception {
         log("Reading meter date time");
