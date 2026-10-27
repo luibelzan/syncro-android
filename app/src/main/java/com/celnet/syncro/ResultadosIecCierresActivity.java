@@ -32,10 +32,14 @@ public class ResultadosIecCierresActivity extends BaseActivity {
     /** Título de la pantalla: "Cierres memorizados" / "Cierres en curso". */
     public static final String EXTRA_TITULO = "extra_iec_cierres_titulo";
 
+    /** true = cierres en curso: sin Reservado 7/8. */
+    public static final String EXTRA_EN_CURSO = "extra_iec_cierres_en_curso";
+
     private static final int ANCHO_ETIQUETA_DP = 150;
     private static final int ANCHO_CELDA_DP = 96;
 
     private LinearLayout contenedor;
+    private boolean enCurso;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +52,7 @@ public class ResultadosIecCierresActivity extends BaseActivity {
             return insets;
         });
         contenedor = findViewById(R.id.contenedor);
+        enCurso = getIntent().getBooleanExtra(EXTRA_EN_CURSO, false);
 
         @SuppressWarnings({"unchecked", "deprecation"})
         ArrayList<Iec870BillingRecord> registros =
@@ -108,7 +113,7 @@ public class ResultadosIecCierresActivity extends BaseActivity {
         cuerpo.addView(titulo);
 
         TextView periodo = new TextView(this);
-        periodo.setText("De " + primero.inicio + "\nhasta " + primero.fin);
+        periodo.setText("De " + fecha(primero.inicio) + "\nhasta " + fecha(primero.fin));
         periodo.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
         periodo.setTextColor(ContextCompat.getColor(this, R.color.on_surface_variant));
         periodo.setPadding(0, dp(4), 0, dp(8));
@@ -130,8 +135,10 @@ public class ResultadosIecCierresActivity extends BaseActivity {
         tabla.addView(crearFila(fila("R. inductiva inc.", g, 3), false));
         tabla.addView(crearFila(fila("R. capacitiva abs. [kVArh]", g, 4), false));
         tabla.addView(crearFila(fila("R. capacitiva inc.", g, 5), false));
-        tabla.addView(crearFila(fila("Reservado 7", g, 6), false));
-        tabla.addView(crearFila(fila("Reservado 8", g, 7), false));
+        if (!enCurso) {
+            tabla.addView(crearFila(fila("Reservado 7", g, 6), false));
+            tabla.addView(crearFila(fila("Reservado 8", g, 7), false));
+        }
         tabla.addView(crearFila(fila("Maxímetro", g, 8), false));
         tabla.addView(crearFila(fila("Fecha maxímetro", g, 9), false));
         tabla.addView(crearFila(fila("Exceso de potencia", g, 10), false));
@@ -162,7 +169,7 @@ public class ResultadosIecCierresActivity extends BaseActivity {
                 case 6: v = String.valueOf(r.reservado7); break;
                 case 7: v = String.valueOf(r.reservado8); break;
                 case 8: v = String.valueOf(r.maximetro); break;
-                case 9: v = r.maximetro == 0 ? "-" : dosLineas(r.maximetroFecha); break;
+                case 9: v = r.maximetro == 0 ? "-" : dosLineas(fecha(r.maximetroFecha)); break;
                 case 10: v = String.valueOf(r.exceso); break;
                 default:
                     v = String.format("%02X/%02X/%02X", r.activaCal, r.reactivaIndCal,
@@ -171,6 +178,14 @@ public class ResultadosIecCierresActivity extends BaseActivity {
             f[i + 1] = v;
         }
         return f;
+    }
+
+    /** "yyyy/MM/dd HH:mm..." -> "dd/MM/yyyy HH:mm...". */
+    private String fecha(String texto) {
+        if (texto == null) return texto;
+        java.util.regex.Matcher m = java.util.regex.Pattern
+                .compile("^(\\d{4})/(\\d{2})/(\\d{2})(.*)$").matcher(texto);
+        return m.matches() ? m.group(3) + "/" + m.group(2) + "/" + m.group(1) + m.group(4) : texto;
     }
 
     private static String dosLineas(String fechaHora) {

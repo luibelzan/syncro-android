@@ -579,8 +579,9 @@ public class Iec870Client {
     }
 
     /**
-     * TimeA (5 octetos) como "yyyy/MM/dd HH:mm:00X". La letra sigue al software
-     * funcional: SU=0 -> "S" y SU=1 -> "W" (así lo imprime su informe).
+     * TimeA (5 octetos) como "yyyy/MM/dd HH:mm:00X". La letra sale del indicador SU de la
+     * propia fecha: SU=1 (horario de verano) -> "S" y SU=0 (invierno) -> "W". El software
+     * funcional no usa ese indicador para su letra, así que puede no coincidir con él.
      */
     private static String timeAText(byte[] d, int off) {
         int minuto = d[off] & 0x3F;
@@ -592,7 +593,7 @@ public class Iec870Client {
         if (mes == 0) mes = 1;
         int anio = 2000 + (d[off + 4] & 0x7F);
         return String.format(Locale.US, "%04d/%02d/%02d %02d:%02d:00%s",
-                anio, mes, dia, hora, minuto, su ? "W" : "S");
+                anio, mes, dia, hora, minuto, su ? "S" : "W");
     }
 
     /**

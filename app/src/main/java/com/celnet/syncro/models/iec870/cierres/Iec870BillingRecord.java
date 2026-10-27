@@ -32,7 +32,7 @@ public class Iec870BillingRecord implements Serializable {
     public int reservado8Cal;
 
     public long maximetro;
-    /** "yyyy/MM/dd HH:mm:00" + letra S/W (SU=0 -> S, SU=1 -> W, como el software funcional). */
+    /** "yyyy/MM/dd HH:mm:00" + letra S/W (SU=1 (verano) -> S, SU=0 (invierno) -> W). */
     public String maximetroFecha = "";
     public int maximetroCal;
 

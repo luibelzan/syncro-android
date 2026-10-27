@@ -150,6 +150,7 @@ public class IecCierresActivity extends BaseActivity {
                         intent.putExtra("cntId", res.serie);
                         intent.putExtra(ResultadosIecCierresActivity.EXTRA_TITULO,
                                 enCurso ? "Cierres en curso" : "Cierres memorizados");
+                        intent.putExtra(ResultadosIecCierresActivity.EXTRA_EN_CURSO, enCurso);
                         startActivity(intent);
                     });
                 } catch (Exception e) {
