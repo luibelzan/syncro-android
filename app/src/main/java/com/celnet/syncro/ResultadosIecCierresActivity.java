@@ -14,8 +14,11 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.celnet.syncro.export.IecExcelExport;
 import com.celnet.syncro.models.iec870.cierres.Iec870BillingRecord;
+import com.celnet.syncro.export.Iec870CierresXlsx;
 import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -70,6 +73,13 @@ public class ResultadosIecCierresActivity extends BaseActivity {
             return;
         }
 
+        // Exportar a Excel
+        ExtendedFloatingActionButton btnExport = findViewById(R.id.btnExport);
+        btnExport.setVisibility(android.view.View.VISIBLE);
+        btnExport.setOnClickListener(v -> IecExcelExport.exportar(this, "Exportar cierres a Excel",
+                cups -> nombreExcel(cups, registros),
+                (out, cups) -> Iec870CierresXlsx.generar(out, cups, cntId != null ? cntId : "", registros)));
+
         // Agrupar por contrato + periodo (un cierre = un contrato y sus tarifas)
         Map<String, List<Iec870BillingRecord>> grupos = new LinkedHashMap<>();
         for (Iec870BillingRecord r : registros) {
@@ -84,6 +94,24 @@ public class ResultadosIecCierresActivity extends BaseActivity {
         for (List<Iec870BillingRecord> grupo : grupos.values()) {
             addCierre(grupo);
         }
+    }
+
+    /**
+     * "CUPS_Cierres_Mes_Año.xlsx" si todos los cierres terminan en el mismo mes (el cierre de las
+     * 00:00 del día 1 pertenece al mes anterior); "CUPS_Cierres_EnCurso_dd-MM-yyyy.xlsx" en curso.
+     */
+    private String nombreExcel(String cups, ArrayList<Iec870BillingRecord> registros) {
+        String base = IecExcelExport.limpiar(cups) + "_Cierres_";
+        if (enCurso) {
+            String f = registros.get(registros.size() - 1).fin;
+            return base + "EnCurso_" + f.substring(8, 10) + "-" + f.substring(5, 7) + "-"
+                    + f.substring(0, 4) + ".xlsx";
+        }
+        int[] ini = IecExcelExport.fechaMenosUnMinuto(registros.get(0).fin);
+        int[] fin = IecExcelExport.fechaMenosUnMinuto(registros.get(registros.size() - 1).fin);
+        String d = String.format(java.util.Locale.US, "%04d/%02d/%02d 00:00", ini[0], ini[1], ini[2]);
+        String h = String.format(java.util.Locale.US, "%04d/%02d/%02d 00:00", fin[0], fin[1], fin[2]);
+        return base + IecExcelExport.periodo(d, h) + ".xlsx";
     }
 
     private void addCierre(List<Iec870BillingRecord> g) {

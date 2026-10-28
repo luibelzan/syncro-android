@@ -847,6 +847,7 @@ public class Iec870Client {
             throw new Iec870Exception("ASDU 11 truncado: " + Iec870Frame.hex(f.raw));
         }
         long[] val = new long[9];
+        int[] qs = new int[7];
         int calidad = -1;
         boolean invalido = false;
         for (int i = 0; i < n; i++) {
@@ -856,6 +857,7 @@ public class Iec870Client {
                     | ((d[p + 3] & 0xFFL) << 16) | ((d[p + 4] & 0xFFL) << 24);
             int q = d[p + 5] & 0xFF;
             if (addr >= 1 && addr <= 8) val[addr] = total;
+            if (addr >= 1 && addr <= 6) qs[addr] = q;
             if (calidad < 0) calidad = q;
             if ((q & 0x80) != 0) invalido = true;
         }
@@ -872,7 +874,7 @@ public class Iec870Client {
         String fh = String.format("%04d/%02d/%02d %02d:%02d:00%s",
                 anio, mes, dia, hora, minuto, verano ? "S" : "W");
         return new Iec870LoadProfileRow(fh, verano, val[1], val[2], val[3], val[4],
-                val[5], val[6], Math.max(calidad, 0), invalido);
+                val[5], val[6], Math.max(calidad, 0), invalido, qs);
     }
 
     /** Tiempo tipo A (5 octetos) a las 00:00 de "yyyy/MM/dd". SU=0 como el software funcional. */

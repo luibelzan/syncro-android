@@ -22,10 +22,14 @@ public class Iec870LoadProfileReader {
     public static class Resultado {
         public final String serie;
         public final ArrayList<CurvaFila> filas;
+        /** Los mismos registros con todos sus datos (para exportar a Excel). */
+        public final ArrayList<Iec870LoadProfileRow> registros;
 
-        Resultado(String serie, ArrayList<CurvaFila> filas) {
+        Resultado(String serie, ArrayList<CurvaFila> filas,
+                  ArrayList<Iec870LoadProfileRow> registros) {
             this.serie = serie;
             this.filas = filas;
+            this.registros = registros;
         }
     }
 
@@ -68,7 +72,7 @@ public class Iec870LoadProfileReader {
                             String.valueOf(f.r3),
                             String.valueOf(f.r4)));
                 }
-                return new Resultado(serie, resultado);
+                return new Resultado(serie, resultado, new ArrayList<>(filas));
             } finally {
                 client.closeSession();
             }

@@ -126,6 +126,8 @@ public class IecCurvasActivity extends BaseActivity {
                     intent.putExtra("tipoCurva", TipoCurva.INCREMENTAL_S02.name());
                     intent.putExtra("cntId", res.serie);
                     intent.putParcelableArrayListExtra("datos_curva_tabla", res.filas);
+                    // Registros completos: la exportación a Excel necesita las calidades de cada total
+                    intent.putExtra("datos_curva_iec", res.registros);
 
                     runOnUiThread(() -> {
                         restaurarUi(progressBar, btnNext, editFechaInicio, editFechaFin);

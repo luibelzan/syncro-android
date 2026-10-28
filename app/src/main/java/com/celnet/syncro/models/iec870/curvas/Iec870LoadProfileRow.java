@@ -1,10 +1,14 @@
 package com.celnet.syncro.models.iec870.curvas;
 
+import java.io.Serializable;
+
 /**
  * Un registro de curva de carga IEC-870: un instante y sus 6 totales integrados
  * (incrementos de energía).
  */
-public class Iec870LoadProfileRow {
+public class Iec870LoadProfileRow implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     /** "yyyy/MM/dd HH:mm:ss" + 'S' (horario de verano) o 'W' (invierno). */
     public final String fechaHora;
@@ -22,6 +26,16 @@ public class Iec870LoadProfileRow {
     /** Bit IV (bit 7) activo en cualquiera de los 6 totales. */
     public final boolean invalido;
 
+    /** Byte de cualidad de cada total, por dirección 1..6 (índice 0 sin uso). */
+    public final int[] calidades = new int[7];
+
+    public Iec870LoadProfileRow(String fechaHora, boolean verano,
+                                long ai, long ae, long r1, long r2, long r3, long r4,
+                                int calidad, boolean invalido, int[] calidades) {
+        this(fechaHora, verano, ai, ae, r1, r2, r3, r4, calidad, invalido);
+        System.arraycopy(calidades, 0, this.calidades, 0, Math.min(calidades.length, 7));
+    }
+
     public Iec870LoadProfileRow(String fechaHora, boolean verano,
                                 long ai, long ae, long r1, long r2, long r3, long r4,
                                 int calidad, boolean invalido) {
@@ -35,5 +49,6 @@ public class Iec870LoadProfileRow {
         this.r4 = r4;
         this.calidad = calidad;
         this.invalido = invalido;
+        java.util.Arrays.fill(this.calidades, calidad);
     }
 }

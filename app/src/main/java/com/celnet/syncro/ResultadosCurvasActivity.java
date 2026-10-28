@@ -23,11 +23,14 @@ import com.celnet.syncro.adapters.CurvaAdapter;
 import com.celnet.syncro.adapters.CurvaCorrienteAdapter;
 import com.celnet.syncro.adapters.CurvaEnergiaFaseAdapter;
 import com.celnet.syncro.adapters.CurvaVoltajeAdapter;
+import com.celnet.syncro.export.IecExcelExport;
 import com.celnet.syncro.models.curvas.CurvaCorrienteFila;
 import com.celnet.syncro.models.curvas.CurvaEnergiaFaseFila;
 import com.celnet.syncro.models.curvas.CurvaFila;
 import com.celnet.syncro.models.curvas.CurvaVoltajeFila;
 import com.celnet.syncro.models.curvas.TipoCurva;
+import com.celnet.syncro.export.Iec870CurvasXlsx;
+import com.celnet.syncro.models.iec870.curvas.Iec870LoadProfileRow;
 import com.celnet.syncro.utils.Utils;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
@@ -44,16 +47,16 @@ public class ResultadosCurvasActivity extends BaseActivity {
     // =========================
     // GENERAR XML (S02)
     // =========================
-    private String generarCurvasXML(ArrayList<CurvaFila> datos, String cntId, String cncId, String stgVersion) {
+    private String generarCurvasXML(ArrayList<CurvaFila> datos, String cntId, String cncId) {
         StringBuilder sb = new StringBuilder();
-        sb.append("<Report IdRpt=\"S02\" IdPet=\"0\" Version=\"").append(stgVersion).append("\">\n");
+        sb.append("<Report IdRpt=\"S02\" IdPet=\"0\" Version=\"3.1.c\">\n");
         sb.append("  <Cnc Id=\"").append(cncId).append("\">\n");
         sb.append(" <Cnt Id=\"").append(cntId).append("\" Magn=\"1\">\n");
 
         for (CurvaFila fila : datos) {
             sb.append("      <S02 ")
                     .append("Fh=\"").append(Utils.convertirFecha(fila.fechaHora)).append("\" ")
-                    .append("Bc=\"").append(quitarParentesis(fila.bc)).append("\" ")
+                    .append("Bc=\"").append(fila.bc).append("\" ")
                     .append("AI=\"").append(fila.ai).append("\" ")
                     .append("AE=\"").append(fila.ae).append("\" ")
                     .append("R1=\"").append(fila.r1).append("\" ")
@@ -72,25 +75,25 @@ public class ResultadosCurvasActivity extends BaseActivity {
     // =========================
     // GENERAR XML (S44)
     // =========================
-    private String generarCurvasS44XML(ArrayList<CurvaVoltajeFila> datos, String cntId, String cncId, String stgVersion) {
+    private String generarCurvasS44XML(ArrayList<CurvaVoltajeFila> datos, String cntId, String cncId) {
         StringBuilder sb = new StringBuilder();
-        sb.append("<Report IdRpt=\"S44\" IdPet=\"0\" Version=\"").append(stgVersion).append("\">\n");
+        sb.append("<Report IdRpt=\"S44\" IdPet=\"0\" Version=\"3.1.c\">\n");
         sb.append("  <Cnc Id=\"").append(cncId).append("\">\n");
         sb.append(" <Cnt Id=\"").append(cntId).append("\">\n");
 
         for (CurvaVoltajeFila fila : datos) {
             sb.append("      <S44 ")
                     .append("Fh=\"").append(Utils.convertirFecha(fila.fechaHora)).append("\" ")
-                    .append("Bc=\"").append(quitarParentesis(fila.status)).append("\" ")
-                    .append("Max_L1v=\"").append(sinDecimales(fila.maxL1)).append("\" ")
-                    .append("Max_L2v=\"").append(sinDecimales(fila.maxL2)).append("\" ")
-                    .append("Max_L3v=\"").append(sinDecimales(fila.maxL3)).append("\" ")
-                    .append("Av_L1v=\"").append(sinDecimales(fila.avL1)).append("\" ")
-                    .append("Av_L2v=\"").append(sinDecimales(fila.avL2)).append("\" ")
-                    .append("Av_L3v=\"").append(sinDecimales(fila.avL3)).append("\" ")
-                    .append("Min_L1v=\"").append(sinDecimales(fila.minL1)).append("\" ")
-                    .append("Min_L2v=\"").append(sinDecimales(fila.minL2)).append("\" ")
-                    .append("Min_L3v=\"").append(sinDecimales(fila.minL3)).append("\"/>\n");
+                    .append("Bc=\"04\" ")
+                    .append("Max_L1v=\"").append(fila.maxL1).append("\" ")
+                    .append("Max_L2v=\"").append(fila.maxL2).append("\" ")
+                    .append("Max_L3v=\"").append(fila.maxL3).append("\" ")
+                    .append("Av_L1v=\"").append(fila.avL1).append("\" ")
+                    .append("Av_L2v=\"").append(fila.avL2).append("\" ")
+                    .append("Av_L3v=\"").append(fila.avL3).append("\" ")
+                    .append("Min_L1v=\"").append(fila.minL1).append("\" ")
+                    .append("Min_L2v=\"").append(fila.minL2).append("\" ")
+                    .append("Min_L3v=\"").append(fila.minL3).append("\"/>\n");
         }
 
         sb.append("    </Cnt>\n");
@@ -100,21 +103,12 @@ public class ResultadosCurvasActivity extends BaseActivity {
         return sb.toString();
     }
 
-    private String sinDecimales(String valor) {
-        return com.celnet.syncro.utils.NumeroFormatUtils.sinDecimales(valor);
-    }
-
-    private String unDecimal(String valor) {
-        return com.celnet.syncro.utils.NumeroFormatUtils.unDecimal(valor);
-    }
-
-
     // =========================
     // GENERAR XML (S45)
     // =========================
-    private String generarCurvasS45XML(ArrayList<CurvaCorrienteFila> datos, String cntId, String cncId, String stgVersion) {
+    private String generarCurvasS45XML(ArrayList<CurvaCorrienteFila> datos, String cntId, String cncId) {
         StringBuilder sb = new StringBuilder();
-        sb.append("<Report IdRpt=\"S45\" IdPet=\"0\" Version=\"").append(stgVersion).append("\">\n");
+        sb.append("<Report IdRpt=\"S45\" IdPet=\"0\" Version=\"3.1.c\">\n");
         sb.append("  <Cnc Id=\"").append(cncId).append("\">\n");
         sb.append(" <Cnt Id=\"").append(cntId).append("\">\n");
 
@@ -123,18 +117,18 @@ public class ResultadosCurvasActivity extends BaseActivity {
                     .append("Fh=\"").append(Utils.convertirFecha(fila.fechaHora)).append("\" ")
                     // El status ya viene formateado como "(8A)"; el XML necesita "8A" sin paréntesis.
                     .append("Bc=\"").append(quitarParentesis(fila.status)).append("\" ")
-                    .append("Max_L1i=\"").append(unDecimal(fila.maxL1)).append("\" ")
-                    .append("Max_L2i=\"").append(unDecimal(fila.maxL2)).append("\" ")
-                    .append("Max_L3i=\"").append(unDecimal(fila.maxL3)).append("\" ")
-                    .append("Max_IN=\"").append(unDecimal(fila.maxN)).append("\" ")
-                    .append("Av_L1i=\"").append(unDecimal(fila.avL1)).append("\" ")
-                    .append("Av_L2i=\"").append(unDecimal(fila.avL2)).append("\" ")
-                    .append("Av_L3i=\"").append(unDecimal(fila.avL3)).append("\" ")
-                    .append("Av_IN=\"").append(unDecimal(fila.avN)).append("\" ")
-                    .append("Min_L1i=\"").append(unDecimal(fila.minL1)).append("\" ")
-                    .append("Min_L2i=\"").append(unDecimal(fila.minL2)).append("\" ")
-                    .append("Min_L3i=\"").append(unDecimal(fila.minL3)).append("\" ")
-                    .append("Min_IN=\"").append(unDecimal(fila.minN)).append("\"/>\n");
+                    .append("Max_L1i=\"").append(fila.maxL1).append("\" ")
+                    .append("Max_L2i=\"").append(fila.maxL2).append("\" ")
+                    .append("Max_L3i=\"").append(fila.maxL3).append("\" ")
+                    .append("Max_IN=\"").append(fila.maxN).append("\" ")
+                    .append("Av_L1i=\"").append(fila.avL1).append("\" ")
+                    .append("Av_L2i=\"").append(fila.avL2).append("\" ")
+                    .append("Av_L3i=\"").append(fila.avL3).append("\" ")
+                    .append("Av_IN=\"").append(fila.avN).append("\" ")
+                    .append("Min_L1i=\"").append(fila.minL1).append("\" ")
+                    .append("Min_L2i=\"").append(fila.minL2).append("\" ")
+                    .append("Min_L3i=\"").append(fila.minL3).append("\" ")
+                    .append("Min_IN=\"").append(fila.minN).append("\"/>\n");
         }
 
         sb.append("    </Cnt>\n");
@@ -143,7 +137,6 @@ public class ResultadosCurvasActivity extends BaseActivity {
 
         return sb.toString();
     }
-
 
     private String quitarParentesis(String status) {
         if (status == null) return "";
@@ -153,9 +146,9 @@ public class ResultadosCurvasActivity extends BaseActivity {
     // =========================
     // GENERAR XML (S43)
     // =========================
-    private String generarCurvasS43XML(ArrayList<CurvaEnergiaFaseFila> datos, String cntId, String cncId, String stgVersion) {
+    private String generarCurvasS43XML(ArrayList<CurvaEnergiaFaseFila> datos, String cntId, String cncId) {
         StringBuilder sb = new StringBuilder();
-        sb.append("<Report IdRpt=\"S43\" IdPet=\"0\" Version=\"").append(stgVersion).append("\">\n");
+        sb.append("<Report IdRpt=\"S43\" IdPet=\"0\" Version=\"3.1.c\">\n");
         sb.append("  <Cnc Id=\"").append(cncId).append("\">\n");
         sb.append(" <Cnt Id=\"").append(cntId).append("\">\n");
 
@@ -164,24 +157,24 @@ public class ResultadosCurvasActivity extends BaseActivity {
             sb.append("      <S43 ")
                     .append("Fh=\"").append(Utils.convertirFecha(fila.fechaHora)).append("\" ")
                     .append("Bc=\"").append(quitarParentesis(fila.status)).append("\" ")
-                    .append("AI_L1=\"").append(sinDecimales(fila.eaPosR)).append("\" ")
-                    .append("AE_L1=\"").append(sinDecimales(fila.eaNegR)).append("\" ")
-                    .append("R1_L1=\"").append(sinDecimales(fila.q1R)).append("\" ")
-                    .append("R2_L1=\"").append(sinDecimales(fila.q2R)).append("\" ")
-                    .append("R3_L1=\"").append(sinDecimales(fila.q3R)).append("\" ")
-                    .append("R4_L1=\"").append(sinDecimales(fila.q4R)).append("\" ")
-                    .append("AI_L2=\"").append(sinDecimales(fila.eaPosS)).append("\" ")
-                    .append("AE_L2=\"").append(sinDecimales(fila.eaNegS)).append("\" ")
-                    .append("R1_L2=\"").append(sinDecimales(fila.q1S)).append("\" ")
-                    .append("R2_L2=\"").append(sinDecimales(fila.q2S)).append("\" ")
-                    .append("R3_L2=\"").append(sinDecimales(fila.q3S)).append("\" ")
-                    .append("R4_L2=\"").append(sinDecimales(fila.q4S)).append("\" ")
-                    .append("AI_L3=\"").append(sinDecimales(fila.eaPosT)).append("\" ")
-                    .append("AE_L3=\"").append(sinDecimales(fila.eaNegT)).append("\" ")
-                    .append("R1_L3=\"").append(sinDecimales(fila.q1T)).append("\" ")
-                    .append("R2_L3=\"").append(sinDecimales(fila.q2T)).append("\" ")
-                    .append("R3_L3=\"").append(sinDecimales(fila.q3T)).append("\" ")
-                    .append("R4_L3=\"").append(sinDecimales(fila.q4T)).append("\"/>\n");
+                    .append("AI_L1=\"").append(fila.eaPosR).append("\" ")
+                    .append("AE_L1=\"").append(fila.eaNegR).append("\" ")
+                    .append("R1_L1=\"").append(fila.q1R).append("\" ")
+                    .append("R2_L1=\"").append(fila.q2R).append("\" ")
+                    .append("R3_L1=\"").append(fila.q3R).append("\" ")
+                    .append("R4_L1=\"").append(fila.q4R).append("\" ")
+                    .append("AI_L2=\"").append(fila.eaPosS).append("\" ")
+                    .append("AE_L2=\"").append(fila.eaNegS).append("\" ")
+                    .append("R1_L2=\"").append(fila.q1S).append("\" ")
+                    .append("R2_L2=\"").append(fila.q2S).append("\" ")
+                    .append("R3_L2=\"").append(fila.q3S).append("\" ")
+                    .append("R4_L2=\"").append(fila.q4S).append("\" ")
+                    .append("AI_L3=\"").append(fila.eaPosT).append("\" ")
+                    .append("AE_L3=\"").append(fila.eaNegT).append("\" ")
+                    .append("R1_L3=\"").append(fila.q1T).append("\" ")
+                    .append("R2_L3=\"").append(fila.q2T).append("\" ")
+                    .append("R3_L3=\"").append(fila.q3T).append("\" ")
+                    .append("R4_L3=\"").append(fila.q4T).append("\"/>\n");
         }
 
         sb.append("    </Cnt>\n");
@@ -190,7 +183,6 @@ public class ResultadosCurvasActivity extends BaseActivity {
 
         return sb.toString();
     }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -259,6 +251,15 @@ public class ResultadosCurvasActivity extends BaseActivity {
         ArrayList<CurvaCorrienteFila> finalDatosS45 = datosS45;
         ArrayList<CurvaEnergiaFaseFila> finalDatosS43 = datosS43;
 
+        // Curva leída por IEC-870: el informe se exporta a Excel, no a XML
+        if (getIntent().hasExtra("datos_curva_iec")) {
+            @SuppressWarnings({"unchecked", "deprecation"})
+            ArrayList<Iec870LoadProfileRow> registrosIec = (ArrayList<Iec870LoadProfileRow>)
+                    getIntent().getSerializableExtra("datos_curva_iec");
+            btnExport.setOnClickListener(v -> exportarExcelIec(registrosIec, cntId));
+            return;
+        }
+
         btnExport.setOnClickListener(v -> {
 
             if (tipoFinal != TipoCurva.INCREMENTAL_S02
@@ -297,21 +298,20 @@ public class ResultadosCurvasActivity extends BaseActivity {
 
             SharedPreferences prefs = getSharedPreferences("ftp_config", MODE_PRIVATE);
             String cncName = prefs.getString("cncName", "Syncro");
-            String stgVersion = prefs.getString("stgVersion", "3.1.c");
 
             String xml;
             String idReporte;
             if (esS44) {
-                xml = generarCurvasS44XML(finalDatosS44, cntId, cncName, stgVersion);
+                xml = generarCurvasS44XML(finalDatosS44, cntId, cncName);
                 idReporte = "S44";
             } else if (esS45) {
-                xml = generarCurvasS45XML(finalDatosS45, cntId, cncName, stgVersion);
+                xml = generarCurvasS45XML(finalDatosS45, cntId, cncName);
                 idReporte = "S45";
             } else if (esS43) {
-                xml = generarCurvasS43XML(finalDatosS43, cntId, cncName, stgVersion);
+                xml = generarCurvasS43XML(finalDatosS43, cntId, cncName);
                 idReporte = "S43";
             } else {
-                xml = generarCurvasXML(finalDatosS02, cntId, cncName, stgVersion);
+                xml = generarCurvasXML(finalDatosS02, cntId, cncName);
                 idReporte = "S02";
             }
 
@@ -369,6 +369,33 @@ public class ResultadosCurvasActivity extends BaseActivity {
                 Toast.makeText(this, "Error al generar el fichero XML", Toast.LENGTH_LONG).show();
             }
         });
+    }
+
+    // =========================
+    // EXPORTACIÓN A EXCEL (IEC-870)
+    // =========================
+
+    /** Pide el CUPS y guarda la curva en Descargas/Syncro/Reports como .xlsx. */
+    private void exportarExcelIec(ArrayList<Iec870LoadProfileRow> registros, String contador) {
+        if (registros == null || registros.isEmpty()) {
+            Toast.makeText(this, "No hay datos para exportar", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        IecExcelExport.exportar(this, "Exportar curva a Excel",
+                cups -> nombreExcel(cups, registros),
+                (out, cups) -> Iec870CurvasXlsx.generar(out, cups, contador, registros));
+    }
+
+    /**
+     * "CUPS_Curvas_Mes_Año.xlsx" si la curva está dentro de un mes (el primer registro es el final
+     * del primer periodo, de ahí el minuto que se resta); si no, con las fechas de inicio y fin.
+     */
+    private static String nombreExcel(String cups, ArrayList<Iec870LoadProfileRow> registros) {
+        int[] ini = IecExcelExport.fechaMenosUnMinuto(registros.get(0).fechaHora);
+        int[] fin = IecExcelExport.fechaMenosUnMinuto(registros.get(registros.size() - 1).fechaHora);
+        String d = String.format(Locale.US, "%04d/%02d/%02d 00:00", ini[0], ini[1], ini[2]);
+        String h = String.format(Locale.US, "%04d/%02d/%02d 00:00", fin[0], fin[1], fin[2]);
+        return IecExcelExport.limpiar(cups) + "_Curvas_" + IecExcelExport.periodo(d, h) + ".xlsx";
     }
 
     // =========================
