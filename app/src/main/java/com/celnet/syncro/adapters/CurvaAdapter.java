@@ -30,7 +30,7 @@ public class CurvaAdapter extends RecyclerView.Adapter<CurvaAdapter.ViewHolder> 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         CurvaFila fila = datos.get(position);
-        holder.tvFechaHora.setText(fila.fechaHora);
+        holder.tvFechaHora.setText(formatoFecha(fila.fechaHora));
         holder.tvBc.setText(fila.bc);
         holder.tvAi.setText(fila.ai);
         holder.tvAe.setText(fila.ae);
@@ -48,6 +48,14 @@ public class CurvaAdapter extends RecyclerView.Adapter<CurvaAdapter.ViewHolder> 
     @Override
     public int getItemCount() {
         return datos.size();
+    }
+
+    /** "yyyy/MM/dd HH:mm:ss..." -> "dd/MM/yyyy HH:mm:ss..."; otros formatos se dejan igual. */
+    private static String formatoFecha(String texto) {
+        if (texto == null) return null;
+        java.util.regex.Matcher m = java.util.regex.Pattern
+                .compile("^(\\d{4})/(\\d{2})/(\\d{2})(.*)$").matcher(texto);
+        return m.matches() ? m.group(3) + "/" + m.group(2) + "/" + m.group(1) + m.group(4) : texto;
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
