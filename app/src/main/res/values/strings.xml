@@ -284,7 +284,7 @@
     <string name="iec_password">Clave (opcional)</string>
     <string name="iecLoadProfiles">Curvas de carga</string>
     <string name="relTrans">Relacion Trans.</string>
-    <string name="infoEquip">Info equipo</string>
+    <string name="infoEquip">Puertos</string>
 
 
 </resources>

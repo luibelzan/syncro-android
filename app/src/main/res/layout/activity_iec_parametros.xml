@@ -77,7 +77,7 @@
                     <ImageView
                         android:layout_width="120dp"
                         android:layout_height="120dp"
-                        android:src="@drawable/icp"
+                        android:src="@drawable/transf"
                         android:padding="16dp"/>
 
                     <TextView
@@ -111,37 +111,13 @@
                     <ImageView
                         android:layout_width="120dp"
                         android:layout_height="120dp"
-                        android:src="@drawable/pantalla"
+                        android:src="@drawable/puertos"
                         android:padding="16dp"/>
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/infoEquip"
-                        android:textSize="20sp"/>
-                </LinearLayout>
-
-                <!-- ICONO 2 -->
-                <LinearLayout
-                    android:id="@+id/btnNeutral"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:orientation="vertical"
-                    android:clickable="true"
-                    android:focusable="true">
-
-                    <ImageView
-                        android:layout_width="120dp"
-                        android:layout_height="120dp"
-                        android:src="@drawable/neutro"
-                        android:padding="16dp"/>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/neutro"
                         android:textSize="20sp"/>
                 </LinearLayout>
 
