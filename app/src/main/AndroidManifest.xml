@@ -27,6 +27,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Syncro">
         <activity
+            android:name=".IecConfigActivity"
+            android:exported="false" />
+        <activity
             android:name=".CambioPasswordActivity"
             android:exported="false" />
         <activity

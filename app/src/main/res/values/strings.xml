@@ -113,7 +113,7 @@
     <string name="parametros">Parámetros</string>
 
     <!-- MENU CONFIG -->
-    <string name="configMenu">Menu de Configuracion</string>
+    <string name="configMenu">Menu de Configuracion DLMS</string>
     <string name="ftpStg">FTP STG</string>
     <string name="ftpFirmware">FTP Firmware</string>
     <string name="stg">STG</string>
@@ -285,6 +285,7 @@
     <string name="iecLoadProfiles">Curvas de carga</string>
     <string name="relTrans">Relacion Trans.</string>
     <string name="infoEquip">Puertos</string>
+    <string name="iecConfigMenu">Menu de Configuracion IEC</string>
 
 
 </resources>

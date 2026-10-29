@@ -34,10 +34,10 @@ public class IecMenuActivity extends BaseActivity {
         LinearLayout btnSondaStatus = findViewById(R.id.btnSondaStatus);
         LinearLayout btnAbout = findViewById(R.id.btnAbout);
 
-        /*
+
         btnConfig.setOnClickListener(v ->
                 startActivity(new Intent(this, IecConfigActivity.class)));
-        */
+
         btnReads.setOnClickListener(v ->
                 startActivity(new Intent(this, IecReadsActivity.class)));
 
