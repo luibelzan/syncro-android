@@ -40,6 +40,13 @@ public class DLMSConnection {
     private GXDLMSReader reader;
     private GXNet net;
 
+    /** Sesión de firmware: dirección de cliente HDLC 3 (byte 0x07 en la trama). */
+    public static final int FIRMWARE_CLIENT_ADDRESS = 3;
+
+    // Si no son null, sustituyen a los de la configuración del contador (solo sesión de firmware)
+    private Integer overrideClientAddress = null;
+    private String overridePassword = null;
+
     public DLMSConnection(String device) {
         this.device = device;
         this.ip = null;
@@ -96,6 +103,35 @@ public class DLMSConnection {
                         (lastException != null ? " Último error: " + lastException.getMessage() : ""),
                 lastException
         );
+    }
+
+    // -----------------------------------------------------------------------
+    // Sesión de firmware (cliente 3 + contraseña de firmware), sin leer el serial
+    // -----------------------------------------------------------------------
+
+    /**
+     * Abre la sesión de firmware, distinta de la de gestión: cliente HDLC 3 y la contraseña de
+     * firmware ACTUAL en el AARQ. Usa el addressSize ya guardado por una conexión anterior. Cierre
+     * antes la sesión de gestión (otra instancia de DLMSConnection) igual que hace el software
+     * funcional.
+     */
+    public ConnectionResult connectFirmwareSession(Context context, String firmwarePassword)
+            throws Exception {
+        overrideClientAddress = FIRMWARE_CLIENT_ADDRESS;
+        overridePassword = firmwarePassword;
+        try {
+            int size = ConfigContadorActivity.loadConfig(context).addressSize;
+            GXDLMSReader r = (device != null)
+                    ? connectBluetooth(context, size)
+                    : connectTcp(context, size);
+            return new ConnectionResult(r, null);
+        } catch (Exception e) {
+            closeInternal();
+            throw e;
+        } finally {
+            overrideClientAddress = null;
+            overridePassword = null;
+        }
     }
 
     // -----------------------------------------------------------------------
@@ -179,10 +215,11 @@ public class DLMSConnection {
         client.setInterfaceType(InterfaceType.HDLC);
         client.setServerAddress(GXDLMSClient.getServerAddress(
                 cfg.logicalDevice, cfg.physicalDevice, addressSize));
-        client.setClientAddress(cfg.clientAddress);
+        client.setClientAddress(overrideClientAddress != null
+                ? overrideClientAddress : cfg.clientAddress);
         client.setUseLogicalNameReferencing(true);
         client.setAuthentication(cfg.authentication);
-        client.setPassword(cfg.password.getBytes());
+        client.setPassword((overridePassword != null ? overridePassword : cfg.password).getBytes());
         client.setMaxReceivePDUSize(236);
     }
 

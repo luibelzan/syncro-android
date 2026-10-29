@@ -120,6 +120,7 @@
     <string name="sonda">Sonda</string>
     <string name="appLog">App Log</string>
     <string name="cnt">Contador</string>
+    <string name="cambioPassword">Cambio Contraseña</string>
 
     <!-- FTP CONFIG -->
     <string name="ftp">Configuracion FTP</string>
