@@ -123,7 +123,7 @@
     <string name="cambioPassword">Cambio Contraseña</string>
 
     <!-- FTP CONFIG -->
-    <string name="ftp">Configuracion FTP</string>
+    <string name="ftp">Configuracion FTP DLMS</string>
     <string name="protocoloFtp">Protocolo FTP</string>
     <string name="dirFtp">Direccion Servidor</string>
     <string name="portFtp">Puerto</string>
@@ -286,6 +286,6 @@
     <string name="relTrans">Relacion Trans.</string>
     <string name="infoEquip">Puertos</string>
     <string name="iecConfigMenu">Menu de Configuracion IEC</string>
-
+    <string name="iecFtp">Configuracion FTP IEC</string>
 
 </resources>
