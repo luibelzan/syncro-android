@@ -107,7 +107,7 @@ public class ResultadosCierresActivity extends BaseActivity {
                                 Environment.DIRECTORY_DOWNLOADS);
 
                 // 🔹 Carpeta específica app
-                File syncroFolder = new File(downloadsFolder, "Syncro/Reports");
+                File syncroFolder = new File(downloadsFolder, "Syncro/Reports/DLMS");
 
                 // 🔹 Crear carpetas si no existen
                 if (!syncroFolder.exists()) {

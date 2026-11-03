@@ -145,7 +145,7 @@ public class ResultadosValoresInstantaneosS29Activity extends BaseActivity {
             String nombreFichero = cncName + "_0_S29_0_" + fechaActual;
 
             File downloadsFolder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-            File syncroFolder = new File(downloadsFolder, "Syncro/Reports");
+            File syncroFolder = new File(downloadsFolder, "Syncro/Reports/DLMS");
             if (!syncroFolder.exists()) syncroFolder.mkdirs();
 
             File file = new File(syncroFolder, nombreFichero);

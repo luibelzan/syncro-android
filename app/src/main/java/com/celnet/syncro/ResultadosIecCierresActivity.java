@@ -74,8 +74,16 @@ public class ResultadosIecCierresActivity extends BaseActivity {
         }
 
         // Exportar a Excel
+        // Exportar a Excel. Usa el botón btnExport del layout si existe; si no, lo crea aquí para
+        // no depender de que el layout del proyecto esté actualizado.
         ExtendedFloatingActionButton btnExport = findViewById(R.id.btnExport);
-        btnExport.setVisibility(android.view.View.VISIBLE);
+        if (btnExport != null) {
+            btnExport.setVisibility(android.view.View.VISIBLE);
+        } else {
+            btnExport = crearBotonExportar();
+            contenedor.setPadding(contenedor.getPaddingLeft(), contenedor.getPaddingTop(),
+                    contenedor.getPaddingRight(), contenedor.getPaddingBottom() + dp(88));
+        }
         btnExport.setOnClickListener(v -> IecExcelExport.exportar(this, "Exportar cierres a Excel",
                 cups -> nombreExcel(cups, registros),
                 (out, cups) -> Iec870CierresXlsx.generar(out, cups, cntId != null ? cntId : "", registros)));
@@ -112,6 +120,36 @@ public class ResultadosIecCierresActivity extends BaseActivity {
         String d = String.format(java.util.Locale.US, "%04d/%02d/%02d 00:00", ini[0], ini[1], ini[2]);
         String h = String.format(java.util.Locale.US, "%04d/%02d/%02d 00:00", fin[0], fin[1], fin[2]);
         return base + IecExcelExport.periodo(d, h) + ".xlsx";
+    }
+
+    /** Botón "Exportar" flotante (abajo a la derecha) añadido por código sobre cualquier layout. */
+    private ExtendedFloatingActionButton crearBotonExportar() {
+        ExtendedFloatingActionButton btn = new ExtendedFloatingActionButton(this);
+        btn.setText(R.string.export);
+        btn.setTextColor(ContextCompat.getColor(this, R.color.white));
+        btn.setIconResource(R.drawable.reportestg);
+        btn.setIconTint(android.content.res.ColorStateList.valueOf(
+                ContextCompat.getColor(this, R.color.white)));
+        btn.setBackgroundTintList(android.content.res.ColorStateList.valueOf(
+                ContextCompat.getColor(this, R.color.primary)));
+
+        android.widget.FrameLayout.LayoutParams lp = new android.widget.FrameLayout.LayoutParams(
+                android.widget.FrameLayout.LayoutParams.WRAP_CONTENT,
+                android.widget.FrameLayout.LayoutParams.WRAP_CONTENT,
+                Gravity.BOTTOM | Gravity.END);
+        lp.setMargins(0, 0, dp(24), dp(24));
+        addContentView(btn, lp);
+
+        // Respeta las barras del sistema (pantalla de borde a borde)
+        ViewCompat.setOnApplyWindowInsetsListener(btn, (v, insets) -> {
+            Insets sb = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            android.widget.FrameLayout.LayoutParams p =
+                    (android.widget.FrameLayout.LayoutParams) v.getLayoutParams();
+            p.setMargins(0, 0, dp(24) + sb.right, dp(24) + sb.bottom);
+            v.setLayoutParams(p);
+            return insets;
+        });
+        return btn;
     }
 
     private void addCierre(List<Iec870BillingRecord> g) {

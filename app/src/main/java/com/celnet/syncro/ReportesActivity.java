@@ -17,6 +17,7 @@ import com.celnet.syncro.adapters.ReportesAdapter;
 import com.celnet.syncro.models.ReportFile;
 import com.celnet.syncro.models.UploadResult;
 import com.celnet.syncro.utils.Utils;
+import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
 import java.io.File;
@@ -25,8 +26,19 @@ import java.util.Iterator;
 
 public class ReportesActivity extends BaseActivity {
 
+    // Carpetas de reportes (dentro de Descargas)
+    private static final String CARPETA_RAIZ = "Syncro/Reports";
+    private static final String CARPETA_DLMS = CARPETA_RAIZ + "/DLMS";
+    private static final String CARPETA_IEC = CARPETA_RAIZ + "/IEC";
+
+    private enum Filtro { TODOS, DLMS, IEC }
+
+    /** Todos los reportes encontrados. */
+    private final ArrayList<ReportFile> todos = new ArrayList<>();
+    /** Los que se ven según el filtro; es la lista que enseña el adaptador y sobre la que actúan Enviar y Eliminar. */
     private ArrayList<ReportFile> lista = new ArrayList<>();
     private ReportesAdapter adapter;
+    private Filtro filtro = Filtro.TODOS;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,9 +58,27 @@ public class ReportesActivity extends BaseActivity {
         rv.setLayoutManager(new LinearLayoutManager(this));
 
         cargarReportes();
+        aplicarFiltro();
 
         adapter = new ReportesAdapter(lista);
         rv.setAdapter(adapter);
+
+        ChipGroup chips = findViewById(R.id.chipsFiltro);
+        chips.setOnCheckedStateChangeListener((group, checkedIds) -> {
+            if (checkedIds.isEmpty()) {
+                return;
+            }
+            int id = checkedIds.get(0);
+            if (id == R.id.chipDlms) {
+                filtro = Filtro.DLMS;
+            } else if (id == R.id.chipIec) {
+                filtro = Filtro.IEC;
+            } else {
+                filtro = Filtro.TODOS;
+            }
+            aplicarFiltro();
+            adapter.notifyDataSetChanged();
+        });
 
         btnEnviar.setOnClickListener(v -> enviarSeleccionados(btnEnviar));
         btnEliminar.setOnClickListener(v -> confirmarEliminarSeleccionados());
@@ -60,20 +90,53 @@ public class ReportesActivity extends BaseActivity {
                 Environment.getExternalStoragePublicDirectory(
                         Environment.DIRECTORY_DOWNLOADS);
 
-        File reportsFolder = new File(downloads, "Syncro/Reports");
+        todos.clear();
 
-        if (reportsFolder.exists()) {
+        listarCarpeta(new File(downloads, CARPETA_DLMS), ReportFile.Origen.DLMS, false);
+        listarCarpeta(new File(downloads, CARPETA_IEC), ReportFile.Origen.IEC, false);
 
-            File[] archivos = reportsFolder.listFiles();
+        // Reportes antiguos, guardados directamente en Syncro/Reports antes de separar por
+        // protocolo: los de IEC son siempre .xlsx; el resto (XML) son de DLMS.
+        listarCarpeta(new File(downloads, CARPETA_RAIZ), null, true);
+    }
 
-            if (archivos != null) {
+    /**
+     * Añade a "todos" los ficheros de una carpeta. Con origen == null (carpeta raíz heredada) se
+     * deduce por la extensión.
+     */
+    private void listarCarpeta(File carpeta, ReportFile.Origen origen, boolean heredada) {
 
-                for (File file : archivos) {
+        if (!carpeta.exists()) {
+            return;
+        }
 
-                    if (file.isFile()) {
-                        lista.add(new ReportFile(file));
-                    }
-                }
+        File[] archivos = carpeta.listFiles();
+        if (archivos == null) {
+            return;
+        }
+
+        for (File file : archivos) {
+            if (!file.isFile()) {
+                continue;
+            }
+            ReportFile.Origen o = origen;
+            if (heredada) {
+                o = file.getName().toLowerCase().endsWith(".xlsx")
+                        ? ReportFile.Origen.IEC
+                        : ReportFile.Origen.DLMS;
+            }
+            todos.add(new ReportFile(file, o));
+        }
+    }
+
+    /** Rellena "lista" con los reportes que cumplen el filtro actual. */
+    private void aplicarFiltro() {
+        lista.clear();
+        for (ReportFile report : todos) {
+            if (filtro == Filtro.TODOS
+                    || (filtro == Filtro.DLMS && report.getOrigen() == ReportFile.Origen.DLMS)
+                    || (filtro == Filtro.IEC && report.getOrigen() == ReportFile.Origen.IEC)) {
+                lista.add(report);
             }
         }
     }
@@ -121,6 +184,7 @@ public class ReportesActivity extends BaseActivity {
             if (borrado) {
                 eliminados++;
                 iterator.remove();
+                todos.remove(report);
             } else {
                 fallidos++;
                 android.util.Log.e("ReportesActivity",

@@ -113,7 +113,7 @@ public class ParametersActivity extends BaseActivity {
 
         File syncroFolder = new File(
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                "Syncro/Reports"
+                "Syncro/Reports/DLMS"
         );
         if (!syncroFolder.exists()) syncroFolder.mkdirs();
 

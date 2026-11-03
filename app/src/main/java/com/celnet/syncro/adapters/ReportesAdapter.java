@@ -3,12 +3,9 @@ package com.celnet.syncro.adapters;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.celnet.syncro.R;
@@ -46,7 +43,8 @@ public class ReportesAdapter extends RecyclerView.Adapter<ReportesAdapter.ViewHo
         holder.txtNombre.setText(report.getFile().getName());
 
         String info =
-                formatearTamano(report.getFile().length()) + " · " +
+                report.getOrigen() + " · " +
+                        (report.getFile().length() / 1024) + " KB · " +
                         new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
                                 .format(new Date(report.getFile().lastModified()));
 
@@ -62,67 +60,6 @@ public class ReportesAdapter extends RecyclerView.Adapter<ReportesAdapter.ViewHo
         boolean esPar = position % 2 == 0;
         holder.itemView.setBackgroundResource(
                 esPar ? R.drawable.bg_row_fila : R.drawable.bg_row_fila_alt);
-
-        pintarEstado(holder, report);
-    }
-
-    /**
-     * Formatea el tamaño de un archivo con la unidad más adecuada:
-     * bytes si es menor a 1 KB, KB si es menor a 1 MB, MB en adelante.
-     */
-    private String formatearTamano(long bytes) {
-        if (bytes < 1024) {
-            return bytes + " B";
-        }
-        double kb = bytes / 1024.0;
-        if (kb < 1024) {
-            return String.format(Locale.getDefault(), "%.1f KB", kb);
-        }
-        double mb = kb / 1024.0;
-        return String.format(Locale.getDefault(), "%.1f MB", mb);
-    }
-
-    private void pintarEstado(ViewHolder holder, ReportFile report) {
-        holder.progressEstado.setVisibility(View.GONE);
-        holder.ivEstado.setVisibility(View.GONE);
-        holder.txtEstado.setVisibility(View.GONE);
-
-        switch (report.getEstado()) {
-            case SUBIENDO:
-                holder.progressEstado.setVisibility(View.VISIBLE);
-                holder.txtEstado.setVisibility(View.VISIBLE);
-                holder.txtEstado.setText("Enviando...");
-                holder.txtEstado.setTextColor(
-                        ContextCompat.getColor(holder.itemView.getContext(), R.color.on_surface_variant));
-                break;
-
-            case EXITO:
-                holder.ivEstado.setVisibility(View.VISIBLE);
-                holder.ivEstado.setImageResource(android.R.drawable.checkbox_on_background);
-                holder.ivEstado.setColorFilter(
-                        ContextCompat.getColor(holder.itemView.getContext(), R.color.success));
-                holder.txtEstado.setVisibility(View.VISIBLE);
-                holder.txtEstado.setText("Enviado correctamente");
-                holder.txtEstado.setTextColor(
-                        ContextCompat.getColor(holder.itemView.getContext(), R.color.success));
-                break;
-
-            case ERROR:
-                holder.ivEstado.setVisibility(View.VISIBLE);
-                holder.ivEstado.setImageResource(android.R.drawable.ic_delete);
-                holder.ivEstado.setColorFilter(
-                        ContextCompat.getColor(holder.itemView.getContext(), R.color.error));
-                holder.txtEstado.setVisibility(View.VISIBLE);
-                String motivo = report.getMensajeError();
-                holder.txtEstado.setText(motivo != null ? "Error: " + motivo : "Error al enviar");
-                holder.txtEstado.setTextColor(
-                        ContextCompat.getColor(holder.itemView.getContext(), R.color.error));
-                break;
-
-            case PENDIENTE:
-            default:
-                break;
-        }
     }
 
     @Override
@@ -134,20 +71,14 @@ public class ReportesAdapter extends RecyclerView.Adapter<ReportesAdapter.ViewHo
 
         TextView txtNombre;
         TextView txtInfo;
-        TextView txtEstado;
         MaterialCheckBox checkBox;
-        ProgressBar progressEstado;
-        ImageView ivEstado;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
 
             txtNombre = itemView.findViewById(R.id.txtNombre);
             txtInfo = itemView.findViewById(R.id.txtInfo);
-            txtEstado = itemView.findViewById(R.id.txtEstado);
             checkBox = itemView.findViewById(R.id.checkReporte);
-            progressEstado = itemView.findViewById(R.id.progressEstado);
-            ivEstado = itemView.findViewById(R.id.ivEstado);
         }
     }
 }

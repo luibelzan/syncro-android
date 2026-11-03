@@ -121,7 +121,7 @@ public class ResultadosCierresMensualesActivity extends AppCompatActivity {
                                 Environment.DIRECTORY_DOWNLOADS);
 
                 // 🔹 Carpeta específica app
-                File syncroFolder = new File(downloadsFolder, "Syncro/Reports");
+                File syncroFolder = new File(downloadsFolder, "Syncro/Reports/DLMS");
 
                 // 🔹 Crear carpetas si no existen
                 if (!syncroFolder.exists()) {

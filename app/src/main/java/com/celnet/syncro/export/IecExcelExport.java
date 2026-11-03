@@ -17,7 +17,7 @@ import java.util.Calendar;
 
 /**
  * Exportación de informes IEC-870 a Excel: pide el CUPS (recordando el último), genera el .xlsx en
- * Descargas/Syncro/Reports y avisa. No se envía por FTP.
+ * Descargas/Syncro/Reports/iec y avisa. No se envía por FTP.
  */
 public final class IecExcelExport {
 
@@ -66,7 +66,7 @@ public final class IecExcelExport {
                     new Thread(() -> {
                         try {
                             File carpeta = new File(Environment.getExternalStoragePublicDirectory(
-                                    Environment.DIRECTORY_DOWNLOADS), "Syncro/Reports");
+                                    Environment.DIRECTORY_DOWNLOADS), "Syncro/Reports/IEC");
                             if (!carpeta.exists()) carpeta.mkdirs();
                             File fichero = new File(carpeta, nombre.de(cups));
 
@@ -74,7 +74,7 @@ public final class IecExcelExport {
                                 generador.generar(fos, cups);
                             }
                             activity.runOnUiThread(() -> Toast.makeText(activity,
-                                    "Informe guardado en Descargas/Syncro/Reports/" + fichero.getName(),
+                                    "Informe guardado en Descargas/Syncro/Reports/IEC/" + fichero.getName(),
                                     Toast.LENGTH_LONG).show());
                         } catch (Exception e) {
                             e.printStackTrace();

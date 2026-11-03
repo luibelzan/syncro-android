@@ -35,18 +35,56 @@
         app:layout_constraintStart_toStartOf="@id/textView"
         app:layout_constraintTop_toBottomOf="@id/textView" />
 
+    <!-- Filtro por protocolo -->
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/chipsFiltro"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="24dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/dividerHeader"
+        app:selectionRequired="true"
+        app:singleSelection="true">
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipTodos"
+            style="@style/Widget.Material3.Chip.Filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="Todos" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipDlms"
+            style="@style/Widget.Material3.Chip.Filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="DLMS" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipIec"
+            style="@style/Widget.Material3.Chip.Filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="IEC" />
+
+    </com.google.android.material.chip.ChipGroup>
+
     <!-- Lista de reportes -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvReportes"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="8dp"
         android:clipToPadding="false"
         android:paddingBottom="88dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/dividerHeader" />
+        app:layout_constraintTop_toBottomOf="@id/chipsFiltro" />
 
     <!-- Botonera: eliminar + enviar -->
     <LinearLayout

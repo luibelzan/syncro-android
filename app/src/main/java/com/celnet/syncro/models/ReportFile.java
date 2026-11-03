@@ -11,18 +11,34 @@ public class ReportFile {
         ERROR
     }
 
+    /** Protocolo del contador del que procede el reporte. */
+    public enum Origen {
+        DLMS,
+        IEC
+    }
+
     private File file;
+    private Origen origen;
     private boolean seleccionado;
     private EstadoEnvio estado = EstadoEnvio.PENDIENTE;
 
     private String mensajeError;
 
     public ReportFile(File file) {
+        this(file, Origen.DLMS);
+    }
+
+    public ReportFile(File file, Origen origen) {
         this.file = file;
+        this.origen = origen;
     }
 
     public File getFile() {
         return file;
+    }
+
+    public Origen getOrigen() {
+        return origen;
     }
 
     public boolean isSeleccionado() {

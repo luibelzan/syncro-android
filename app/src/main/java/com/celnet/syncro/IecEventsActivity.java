@@ -148,6 +148,7 @@ public class IecEventsActivity extends BaseActivity {
                     Intent intent = new Intent(IecEventsActivity.this, ResultadosEventsActivity.class);
                     intent.putParcelableArrayListExtra("datos_event_tabla", res.filas);
                     intent.putExtra("cntId", res.serie);
+                    intent.putExtra(ResultadosEventsActivity.EXTRA_ES_IEC, true);
 
                     runOnUiThread(() -> {
                         restaurarUi(progressBar, btnNext, editFechaInicio, editFechaFin);
