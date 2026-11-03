@@ -287,5 +287,6 @@
     <string name="infoEquip">Puertos</string>
     <string name="iecConfigMenu">Menu de Configuracion IEC</string>
     <string name="iecFtp">Configuracion FTP IEC</string>
+    <string name="iecStgConfig">Configuracion STG IEC</string>
 
 </resources>

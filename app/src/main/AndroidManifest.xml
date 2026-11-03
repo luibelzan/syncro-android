@@ -27,6 +27,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Syncro">
         <activity
+            android:name=".IecConfigContadorActivity"
+            android:exported="false" />
+        <activity
+            android:name=".IecStgActivity"
+            android:exported="false" />
+        <activity
             android:name=".IecFtpActivity"
             android:exported="false" />
         <activity
