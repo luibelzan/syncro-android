@@ -192,55 +192,92 @@ public class Utils {
                 "Formato de fecha no soportado: " + fechaEntrada);
     }
 
+
     // =========================
 // SUBIDA SFTP
 // =========================
     public static UploadResult subirArchivoSFTPConDetalle(Context context, File file) {
+
+        Session session = null;
+        ChannelSftp sftp = null;
+
         try {
             SharedPreferences prefs = context.getSharedPreferences(
                     "ftp_config",
                     Context.MODE_PRIVATE
             );
 
-            String host = prefs.getString("dir", "");
+            String host = prefs.getString("dir", "").trim();
             int port = Integer.parseInt(prefs.getString("port", "22"));
-            String user = prefs.getString("user", "");
+            String user = prefs.getString("user", "").trim();
             String pass = prefs.getString("pass", "");
-            String folder = prefs.getString("folder", "/");
+            String folder = prefs.getString("folder", "/").trim();
+
+            if (host.isEmpty() || user.isEmpty()) {
+                return UploadResult.error("Host o usuario SFTP vacío");
+            }
+
+            if (port < 1 || port > 65535) {
+                return UploadResult.error("Puerto SFTP no válido: " + port);
+            }
+
+            if (file == null || !file.isFile() || !file.canRead()) {
+                return UploadResult.error("El archivo no existe o no se puede leer");
+            }
 
             AppLogger.i("Utils", "SFTP: conectando a " + host + ":" + port
                     + " usuario=" + user + " carpeta=" + folder);
 
             JSch jsch = new JSch();
-            Session session = jsch.getSession(user, host, port);
 
+            session = jsch.getSession(user, host, port);
             session.setPassword(pass);
 
             Properties config = new Properties();
             config.put("StrictHostKeyChecking", "no");
+
             session.setConfig(config);
+            session.setTimeout(15000);
 
             session.connect(10000);
 
             Channel channel = session.openChannel("sftp");
-            channel.connect();
+            channel.connect(10000);
 
-            ChannelSftp sftp = (ChannelSftp) channel;
+            sftp = (ChannelSftp) channel;
 
             sftp.cd(folder);
-            sftp.put(file.getAbsolutePath(), file.getName());
 
-            sftp.exit();
-            session.disconnect();
+            try (FileInputStream fis = new FileInputStream(file)) {
+                sftp.put(fis, file.getName());
+            }
 
-            AppLogger.i("Utils", "SFTP: archivo subido correctamente: " + file.getName());
+            AppLogger.i("Utils", "SFTP: archivo subido correctamente: "
+                    + file.getName());
+
             return UploadResult.ok();
 
         } catch (Exception e) {
+
             String msg = e.getClass().getSimpleName() + ": " + e.getMessage();
-            AppLogger.e("Utils", "SFTP: error al subir " + file.getName() + " -> " + msg);
+
+            AppLogger.e("Utils", "SFTP: error al subir "
+                    + (file != null ? file.getName() : "archivo nulo")
+                    + " -> " + msg);
+
             e.printStackTrace();
+
             return UploadResult.error(msg);
+
+        } finally {
+
+            if (sftp != null && sftp.isConnected()) {
+                sftp.disconnect();
+            }
+
+            if (session != null && session.isConnected()) {
+                session.disconnect();
+            }
         }
     }
 
@@ -248,42 +285,57 @@ public class Utils {
         return subirArchivoSFTPConDetalle(context, file).success;
     }
 
+
+
     // =========================
 // SUBIDA FTP
 // =========================
     public static UploadResult subirArchivoFTPConDetalle(Context context, File file) {
 
+        FTPClient ftp = new FTPClient();
+
         try {
             SharedPreferences prefs =
                     context.getSharedPreferences("ftp_config", Context.MODE_PRIVATE);
 
-            String host = prefs.getString("dir", "");
+            String host = prefs.getString("dir", "").trim();
             int port = Integer.parseInt(prefs.getString("port", "21"));
             String user = prefs.getString("user", "").trim();
-            String pass = prefs.getString("pass", "").trim();
+            String pass = prefs.getString("pass", "");
             String folder = prefs.getString("folder", "/folder");
+
+            if (host.isEmpty() || user.isEmpty()) {
+                return UploadResult.error("Host o usuario FTP vacío");
+            }
+
+            if (port < 1 || port > 65535) {
+                return UploadResult.error("Puerto FTP no válido: " + port);
+            }
+
+            if (file == null || !file.isFile() || !file.canRead()) {
+                return UploadResult.error("El archivo no existe o no se puede leer");
+            }
 
             AppLogger.i("Utils", "FTP: conectando a " + host + ":" + port
                     + " usuario=" + user + " carpeta=" + folder);
 
-            AppLogger.i("Utils-DEBUG", "user=[" + user + "] len=" + user.length());
-            AppLogger.i("Utils-DEBUG", "pass=[" + pass + "] len=" + pass.length());
-            AppLogger.i("Utils-DEBUG", "host=[" + host + "] len=" + pass.length());
-            AppLogger.i("Utils-DEBUG", "port=[" + port + "] len=" + pass.length());
-
-
-            FTPClient ftp = new FTPClient();
+            ftp.setConnectTimeout(10000);
+            ftp.setDefaultTimeout(15000);
+            ftp.setDataTimeout(java.time.Duration.ofSeconds(30));
 
             java.io.Writer logWriter = new java.io.Writer() {
+
                 private final StringBuilder buffer = new StringBuilder();
 
                 @Override
                 public void write(char[] cbuf, int off, int len) {
                     buffer.append(cbuf, off, len);
+
                     int idx;
                     while ((idx = buffer.indexOf("\n")) >= 0) {
                         String line = buffer.substring(0, idx).trim();
                         buffer.delete(0, idx + 1);
+
                         if (!line.isEmpty()) {
                             AppLogger.i("Utils-FTP-RAW", line);
                         }
@@ -298,20 +350,29 @@ public class Utils {
             };
 
             ftp.addProtocolCommandListener(
-                    new org.apache.commons.net.PrintCommandListener(new java.io.PrintWriter(logWriter), true)
+                    new org.apache.commons.net.PrintCommandListener(
+                            new java.io.PrintWriter(logWriter), true
+                    )
             );
 
             ftp.connect(host, port);
 
-            ftp.connect(host, port);
-
             int replyCode = ftp.getReplyCode();
-            AppLogger.i("Utils", "FTP: connect reply=" + replyCode + " " + ftp.getReplyString());
+
+            AppLogger.i("Utils", "FTP: connect reply="
+                    + replyCode + " " + ftp.getReplyString());
+
+            if (!org.apache.commons.net.ftp.FTPReply.isPositiveCompletion(replyCode)) {
+                return UploadResult.error(
+                        "Conexión FTP rechazada: " + ftp.getReplyString()
+                );
+            }
 
             if (!ftp.login(user, pass)) {
-                String msg = "Login rechazado (código " + ftp.getReplyCode() + "): " + ftp.getReplyString();
+                String msg = "Login rechazado (código "
+                        + ftp.getReplyCode() + "): " + ftp.getReplyString();
+
                 AppLogger.e("Utils", "FTP: " + msg);
-                ftp.disconnect();
                 return UploadResult.error(msg);
             }
 
@@ -320,37 +381,65 @@ public class Utils {
 
             if (!ftp.changeWorkingDirectory(folder)) {
                 String msg = "No se pudo acceder a la carpeta '" + folder
-                        + "' (código " + ftp.getReplyCode() + "): " + ftp.getReplyString();
+                        + "' (código " + ftp.getReplyCode()
+                        + "): " + ftp.getReplyString();
+
                 AppLogger.e("Utils", "FTP: " + msg);
-                ftp.logout();
-                ftp.disconnect();
                 return UploadResult.error(msg);
             }
 
-            FileInputStream fis = new FileInputStream(file);
+            boolean success;
 
-            boolean success = ftp.storeFile(file.getName(), fis);
-
-            fis.close();
+            try (FileInputStream fis = new FileInputStream(file)) {
+                success = ftp.storeFile(file.getName(), fis);
+            }
 
             String replyMsg = ftp.getReplyString();
-            ftp.logout();
-            ftp.disconnect();
+            int finalReplyCode = ftp.getReplyCode();
 
             if (success) {
-                AppLogger.i("Utils", "FTP: archivo subido correctamente: " + file.getName());
+                AppLogger.i("Utils", "FTP: archivo subido correctamente: "
+                        + file.getName());
+
                 return UploadResult.ok();
+
             } else {
-                String msg = "storeFile falló (código " + ftp.getReplyCode() + "): " + replyMsg;
+                String msg = "storeFile falló (código "
+                        + finalReplyCode + "): " + replyMsg;
+
                 AppLogger.e("Utils", "FTP: " + msg);
                 return UploadResult.error(msg);
             }
 
         } catch (Exception e) {
+
             String msg = e.getClass().getSimpleName() + ": " + e.getMessage();
-            AppLogger.e("Utils", "FTP: error al subir " + file.getName() + " -> " + msg);
+
+            AppLogger.e("Utils", "FTP: error al subir "
+                    + (file != null ? file.getName() : "archivo nulo")
+                    + " -> " + msg);
+
             e.printStackTrace();
+
             return UploadResult.error(msg);
+
+        } finally {
+
+            if (ftp.isConnected()) {
+                try {
+                    if (ftp.isAvailable()) {
+                        ftp.logout();
+                    }
+                } catch (Exception e) {
+                    AppLogger.e("Utils", "FTP: error en logout: " + e.getMessage());
+                }
+
+                try {
+                    ftp.disconnect();
+                } catch (Exception e) {
+                    AppLogger.e("Utils", "FTP: error desconectando: " + e.getMessage());
+                }
+            }
         }
     }
 
@@ -358,83 +447,139 @@ public class Utils {
         return subirArchivoFTPConDetalle(context, file).success;
     }
 
+
+
     // =========================
 // SUBIDA FTPS
 // =========================
     public static UploadResult subirArchivoFTPSConDetalle(Context context, File file) {
 
+        FTPSClient ftps = new FTPSClient();
+
         try {
             SharedPreferences prefs =
                     context.getSharedPreferences("ftp_config", Context.MODE_PRIVATE);
 
-            String host = prefs.getString("dir", "");
+            String host = prefs.getString("dir", "").trim();
             int port = Integer.parseInt(prefs.getString("port", "21"));
-            String user = prefs.getString("user", "");
+            String user = prefs.getString("user", "").trim();
             String pass = prefs.getString("pass", "");
             String folder = prefs.getString("folder", "/folder");
+
+            if (host.isEmpty() || user.isEmpty()) {
+                return UploadResult.error("Host o usuario FTPS vacío");
+            }
+
+            if (port < 1 || port > 65535) {
+                return UploadResult.error("Puerto FTPS no válido: " + port);
+            }
+
+            if (file == null || !file.isFile() || !file.canRead()) {
+                return UploadResult.error("El archivo no existe o no se puede leer");
+            }
 
             AppLogger.i("Utils", "FTPS: conectando a " + host + ":" + port
                     + " usuario=" + user + " carpeta=" + folder);
 
-            FTPSClient ftps = new FTPSClient();
+            ftps.setConnectTimeout(10000);
+            ftps.setDefaultTimeout(15000);
+            ftps.setDataTimeout(java.time.Duration.ofSeconds(30));
 
             ftps.connect(host, port);
 
             int replyCode = ftps.getReplyCode();
-            AppLogger.i("Utils", "FTPS: connect reply=" + replyCode + " " + ftps.getReplyString());
 
-            if (!ftps.login(user, pass)) {
-                String msg = "Login rechazado (código " + ftps.getReplyCode() + "): " + ftps.getReplyString();
-                AppLogger.e("Utils", "FTPS: " + msg);
-                ftps.disconnect();
-                return UploadResult.error(msg);
+            AppLogger.i("Utils", "FTPS: connect reply="
+                    + replyCode + " " + ftps.getReplyString());
+
+            if (!org.apache.commons.net.ftp.FTPReply.isPositiveCompletion(replyCode)) {
+                return UploadResult.error(
+                        "Conexión FTPS rechazada: " + ftps.getReplyString()
+                );
             }
 
-            ftps.enterLocalPassiveMode();
-            ftps.setFileType(FTP.BINARY_FILE_TYPE);
+            if (!ftps.login(user, pass)) {
+                String msg = "Login rechazado (código "
+                        + ftps.getReplyCode() + "): " + ftps.getReplyString();
+
+                AppLogger.e("Utils", "FTPS: " + msg);
+                return UploadResult.error(msg);
+            }
 
             ftps.execPBSZ(0);
             ftps.execPROT("P");
 
+            ftps.enterLocalPassiveMode();
+            ftps.setFileType(FTP.BINARY_FILE_TYPE);
+
             if (!ftps.changeWorkingDirectory(folder)) {
                 String msg = "No se pudo acceder a la carpeta '" + folder
-                        + "' (código " + ftps.getReplyCode() + "): " + ftps.getReplyString();
+                        + "' (código " + ftps.getReplyCode()
+                        + "): " + ftps.getReplyString();
+
                 AppLogger.e("Utils", "FTPS: " + msg);
-                ftps.logout();
-                ftps.disconnect();
                 return UploadResult.error(msg);
             }
 
-            FileInputStream fis = new FileInputStream(file);
+            boolean success;
 
-            boolean success = ftps.storeFile(file.getName(), fis);
-
-            fis.close();
+            try (FileInputStream fis = new FileInputStream(file)) {
+                success = ftps.storeFile(file.getName(), fis);
+            }
 
             String replyMsg = ftps.getReplyString();
-            ftps.logout();
-            ftps.disconnect();
+            int finalReplyCode = ftps.getReplyCode();
 
             if (success) {
-                AppLogger.i("Utils", "FTPS: archivo subido correctamente: " + file.getName());
+                AppLogger.i("Utils", "FTPS: archivo subido correctamente: "
+                        + file.getName());
+
                 return UploadResult.ok();
+
             } else {
-                String msg = "storeFile falló (código " + ftps.getReplyCode() + "): " + replyMsg;
+                String msg = "storeFile falló (código "
+                        + finalReplyCode + "): " + replyMsg;
+
                 AppLogger.e("Utils", "FTPS: " + msg);
                 return UploadResult.error(msg);
             }
 
         } catch (Exception e) {
+
             String msg = e.getClass().getSimpleName() + ": " + e.getMessage();
-            AppLogger.e("Utils", "FTPS: error al subir " + file.getName() + " -> " + msg);
+
+            AppLogger.e("Utils", "FTPS: error al subir "
+                    + (file != null ? file.getName() : "archivo nulo")
+                    + " -> " + msg);
+
             e.printStackTrace();
+
             return UploadResult.error(msg);
+
+        } finally {
+
+            if (ftps.isConnected()) {
+                try {
+                    if (ftps.isAvailable()) {
+                        ftps.logout();
+                    }
+                } catch (Exception e) {
+                    AppLogger.e("Utils", "FTPS: error en logout: " + e.getMessage());
+                }
+
+                try {
+                    ftps.disconnect();
+                } catch (Exception e) {
+                    AppLogger.e("Utils", "FTPS: error desconectando: " + e.getMessage());
+                }
+            }
         }
     }
 
     public static boolean subirArchivoFTPS(Context context, File file) {
         return subirArchivoFTPSConDetalle(context, file).success;
     }
+
 
     private void guardarXML(Context context, String xmlContenido, String nombreArchivo) {
         try {

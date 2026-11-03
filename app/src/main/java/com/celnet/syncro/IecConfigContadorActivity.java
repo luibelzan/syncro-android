@@ -63,7 +63,7 @@ public class IecConfigContadorActivity extends BaseActivity {
         Config c = new Config();
         c.baud = p.getInt(KEY_BAUD, DEFAULT_BAUD);
         c.dataBits = p.getInt(KEY_DATA_BITS, DEFAULT_DATA_BITS);
-        c.parity = p.getString(KEY_PARITY, DEFAULT_PARITY); 
+        c.parity = p.getString(KEY_PARITY, DEFAULT_PARITY);
         c.stopBits = p.getString(KEY_STOP_BITS, DEFAULT_STOP_BITS);
         return c;
     }

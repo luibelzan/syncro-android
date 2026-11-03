@@ -19,3 +19,7 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# JSch: conservar clases cargadas dinámicamente
+-keep class com.jcraft.jsch.** { *; }
+-dontwarn com.jcraft.jsch.**

@@ -51,7 +51,7 @@ dependencies {
     implementation("org.gurux:gurux.common:1.0.17")
     implementation("org.gurux:gurux.serial:1.0.29")
     implementation("org.gurux:gurux.net:1.0.30")
-    implementation("com.jcraft:jsch:0.1.55")
+    implementation("com.github.mwiede:jsch:2.28.8")
     implementation("commons-net:commons-net:3.9.0")
     implementation(platform("com.google.firebase:firebase-bom:34.13.0"))
     implementation("com.google.firebase:firebase-analytics")
