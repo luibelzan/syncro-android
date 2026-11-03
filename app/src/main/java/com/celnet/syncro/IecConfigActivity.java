@@ -40,7 +40,7 @@ public class IecConfigActivity extends AppCompatActivity {
         btnStg.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(IecConfigActivity.this, StgActivity.class);
+                Intent intent = new Intent(IecConfigActivity.this, IecStgActivity.class);
                 startActivity(intent);
             }
         });
@@ -48,7 +48,7 @@ public class IecConfigActivity extends AppCompatActivity {
         btnContador.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(IecConfigActivity.this, ConfigContadorActivity.class);
+                Intent intent = new Intent(IecConfigActivity.this, IecConfigContadorActivity.class);
                 startActivity(intent);
             }
         });
