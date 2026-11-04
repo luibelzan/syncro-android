@@ -85,7 +85,8 @@ public class LicenseCheckActivity extends AppCompatActivity {
                 switch (status) {
                     case VALID:
                         tvStatus.setTextColor(getColor(android.R.color.holo_green_dark));
-                        tvStatus.setText("✓ Licencia activada. Bienvenido, " +
+                        tvStatus.setText("✓ Licencia activada (" +
+                                LicenseManager.getCachedType(this).label() + "). Bienvenido, " +
                                 (customer != null ? customer : "") + ".");
                         // Pequeña pausa para que el usuario vea el mensaje y luego navegar
                         btnActivate.postDelayed(() -> {

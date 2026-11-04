@@ -40,6 +40,7 @@ public class LicenseManager {
     private static final String KEY_EXPIRES    = "license_expires";
     private static final String KEY_CUSTOMER   = "license_customer";
     private static final String KEY_LAST_CHECK = "license_last_check";
+    private static final String KEY_TYPE       = "license_type";
 
     // Caché válida 24 horas
     private static final long CACHE_TTL_MS = 24 * 60 * 60 * 1000L;
@@ -55,6 +56,56 @@ public class LicenseManager {
         EXPIRED,        // Licencia caducada
         DISABLED,       // valid=false (revocada manualmente)
         NETWORK_ERROR   // No se pudo contactar con Firebase
+    }
+
+    /**
+     * Tipo de licencia (campo "type" del documento en Firestore):
+     *   "DLMS" → solo funcionalidad DLMS
+     *   "IEC"  → solo funcionalidad IEC-870
+     *   "ALL"  → ambas
+     * Sin campo "type" (licencias anteriores a esta versión) cuenta como ALL, para no dejar sin
+     * acceso a quien ya tiene licencia. Un valor no reconocido no da acceso a nada (NONE), para
+     * que una errata al crear la licencia no conceda más de lo previsto.
+     */
+    public enum LicenseType {
+        DLMS, IEC, ALL, NONE;
+
+        public static LicenseType fromString(String raw) {
+            if (raw == null || raw.trim().isEmpty()) return ALL;
+            String t = raw.trim().toUpperCase(Locale.ROOT).replace("-", "").replace("_", "");
+            switch (t) {
+                case "DLMS":
+                    return DLMS;
+                case "IEC":
+                case "IEC870":
+                    return IEC;
+                case "ALL":
+                case "BOTH":
+                case "AMBAS":
+                case "TODAS":
+                    return ALL;
+                default:
+                    return NONE;
+            }
+        }
+
+        public boolean permitsDlms() {
+            return this == DLMS || this == ALL;
+        }
+
+        public boolean permitsIec() {
+            return this == IEC || this == ALL;
+        }
+
+        /** Texto para mostrar al usuario. */
+        public String label() {
+            switch (this) {
+                case DLMS: return "DLMS";
+                case IEC:  return "IEC-870";
+                case ALL:  return "DLMS + IEC-870";
+                default:   return "sin funcionalidades";
+            }
+        }
     }
 
     public interface LicenseCallback {
@@ -83,7 +134,8 @@ public class LicenseManager {
                                 licenseCode,
                                 deviceMac,
                                 doc.getString("expires"),
-                                doc.getString("customer"));
+                                doc.getString("customer"),
+                                doc.getString("type"));
 
                         // Campos a actualizar en Firestore
                         java.util.Map<String, Object> patch = new java.util.HashMap<>();
@@ -191,7 +243,8 @@ public class LicenseManager {
                                 cachedCode,
                                 deviceMac,
                                 doc.getString("expires"),
-                                doc.getString("customer"));
+                                doc.getString("customer"),
+                                doc.getString("type"));
                     } else {
                         // Licencia ya no válida → borrar caché para forzar pantalla de activación
                         clearLicense(context);
@@ -254,7 +307,8 @@ public class LicenseManager {
                                 cachedCode,
                                 deviceMac,
                                 doc.getString("expires"),
-                                doc.getString("customer"));
+                                doc.getString("customer"),
+                                doc.getString("type"));
                     } else {
                         clearLicense(context);
                     }
@@ -297,6 +351,11 @@ public class LicenseManager {
 
     // LicenseManager.java — añade estos tres métodos públicos
 
+    /** Tipo de licencia en caché (ALL si no se guardó ninguno: licencias anteriores). */
+    public static LicenseType getCachedType(Context context) {
+        return LicenseType.fromString(prefs(context).getString(KEY_TYPE, null));
+    }
+
     public static String getCachedCode(Context context) {
         return prefs(context).getString(KEY_CODE, null);
     }
@@ -333,8 +392,9 @@ public class LicenseManager {
     }
 
     private static void saveToPrefs(Context context, String code, String mac,
-                                    String expires, String customer) {
+                                    String expires, String customer, String type) {
         prefs(context).edit()
+                .putString(KEY_TYPE,      type != null ? type : "")
                 .putString(KEY_CODE,      code.trim().toUpperCase())
                 .putString(KEY_MAC,       mac)
                 .putString(KEY_EXPIRES,   expires  != null ? expires  : "")

@@ -18,6 +18,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.celnet.syncro.licenses.LicenseManager;
 import com.celnet.syncro.session.ConnectionConfig;
 import com.celnet.syncro.session.SessionManager;
 import com.celnet.syncro.utils.PasswordHelper;
@@ -97,6 +98,16 @@ public class MainActivity extends BaseActivity {
         radioGroupProtocolo.setOnCheckedChangeListener((group, checkedId) ->
                 layoutIec870.setVisibility(
                         checkedId == R.id.rbIec870 ? View.VISIBLE : View.GONE));
+
+        // Licencia: solo se pueden elegir los protocolos que incluye (DLMS, IEC o ambos).
+        LicenseManager.LicenseType licencia = LicenseManager.getCachedType(this);
+        MaterialRadioButton rbDlms = findViewById(R.id.rbDlms);
+        MaterialRadioButton rbIec = findViewById(R.id.rbIec870);
+        rbDlms.setEnabled(licencia.permitsDlms());
+        rbIec.setEnabled(licencia.permitsIec());
+        if (!licencia.permitsDlms() && licencia.permitsIec()) {
+            rbIec.setChecked(true);   // dispara el listener y muestra los parámetros IEC
+        }
 
         // 🔹 Desplegable de sondas: se muestran las ETIQUETAS visibles
         // (p. ej. "TesPro", "Otros"), no los IDs internos reales de marca.
@@ -188,6 +199,20 @@ public class MainActivity extends BaseActivity {
 
             // Protocolo elegido y, si es IEC-870, sus parámetros
             boolean esIec = radioGroupProtocolo.getCheckedRadioButtonId() == R.id.rbIec870;
+
+            // Comprobación de licencia (por si el desplegable no bastara, p. ej. licencia
+            // actualizada mientras la pantalla seguía abierta)
+            LicenseManager.LicenseType tipoLicencia = LicenseManager.getCachedType(this);
+            if (esIec ? !tipoLicencia.permitsIec() : !tipoLicencia.permitsDlms()) {
+                new androidx.appcompat.app.AlertDialog.Builder(this)
+                        .setTitle("Licencia no válida para este protocolo")
+                        .setMessage("Su licencia incluye: " + tipoLicencia.label() + ".\n"
+                                + "No incluye " + (esIec ? "IEC-870" : "DLMS")
+                                + ". Contacte con soporte para ampliarla.")
+                        .setPositiveButton("Aceptar", null)
+                        .show();
+                return;
+            }
             if (esIec) {
                 TextInputEditText etLink = findViewById(R.id.etIecLinkAddress);
                 TextInputEditText etPunto = findViewById(R.id.etIecMeasuringPoint);
