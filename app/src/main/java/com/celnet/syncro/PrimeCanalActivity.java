@@ -101,8 +101,16 @@ public class PrimeCanalActivity extends BaseActivity {
         ArrayAdapter<String> adapterDualStack = new ArrayAdapter<>(
                 this, android.R.layout.simple_dropdown_item_1line, opcionesDualStackVisibles);
         spinnerDualStackVersion.setAdapter(adapterDualStack);
-        // Por defecto: "2: Communications in Prime 1.4 mode"
-        spinnerDualStackVersion.setText(opcionesDualStackVisibles[1], false);
+        // Por defecto: "2: Communications in Prime 1.4 mode" (se busca por su código, no por
+        // posición, para no depender de qué otras opciones haya en el array)
+        int indiceDefecto = 0;
+        for (int i = 0; i < opcionesDualStackVisibles.length; i++) {
+            if (opcionesDualStackVisibles[i].trim().startsWith("2:")) {
+                indiceDefecto = i;
+                break;
+            }
+        }
+        spinnerDualStackVersion.setText(opcionesDualStackVisibles[indiceDefecto], false);
 
         cbDualStackSelection.setOnCheckedChangeListener((buttonView, isChecked) ->
                 spinnerDualStackVersion.setEnabled(isChecked));
@@ -247,14 +255,22 @@ public class PrimeCanalActivity extends BaseActivity {
     }
 
     /**
-     * Elimina del array de opciones la que empieza por
-     * {@link #CODIGO_DUAL_STACK_OCULTO} + ":" (p.ej. "3: Dynamic communications...").
+     * Elimina del array de opciones:
+     *  - la que empieza por {@link #CODIGO_DUAL_STACK_OCULTO} + ":" (p.ej. "3: Dynamic
+     *    communications...");
+     *  - la de "mantener actual" (código 0 o texto "mantener"/"keep"): no aporta nada, porque
+     *    para no cambiar la versión basta con dejar sin marcar la casilla de Dual stack.
      */
     private String[] filtrarOpcionOculta(String[] opcionesOriginales) {
         List<String> filtradas = new ArrayList<>();
         String prefijoOculto = CODIGO_DUAL_STACK_OCULTO + ":";
         for (String opcion : opcionesOriginales) {
-            if (!opcion.trim().startsWith(prefijoOculto)) {
+            String t = opcion.trim();
+            String minusculas = t.toLowerCase();
+            boolean esMantenerActual = t.startsWith("0:")
+                    || minusculas.contains("mantener")
+                    || minusculas.contains("keep");
+            if (!t.startsWith(prefijoOculto) && !esMantenerActual) {
                 filtradas.add(opcion);
             }
         }
