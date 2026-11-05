@@ -45,6 +45,10 @@ public class LicenseManager {
     // Caché válida 24 horas
     private static final long CACHE_TTL_MS = 24 * 60 * 60 * 1000L;
 
+    // Margen sin conexión de verifyAlways: si no se puede contactar con Firebase, se permite entrar
+    // solo si la última validación correcta fue hace menos de este tiempo (1 día).
+    private static final long OFFLINE_GRACE_MS = 24 * 60 * 60 * 1000L;
+
     // true  → sin red después de 24h bloquea el acceso
     // false → sin red después de 24h deja pasar (permisivo)
     private static final boolean BLOCK_ON_NETWORK_ERROR = true;
@@ -277,6 +281,7 @@ public class LicenseManager {
         String cachedMac          = prefs.getString(KEY_MAC, null);
         String cachedExpires      = prefs.getString(KEY_EXPIRES, null);
         String cachedCustomer     = prefs.getString(KEY_CUSTOMER, null);
+        final long lastCheck      = prefs.getLong(KEY_LAST_CHECK, 0);
 
         // ── Paso 1: validación local inmediata ──────────────────────────────
         if (cachedCode == null || cachedMac == null) {
@@ -287,12 +292,10 @@ public class LicenseManager {
             callback.onResult(LicenseStatus.INVALID_MAC, null);
             return;
         }
-        if (isExpired(cachedExpires)) {
-            callback.onResult(LicenseStatus.EXPIRED, cachedCustomer);
-            // Aun así consultamos Firebase por si la fecha fue renovada
-        } else {
-            callback.onResult(LicenseStatus.VALID, cachedCustomer); // resultado provisional
-        }
+        // Ya NO se entrega un resultado provisional "VALID" desde la caché: la pantalla que llama
+        // navega en cuanto recibe un VALID y descartaba el resultado definitivo de Firebase, así
+        // que una licencia desactivada (valid=false) seguía dejando entrar. Se espera a Firebase.
+        final boolean caducadaLocal = isExpired(cachedExpires);
 
         // ── Paso 2: revalidación online SIEMPRE ─────────────────────────────
         FirebaseFirestore.getInstance()
@@ -317,11 +320,21 @@ public class LicenseManager {
                     callback.onResult(onlineStatus, doc.getString("customer"));
                 })
                 .addOnFailureListener(e -> {
-                    if (BLOCK_ON_NETWORK_ERROR) {
+                    // Sin red no se puede confirmar con Firebase: se decide con la caché local
+                    // Se deja entrar solo dentro del margen de OFFLINE_GRACE_MS desde la última
+                    // validación correcta. Si la hora guardada es futura (reloj atrasado), no se
+                    // da por buena.
+                    long ahora = System.currentTimeMillis();
+                    boolean dentroDelMargen = lastCheck > 0 && lastCheck <= ahora
+                            && (ahora - lastCheck) < OFFLINE_GRACE_MS;
+
+                    if (caducadaLocal) {
+                        callback.onResult(LicenseStatus.EXPIRED, cachedCustomer);
+                    } else if (dentroDelMargen) {
+                        callback.onResult(LicenseStatus.VALID, cachedCustomer);
+                    } else {
                         callback.onResult(LicenseStatus.NETWORK_ERROR, cachedCustomer);
                     }
-                    // Si BLOCK_ON_NETWORK_ERROR=false no llamamos de nuevo:
-                    // el resultado provisional de la caché ya fue entregado
                 });
     }
 
