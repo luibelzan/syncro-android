@@ -30,7 +30,7 @@
                 android:id="@+id/tvVersion"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Syncro Ver. 2.0.0 - Android"
+                android:text="Syncro Ver. 3.0.0 - Android"
                 android:textColor="#666666"
                 android:textSize="16sp" />
 
@@ -40,6 +40,15 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:text="Código de Licencia : Sin licencia"
+                android:textColor="#666666"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/tvLicenseType"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Tipo de licencia: "
                 android:textColor="#666666"
                 android:textSize="16sp" />
 

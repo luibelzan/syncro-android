@@ -4,7 +4,6 @@ import android.os.Bundle;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -29,6 +28,7 @@ public class InfoActivity extends BaseActivity {
 
     private void fillLicenseInfo() {
         TextView tvLicenseCode = findViewById(R.id.tvLicenseCode);
+        TextView tvLicenseType = findViewById(R.id.tvLicenseType);
         TextView tvExpires     = findViewById(R.id.tvExpires);
         TextView tvCustomer    = findViewById(R.id.tvCustomer);
 
@@ -38,6 +38,10 @@ public class InfoActivity extends BaseActivity {
 
         tvLicenseCode.setText("Código de licencia: " +
                 (code != null ? code : "Sin licencia"));
+
+        // Tipo: DLMS, IEC-870 o DLMS + IEC-870 (sin licencia guardada no se muestra tipo)
+        tvLicenseType.setText("Tipo de licencia: " +
+                (code != null ? LicenseManager.getCachedType(this).label() : "—"));
 
         tvExpires.setText("Licencia válida hasta: " +
                 (expires != null && !expires.isEmpty() ? expires : "—"));
