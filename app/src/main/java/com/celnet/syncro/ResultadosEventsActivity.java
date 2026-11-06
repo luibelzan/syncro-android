@@ -27,9 +27,6 @@ import java.util.Locale;
 
 public class ResultadosEventsActivity extends BaseActivity {
 
-    /** Extra booleano: true si los eventos vienen de un contador IEC-870 (por defecto, DLMS). */
-    public static final String EXTRA_ES_IEC = "es_iec";
-
     private String generarEventsXML(ArrayList<EventFila> datos, String cntId, String cncId, String stgVersion) {
         StringBuilder sb = new StringBuilder();
 
@@ -84,8 +81,6 @@ public class ResultadosEventsActivity extends BaseActivity {
 
         ExtendedFloatingActionButton btnExport = findViewById(R.id.btnExport);
         String cntId = getIntent().getStringExtra("cntId");
-        // La misma vista sirve para eventos DLMS e IEC: cada protocolo guarda en su carpeta
-        final boolean esIec = getIntent().getBooleanExtra(EXTRA_ES_IEC, false);
         ArrayList<EventFila> datos = getIntent().getParcelableArrayListExtra("datos_event_tabla");
 
         if (datos != null) {
@@ -118,7 +113,7 @@ public class ResultadosEventsActivity extends BaseActivity {
                                 Environment.DIRECTORY_DOWNLOADS);
 
                 // 🔹 Carpeta específica app
-                File syncroFolder = new File(downloadsFolder, esIec ? "Syncro/Reports/IEC" : "Syncro/Reports/DLMS");
+                File syncroFolder = new File(downloadsFolder, "Syncro/Reports/DLMS");
 
                 // 🔹 Crear carpetas si no existen
                 if (!syncroFolder.exists()) {

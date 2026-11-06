@@ -7,9 +7,8 @@ import java.io.OutputStream;
 import java.util.List;
 
 /**
- * Informe de curvas de carga en Excel (hoja "Curvas"), con las columnas del informe de
- * referencia: CUPS, Contador, Fecha, y para cada energía su valor y su bit de calidad (hex de
- * 2 cifras).
+ * Informe de curvas de carga en Excel (hoja "Curvas"), con las columnas: Contador, Fecha, y para
+ * cada energía su valor y su bit de calidad (hex de 2 cifras). El CUPS no va como columna.
  *
  * Correspondencia con los totales integrados de la ASDU 11 (direcciones 1..6):
  * A+ = dirección 1, A- = 2, Ri+ = cuadrante 1 (3), Ri- = cuadrante 2 (4), Rc- = cuadrante 3 (5),
@@ -22,10 +21,10 @@ public final class Iec870CurvasXlsx {
     private Iec870CurvasXlsx() {
     }
 
-    public static void generar(OutputStream out, String cups, String contador,
+    public static void generar(OutputStream out, String contador,
                                List<Iec870LoadProfileRow> filas) throws IOException {
-        MiniXlsx x = new MiniXlsx(HOJA, new double[]{25, 10, 21, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30});
-        x.addHeader("CUPS", "Contador", "Fecha",
+        MiniXlsx x = new MiniXlsx(HOJA, new double[]{10, 21, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30});
+        x.addHeader("Contador", "Fecha",
                 "Energia Activa Importada (A+)", "Bit de Calidad Energia Activa (A+)",
                 "Energia Activa Exportada (A-)", "Bit de Calidad Energia Activa (A-)",
                 "Energia Reactiva Inductiva Importada (Ri+)", "Bit de Calidad Energia Inductiva",
@@ -34,7 +33,7 @@ public final class Iec870CurvasXlsx {
                 "Energia Reactiva Capacitiva Exportada (Rc-)", "Bit de Calidad Energia Capacitiva");
         for (Iec870LoadProfileRow f : filas) {
             MiniXlsx.ExcelDate fecha = MiniXlsx.ExcelDate.fromText(f.fechaHora);
-            x.addRow(cups, contador, fecha,
+            x.addRow(contador, fecha,
                     f.ai, q(f, 1),
                     f.ae, q(f, 2),
                     f.r1, q(f, 3),

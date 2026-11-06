@@ -47,9 +47,9 @@ public class ResultadosCurvasActivity extends BaseActivity {
     // =========================
     // GENERAR XML (S02)
     // =========================
-    private String generarCurvasXML(ArrayList<CurvaFila> datos, String cntId, String cncId) {
+    private String generarCurvasXML(ArrayList<CurvaFila> datos, String cntId, String cncId, String stgVersion) {
         StringBuilder sb = new StringBuilder();
-        sb.append("<Report IdRpt=\"S02\" IdPet=\"0\" Version=\"3.1.c\">\n");
+        sb.append("<Report IdRpt=\"S02\" IdPet=\"0\" Version=\"").append(stgVersion).append("\">\n");
         sb.append("  <Cnc Id=\"").append(cncId).append("\">\n");
         sb.append(" <Cnt Id=\"").append(cntId).append("\" Magn=\"1\">\n");
 
@@ -75,9 +75,9 @@ public class ResultadosCurvasActivity extends BaseActivity {
     // =========================
     // GENERAR XML (S44)
     // =========================
-    private String generarCurvasS44XML(ArrayList<CurvaVoltajeFila> datos, String cntId, String cncId) {
+    private String generarCurvasS44XML(ArrayList<CurvaVoltajeFila> datos, String cntId, String cncId, String stgVersion) {
         StringBuilder sb = new StringBuilder();
-        sb.append("<Report IdRpt=\"S44\" IdPet=\"0\" Version=\"3.1.c\">\n");
+        sb.append("<Report IdRpt=\"S44\" IdPet=\"0\" Version=\"").append(stgVersion).append("\">\n");
         sb.append("  <Cnc Id=\"").append(cncId).append("\">\n");
         sb.append(" <Cnt Id=\"").append(cntId).append("\">\n");
 
@@ -106,9 +106,9 @@ public class ResultadosCurvasActivity extends BaseActivity {
     // =========================
     // GENERAR XML (S45)
     // =========================
-    private String generarCurvasS45XML(ArrayList<CurvaCorrienteFila> datos, String cntId, String cncId) {
+    private String generarCurvasS45XML(ArrayList<CurvaCorrienteFila> datos, String cntId, String cncId, String stgVersion) {
         StringBuilder sb = new StringBuilder();
-        sb.append("<Report IdRpt=\"S45\" IdPet=\"0\" Version=\"3.1.c\">\n");
+        sb.append("<Report IdRpt=\"S45\" IdPet=\"0\" Version=\"").append(stgVersion).append("\">\n");
         sb.append("  <Cnc Id=\"").append(cncId).append("\">\n");
         sb.append(" <Cnt Id=\"").append(cntId).append("\">\n");
 
@@ -146,9 +146,9 @@ public class ResultadosCurvasActivity extends BaseActivity {
     // =========================
     // GENERAR XML (S43)
     // =========================
-    private String generarCurvasS43XML(ArrayList<CurvaEnergiaFaseFila> datos, String cntId, String cncId) {
+    private String generarCurvasS43XML(ArrayList<CurvaEnergiaFaseFila> datos, String cntId, String cncId, String stgVersion) {
         StringBuilder sb = new StringBuilder();
-        sb.append("<Report IdRpt=\"S43\" IdPet=\"0\" Version=\"3.1.c\">\n");
+        sb.append("<Report IdRpt=\"S43\" IdPet=\"0\" Version=\"").append(stgVersion).append("\">\n");
         sb.append("  <Cnc Id=\"").append(cncId).append("\">\n");
         sb.append(" <Cnt Id=\"").append(cntId).append("\">\n");
 
@@ -298,20 +298,21 @@ public class ResultadosCurvasActivity extends BaseActivity {
 
             SharedPreferences prefs = getSharedPreferences("ftp_config", MODE_PRIVATE);
             String cncName = prefs.getString("cncName", "Syncro");
+            String stgVersion = prefs.getString("stgVersion", "3.1.c");
 
             String xml;
             String idReporte;
             if (esS44) {
-                xml = generarCurvasS44XML(finalDatosS44, cntId, cncName);
+                xml = generarCurvasS44XML(finalDatosS44, cntId, cncName, stgVersion);
                 idReporte = "S44";
             } else if (esS45) {
-                xml = generarCurvasS45XML(finalDatosS45, cntId, cncName);
+                xml = generarCurvasS45XML(finalDatosS45, cntId, cncName, stgVersion);
                 idReporte = "S45";
             } else if (esS43) {
-                xml = generarCurvasS43XML(finalDatosS43, cntId, cncName);
+                xml = generarCurvasS43XML(finalDatosS43, cntId, cncName, stgVersion);
                 idReporte = "S43";
             } else {
-                xml = generarCurvasXML(finalDatosS02, cntId, cncName);
+                xml = generarCurvasXML(finalDatosS02, cntId, cncName, stgVersion);
                 idReporte = "S02";
             }
 
@@ -375,27 +376,27 @@ public class ResultadosCurvasActivity extends BaseActivity {
     // EXPORTACIÓN A EXCEL (IEC-870)
     // =========================
 
-    /** Pide el CUPS y guarda la curva en Descargas/Syncro/Reports como .xlsx. */
+    /** Guarda la curva en Descargas/Syncro/Reports/IEC como .xlsx. */
     private void exportarExcelIec(ArrayList<Iec870LoadProfileRow> registros, String contador) {
         if (registros == null || registros.isEmpty()) {
             Toast.makeText(this, "No hay datos para exportar", Toast.LENGTH_SHORT).show();
             return;
         }
-        IecExcelExport.exportar(this, "Exportar curva a Excel",
-                cups -> nombreExcel(cups, registros),
-                (out, cups) -> Iec870CurvasXlsx.generar(out, cups, contador, registros));
+        IecExcelExport.exportar(this, contador,
+                id -> nombreExcel(id, registros),
+                out -> Iec870CurvasXlsx.generar(out, contador, registros));
     }
 
     /**
-     * "CUPS_Curvas_Mes_Año.xlsx" si la curva está dentro de un mes (el primer registro es el final
+     * "IdCnt_Curvas_Mes_Año.xlsx" si la curva está dentro de un mes (el primer registro es el final
      * del primer periodo, de ahí el minuto que se resta); si no, con las fechas de inicio y fin.
      */
-    private static String nombreExcel(String cups, ArrayList<Iec870LoadProfileRow> registros) {
+    private static String nombreExcel(String id, ArrayList<Iec870LoadProfileRow> registros) {
         int[] ini = IecExcelExport.fechaMenosUnMinuto(registros.get(0).fechaHora);
         int[] fin = IecExcelExport.fechaMenosUnMinuto(registros.get(registros.size() - 1).fechaHora);
         String d = String.format(Locale.US, "%04d/%02d/%02d 00:00", ini[0], ini[1], ini[2]);
         String h = String.format(Locale.US, "%04d/%02d/%02d 00:00", fin[0], fin[1], fin[2]);
-        return IecExcelExport.limpiar(cups) + "_Curvas_" + IecExcelExport.periodo(d, h) + ".xlsx";
+        return IecExcelExport.limpiar(id) + "_Curvas_" + IecExcelExport.periodo(d, h) + ".xlsx";
     }
 
     // =========================

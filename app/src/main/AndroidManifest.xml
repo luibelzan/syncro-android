@@ -27,6 +27,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Syncro">
         <activity
+            android:name=".ResultadosIecEventsActivity"
+            android:exported="false" />
+        <activity
             android:name=".IecIdsActivity"
             android:exported="false" />
         <activity

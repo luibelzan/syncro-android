@@ -1,13 +1,8 @@
 package com.celnet.syncro.export;
 
 import android.app.Activity;
-import android.content.SharedPreferences;
 import android.os.Environment;
-import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.Toast;
-
-import androidx.appcompat.app.AlertDialog;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -16,18 +11,18 @@ import java.io.OutputStream;
 import java.util.Calendar;
 
 /**
- * Exportación de informes IEC-870 a Excel: pide el CUPS (recordando el último), genera el .xlsx en
- * Descargas/Syncro/Reports/iec y avisa. No se envía por FTP.
+ * Exportación de informes IEC-870 a Excel: genera el .xlsx (nombre con el id del contador) en
+ * Descargas/Syncro/Reports/IEC y avisa. No se envía por FTP.
  */
 public final class IecExcelExport {
 
     public interface Generador {
-        void generar(OutputStream out, String cups) throws IOException;
+        void generar(OutputStream out) throws IOException;
     }
 
     public interface Nombre {
-        /** Nombre del fichero (con .xlsx) para el CUPS indicado. */
-        String de(String cups);
+        /** Nombre del fichero (con .xlsx) para el id del contador indicado. */
+        String de(String contador);
     }
 
     private static final String[] MESES = {"Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -36,60 +31,34 @@ public final class IecExcelExport {
     private IecExcelExport() {
     }
 
-    public static void exportar(Activity activity, String titulo, Nombre nombre, Generador generador) {
-        SharedPreferences prefs = activity.getSharedPreferences("ftp_config", Activity.MODE_PRIVATE);
+    /** Genera el .xlsx directamente, sin pedir datos; el nombre lleva el id del contador (cnt). */
+    public static void exportar(Activity activity, String contador, Nombre nombre, Generador generador) {
+        String id = contador != null && !contador.trim().isEmpty() ? contador.trim() : "Contador";
+        new Thread(() -> {
+            try {
+                File carpeta = new File(Environment.getExternalStoragePublicDirectory(
+                        Environment.DIRECTORY_DOWNLOADS), "Syncro/Reports/IEC");
+                if (!carpeta.exists()) carpeta.mkdirs();
+                File fichero = new File(carpeta, nombre.de(id));
 
-        EditText editCups = new EditText(activity);
-        editCups.setHint("CUPS / nombre del punto de medida");
-        editCups.setSingleLine(true);
-        editCups.setText(prefs.getString("iec_cups", ""));
-        editCups.setSelectAllOnFocus(true);
-        int margen = Math.round(24 * activity.getResources().getDisplayMetrics().density);
-        LinearLayout contenedor = new LinearLayout(activity);
-        contenedor.setPadding(margen, margen / 2, margen, 0);
-        contenedor.addView(editCups, new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-
-        new AlertDialog.Builder(activity)
-                .setTitle(titulo)
-                .setMessage("Indique el CUPS que irá en la primera columna del informe.")
-                .setView(contenedor)
-                .setNegativeButton("Cancelar", null)
-                .setPositiveButton("Exportar", (d, w) -> {
-                    String cups = editCups.getText().toString().trim();
-                    if (cups.isEmpty()) {
-                        Toast.makeText(activity, "El CUPS no puede estar vacío", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    prefs.edit().putString("iec_cups", cups).apply();
-
-                    new Thread(() -> {
-                        try {
-                            File carpeta = new File(Environment.getExternalStoragePublicDirectory(
-                                    Environment.DIRECTORY_DOWNLOADS), "Syncro/Reports/IEC");
-                            if (!carpeta.exists()) carpeta.mkdirs();
-                            File fichero = new File(carpeta, nombre.de(cups));
-
-                            try (FileOutputStream fos = new FileOutputStream(fichero)) {
-                                generador.generar(fos, cups);
-                            }
-                            activity.runOnUiThread(() -> Toast.makeText(activity,
-                                    "Informe guardado en Descargas/Syncro/Reports/IEC/" + fichero.getName(),
-                                    Toast.LENGTH_LONG).show());
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            activity.runOnUiThread(() -> Toast.makeText(activity,
-                                    "Error al generar el Excel: " + e.getMessage(),
-                                    Toast.LENGTH_LONG).show());
-                        }
-                    }).start();
-                })
-                .show();
+                try (FileOutputStream fos = new FileOutputStream(fichero)) {
+                    generador.generar(fos);
+                }
+                activity.runOnUiThread(() -> Toast.makeText(activity,
+                        "Informe guardado en Descargas/Syncro/Reports/IEC/" + fichero.getName(),
+                        Toast.LENGTH_LONG).show());
+            } catch (Exception e) {
+                e.printStackTrace();
+                activity.runOnUiThread(() -> Toast.makeText(activity,
+                        "Error al generar el Excel: " + e.getMessage(),
+                        Toast.LENGTH_LONG).show());
+            }
+        }).start();
     }
 
-    /** CUPS apto para nombre de fichero. */
-    public static String limpiar(String cups) {
-        return cups.replaceAll("[^A-Za-z0-9ÁÉÍÓÚáéíóúÑñÜü\\-]+", "_");
+    /** Texto apto para nombre de fichero. */
+    public static String limpiar(String texto) {
+        return texto.replaceAll("[^A-Za-z0-9ÁÉÍÓÚáéíóúÑñÜü\\-]+", "_");
     }
 
     /** "Mes_Año" si las dos fechas ("yyyy/MM/dd HH:mm...") caen en el mismo mes; si no, "dd-MM-yyyy_dd-MM-yyyy". */

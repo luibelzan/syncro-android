@@ -18,11 +18,11 @@ public final class Iec870CierresXlsx {
     private Iec870CierresXlsx() {
     }
 
-    public static void generar(OutputStream out, String cups, String contador,
+    public static void generar(OutputStream out, String contador,
                                List<Iec870BillingRecord> registros) throws IOException {
-        MiniXlsx x = new MiniXlsx(HOJA, new double[]{25, 10, 10, 9, 21, 21, 25, 28,
+        MiniXlsx x = new MiniXlsx(HOJA, new double[]{10, 10, 9, 21, 21, 25, 28,
                 30, 30, 30, 30, 30, 30, 30, 11, 21, 26, 20, 23});
-        x.addHeader("CUPS", "Contador", "Contrato", "Periodo", "Fecha Inicio", "Fecha Fin",
+        x.addHeader("Contador", "Contrato", "Periodo", "Fecha Inicio", "Fecha Fin",
                 "Energia Activa Absoluta", "Energia Activa Incremental",
                 "Bit de Calidad Energia Activa",
                 "Energia Reactiva Inductiva Absoluta", "Energia Reactiva Inductiva Incremental",
@@ -32,7 +32,7 @@ public final class Iec870CierresXlsx {
                 "Maximetro", "Fecha Maximetro", "Bit de Calidad Maximetro",
                 "Exceso de Potencia", "Bit de Calidad Exceso");
         for (Iec870BillingRecord r : registros) {
-            x.addRow(cups, contador, r.contrato, r.tarifa,
+            x.addRow(contador, r.contrato, r.tarifa,
                     fecha(r.inicio), fecha(r.fin),
                     r.activaAbs, r.activaInc, r.activaCal,
                     r.reactivaIndAbs, r.reactivaIndInc, r.reactivaIndCal,

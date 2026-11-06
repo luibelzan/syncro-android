@@ -84,9 +84,9 @@ public class ResultadosIecCierresActivity extends BaseActivity {
             contenedor.setPadding(contenedor.getPaddingLeft(), contenedor.getPaddingTop(),
                     contenedor.getPaddingRight(), contenedor.getPaddingBottom() + dp(88));
         }
-        btnExport.setOnClickListener(v -> IecExcelExport.exportar(this, "Exportar cierres a Excel",
-                cups -> nombreExcel(cups, registros),
-                (out, cups) -> Iec870CierresXlsx.generar(out, cups, cntId != null ? cntId : "", registros)));
+        btnExport.setOnClickListener(v -> IecExcelExport.exportar(this, cntId,
+                id -> nombreExcel(id, registros),
+                out -> Iec870CierresXlsx.generar(out, cntId != null ? cntId : "", registros)));
 
         // Agrupar por contrato + periodo (un cierre = un contrato y sus tarifas)
         Map<String, List<Iec870BillingRecord>> grupos = new LinkedHashMap<>();
@@ -105,11 +105,11 @@ public class ResultadosIecCierresActivity extends BaseActivity {
     }
 
     /**
-     * "CUPS_Cierres_Mes_Año.xlsx" si todos los cierres terminan en el mismo mes (el cierre de las
-     * 00:00 del día 1 pertenece al mes anterior); "CUPS_Cierres_EnCurso_dd-MM-yyyy.xlsx" en curso.
+     * "IdCnt_Cierres_Mes_Año.xlsx" si todos los cierres terminan en el mismo mes (el cierre de las
+     * 00:00 del día 1 pertenece al mes anterior); "IdCnt_Cierres_EnCurso_dd-MM-yyyy.xlsx" en curso.
      */
-    private String nombreExcel(String cups, ArrayList<Iec870BillingRecord> registros) {
-        String base = IecExcelExport.limpiar(cups) + "_Cierres_";
+    private String nombreExcel(String id, ArrayList<Iec870BillingRecord> registros) {
+        String base = IecExcelExport.limpiar(id) + "_Cierres_";
         if (enCurso) {
             String f = registros.get(registros.size() - 1).fin;
             return base + "EnCurso_" + f.substring(8, 10) + "-" + f.substring(5, 7) + "-"

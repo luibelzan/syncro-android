@@ -37,6 +37,7 @@ public class ReportesActivity extends BaseActivity {
     private final ArrayList<ReportFile> todos = new ArrayList<>();
     /** Los que se ven según el filtro; es la lista que enseña el adaptador y sobre la que actúan Enviar y Eliminar. */
     private ArrayList<ReportFile> lista = new ArrayList<>();
+    private final java.util.HashSet<String> vistos = new java.util.HashSet<>();
     private ReportesAdapter adapter;
     private Filtro filtro = Filtro.TODOS;
 
@@ -91,9 +92,14 @@ public class ReportesActivity extends BaseActivity {
                         Environment.DIRECTORY_DOWNLOADS);
 
         todos.clear();
+        vistos.clear();
 
         listarCarpeta(new File(downloads, CARPETA_DLMS), ReportFile.Origen.DLMS, false);
         listarCarpeta(new File(downloads, CARPETA_IEC), ReportFile.Origen.IEC, false);
+        // Variantes con mayúsculas por si una versión anterior creó "dlms" / "iec"
+        // (el sistema de ficheros distingue mayúsculas); los duplicados se descartan.
+        listarCarpeta(new File(downloads, CARPETA_RAIZ + "/dlms"), ReportFile.Origen.DLMS, false);
+        listarCarpeta(new File(downloads, CARPETA_RAIZ + "/iec"), ReportFile.Origen.IEC, false);
 
         // Reportes antiguos, guardados directamente en Syncro/Reports antes de separar por
         // protocolo: los de IEC son siempre .xlsx; el resto (XML) son de DLMS.
@@ -117,6 +123,9 @@ public class ReportesActivity extends BaseActivity {
 
         for (File file : archivos) {
             if (!file.isFile()) {
+                continue;
+            }
+            if (!vistos.add(file.getAbsolutePath().toLowerCase())) {
                 continue;
             }
             ReportFile.Origen o = origen;
