@@ -36,10 +36,11 @@ public class ResultadosPantallaActivity extends AppCompatActivity {
         String modo     = getIntent().getStringExtra(EXTRA_MODO);
         int outputLed   = getIntent().getIntExtra(EXTRA_OUTPUT_LED, -1);
 
-        tvTiempo.setText("Tiempo desplazamiento: " + (tiempo >= 0 ? tiempo + " s" : "N/A"));
-        tvModo.setText("Modo desplazamiento: "     + (modo != null ? modo : "N/A"));
-        tvOutputLed.setText("Output Led: " + (outputLed >= 0
+        // Las etiquetas ("Tiempo de desplazamiento", etc.) están en el layout: aquí solo el valor
+        tvTiempo.setText(tiempo >= 0 ? tiempo + " s" : "N/A");
+        tvModo.setText(modo != null ? modo : "N/A");
+        tvOutputLed.setText(outputLed >= 0
                 ? outputLed + " - " + ScreenParams.descripcionOutputLed(outputLed)
-                : "N/A"));
+                : "N/A");
     }
 }
