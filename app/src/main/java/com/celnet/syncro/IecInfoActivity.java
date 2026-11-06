@@ -7,7 +7,6 @@ import android.widget.AutoCompleteTextView;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -21,15 +20,13 @@ import com.celnet.syncro.objects.iec870.params.Iec870InfoReader;
 import com.celnet.syncro.models.iec870.params.Iec870PortConfig;
 import com.celnet.syncro.session.ConnectionConfig;
 import com.celnet.syncro.session.SessionManager;
-import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
-
-import java.util.Locale;
 
 /**
  * Configuración de puertos por IEC-870 (serie 1, serie 2 y óptico): casilla "modificar" por puerto,
  * velocidad y bits datos/paridad/stop (con "No Modificar"), y modo del puerto serie 1.
- * - "Leer": rellena el formulario y muestra el resto de la información (solo lectura).
+ * - "Leer": rellena el formulario con la configuración actual de los puertos (la información del
+ *   equipo, solo lectura, se muestra ahora en IecIdsActivity).
  * - "Programar": escribe (ASDU 143) los puertos marcados; verificado con log solo para el serie 1.
  */
 public class IecInfoActivity extends BaseActivity {
@@ -62,8 +59,6 @@ public class IecInfoActivity extends BaseActivity {
         ExtendedFloatingActionButton btnRead = findViewById(R.id.btnRead);
         ExtendedFloatingActionButton btnNext = findViewById(R.id.btnNext);
         LinearLayout progressBar = findViewById(R.id.progressContainer);
-        MaterialCardView cardInfo = findViewById(R.id.cardInfo);
-        TextView tvInfo = findViewById(R.id.tvInfoEquipo);
 
         ConnectionConfig config = SessionManager.getInstance().getConnectionConfig();
 
@@ -81,8 +76,6 @@ public class IecInfoActivity extends BaseActivity {
                         mostrarPuerto(puerto2, info.puerto2);
                         mostrarPuerto(optico, info.puertoOptico);
                         editModo.setText(String.valueOf(info.puerto1.modo));
-                        tvInfo.setText(textoInfo(info));
-                        cardInfo.setVisibility(View.VISIBLE);
                     });
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -218,34 +211,6 @@ public class IecInfoActivity extends BaseActivity {
         if (c == null) return "sin cambios";
         return (c.baudios() > 0 ? c.baudios() + " baudios" : "velocidad sin cambios") + ", "
                 + (c.bitsDatos() > 0 ? c.textoParams() : "bits/paridad/stop sin cambios");
-    }
-
-    private String textoInfo(Iec870DeviceInfo i) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Nº de serie: ").append(i.serie).append('\n');
-        sb.append("Código de fabricante: ").append(i.codigoFabricante).append('\n');
-        sb.append("Modelo de registrador: ").append(i.modelo).append('\n');
-        sb.append("Versión de firmware: ").append(i.firmware).append('\n');
-        sb.append("Fecha de la versión del protocolo: ").append(i.fechaProtocolo).append('\n');
-        sb.append("Fecha de versión del equipo: ").append(i.fechaVersion).append('\n');
-        sb.append("Estado de carga de la batería: ").append(i.bateria).append('\n');
-        if (!i.puerto1.cadena.isEmpty()) {
-            sb.append("Cadena de inicialización del módem: ").append(i.puerto1.cadena).append('\n');
-        }
-        sb.append(String.format(Locale.getDefault(), "Relación de tensión: %d / %d dV\n",
-                i.trafo.tensionPrimariaDv, i.trafo.tensionSecundariaDv));
-        sb.append(String.format(Locale.getDefault(), "Relación de corriente: %d / %d dA\n",
-                i.trafo.corrientePrimariaDa, i.trafo.corrienteSecundariaDa));
-        for (int k = 0; k < 3; k++) {
-            sb.append("Periodo de integración curva ").append(k + 1).append(": ")
-                    .append(i.periodoIntegracion[k]).append(" min\n");
-        }
-        for (int k = 0; k < 3; k++) {
-            sb.append("Contrato ").append(k + 1).append(": ")
-                    .append(i.contratoActivo[k] ? "activo" : "inactivo");
-            if (k < 2) sb.append('\n');
-        }
-        return sb.toString();
     }
 
     private void bloquear(boolean leyendo, ExtendedFloatingActionButton btnRead,
