@@ -57,17 +57,8 @@ public class ResultadosIecEventsActivity extends BaseActivity {
         });
     }
 
-    /** "IdCnt_Eventos_Mes_Año.xlsx" (o con fechas inicio-fin si abarca varios meses). */
+    /** "IdCnt_Eventos_yyyyMMddHHmmss.xlsx" (la fecha y hora de la exportación, como en DLMS). */
     private static String nombreExcel(String id, ArrayList<Iec870EventFila> datos) {
-        String min = null, max = null;
-        for (Iec870EventFila f : datos) {
-            String n = Iec870EventsXlsx.normalizar(f.fh);
-            if (n == null) continue;
-            if (min == null || n.compareTo(min) < 0) min = n;
-            if (max == null || n.compareTo(max) > 0) max = n;
-        }
-        String base = IecExcelExport.limpiar(id) + "_Eventos";
-        if (min == null) return base + ".xlsx";
-        return base + "_" + IecExcelExport.periodo(min, max) + ".xlsx";
+        return IecExcelExport.limpiar(id) + "_Eventos_" + IecExcelExport.fechaActual() + ".xlsx";
     }
 }

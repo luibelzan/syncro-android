@@ -99,6 +99,12 @@ public final class IecExcelExport {
         }).start();
     }
 
+    /** Marca de fecha y hora para los nombres de fichero, igual que en los reportes DLMS (yyyyMMddHHmmss). */
+    public static String fechaActual() {
+        return new java.text.SimpleDateFormat("yyyyMMddHHmmss", java.util.Locale.getDefault())
+                .format(new java.util.Date());
+    }
+
     /** Texto apto para nombre de fichero. */
     public static String limpiar(String texto) {
         return texto.replaceAll("[^A-Za-z0-9ÁÉÍÓÚáéíóúÑñÜü\\-]+", "_");

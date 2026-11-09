@@ -105,21 +105,12 @@ public class ResultadosIecCierresActivity extends BaseActivity {
     }
 
     /**
-     * "IdCnt_Cierres_Mes_Año.xlsx" si todos los cierres terminan en el mismo mes (el cierre de las
-     * 00:00 del día 1 pertenece al mes anterior); "IdCnt_Cierres_EnCurso_dd-MM-yyyy.xlsx" en curso.
+     * "IdCnt_Cierres_yyyyMMddHHmmss.xlsx" (la fecha y hora de la exportación, como en DLMS);
+     * "IdCnt_Cierres_EnCurso_yyyyMMddHHmmss.xlsx" si es el cierre en curso.
      */
     private String nombreExcel(String id, ArrayList<Iec870BillingRecord> registros) {
         String base = IecExcelExport.limpiar(id) + "_Cierres_";
-        if (enCurso) {
-            String f = registros.get(registros.size() - 1).fin;
-            return base + "EnCurso_" + f.substring(8, 10) + "-" + f.substring(5, 7) + "-"
-                    + f.substring(0, 4) + ".xlsx";
-        }
-        int[] ini = IecExcelExport.fechaMenosUnMinuto(registros.get(0).fin);
-        int[] fin = IecExcelExport.fechaMenosUnMinuto(registros.get(registros.size() - 1).fin);
-        String d = String.format(java.util.Locale.US, "%04d/%02d/%02d 00:00", ini[0], ini[1], ini[2]);
-        String h = String.format(java.util.Locale.US, "%04d/%02d/%02d 00:00", fin[0], fin[1], fin[2]);
-        return base + IecExcelExport.periodo(d, h) + ".xlsx";
+        return base + (enCurso ? "EnCurso_" : "") + IecExcelExport.fechaActual() + ".xlsx";
     }
 
     /** Botón "Exportar" flotante (abajo a la derecha) añadido por código sobre cualquier layout. */

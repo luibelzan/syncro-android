@@ -387,16 +387,9 @@ public class ResultadosCurvasActivity extends BaseActivity {
                 out -> Iec870CurvasXlsx.generar(out, contador, registros));
     }
 
-    /**
-     * "IdCnt_Curvas_Mes_Año.xlsx" si la curva está dentro de un mes (el primer registro es el final
-     * del primer periodo, de ahí el minuto que se resta); si no, con las fechas de inicio y fin.
-     */
+    /** "IdCnt_Curvas_yyyyMMddHHmmss.xlsx" (la fecha y hora de la exportación, como en DLMS). */
     private static String nombreExcel(String id, ArrayList<Iec870LoadProfileRow> registros) {
-        int[] ini = IecExcelExport.fechaMenosUnMinuto(registros.get(0).fechaHora);
-        int[] fin = IecExcelExport.fechaMenosUnMinuto(registros.get(registros.size() - 1).fechaHora);
-        String d = String.format(Locale.US, "%04d/%02d/%02d 00:00", ini[0], ini[1], ini[2]);
-        String h = String.format(Locale.US, "%04d/%02d/%02d 00:00", fin[0], fin[1], fin[2]);
-        return IecExcelExport.limpiar(id) + "_Curvas_" + IecExcelExport.periodo(d, h) + ".xlsx";
+        return IecExcelExport.limpiar(id) + "_Curvas_" + IecExcelExport.fechaActual() + ".xlsx";
     }
 
     // =========================
