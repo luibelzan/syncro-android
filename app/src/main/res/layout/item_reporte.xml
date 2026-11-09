@@ -1,15 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:background="@drawable/bg_row_fila"
     android:gravity="center_vertical"
     android:orientation="horizontal"
     android:paddingStart="16dp"
-    android:paddingEnd="16dp"
     android:paddingTop="12dp"
+    android:paddingEnd="16dp"
     android:paddingBottom="12dp">
 
     <com.google.android.material.checkbox.MaterialCheckBox
@@ -41,34 +40,25 @@
             android:textColor="@color/on_surface_variant"
             android:textSize="13sp" />
 
+        <!-- Estado del envío: "Enviando…", "✓ Enviado" o "✗ Error: motivo" -->
         <TextView
             android:id="@+id/txtEstado"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:textSize="12sp"
+            android:layout_marginTop="4dp"
+            android:textSize="13sp"
             android:textStyle="bold"
-            android:visibility="gone"
-            tools:ignore="MissingConstraints"
-            tools:text="Enviado correctamente" />
+            android:visibility="gone" />
 
     </LinearLayout>
 
-    <!-- Indicador de estado: spinner mientras sube, icono al terminar -->
     <ProgressBar
-        android:id="@+id/progressEstado"
-        android:layout_width="20dp"
-        android:layout_height="20dp"
+        android:id="@+id/progresoEnvio"
+        style="?android:attr/progressBarStyleSmall"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
         android:layout_marginStart="8dp"
-        android:indeterminateTint="@color/primary"
+        android:indeterminate="true"
         android:visibility="gone" />
-
-    <ImageView
-        android:id="@+id/ivEstado"
-        android:layout_width="22dp"
-        android:layout_height="22dp"
-        android:layout_marginStart="8dp"
-        android:visibility="gone"
-        tools:src="@android:drawable/checkbox_on_background" />
 
 </LinearLayout>

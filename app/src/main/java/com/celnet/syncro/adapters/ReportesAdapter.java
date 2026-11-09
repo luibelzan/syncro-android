@@ -1,8 +1,10 @@
 package com.celnet.syncro.adapters;
 
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -56,6 +58,32 @@ public class ReportesAdapter extends RecyclerView.Adapter<ReportesAdapter.ViewHo
         holder.checkBox.setOnCheckedChangeListener((buttonView, isChecked) ->
                 report.setSeleccionado(isChecked));
 
+        // Estado del envío: progreso, éxito o error con su motivo
+        holder.progreso.setVisibility(View.GONE);
+        holder.txtEstado.setVisibility(View.GONE);
+        switch (report.getEstado()) {
+            case SUBIENDO:
+                holder.progreso.setVisibility(View.VISIBLE);
+                holder.txtEstado.setVisibility(View.VISIBLE);
+                holder.txtEstado.setTextColor(Color.parseColor("#1565C0"));
+                holder.txtEstado.setText("Enviando…");
+                break;
+            case EXITO:
+                holder.txtEstado.setVisibility(View.VISIBLE);
+                holder.txtEstado.setTextColor(Color.parseColor("#2E7D32"));
+                holder.txtEstado.setText("✓ Enviado correctamente");
+                break;
+            case ERROR:
+                holder.txtEstado.setVisibility(View.VISIBLE);
+                holder.txtEstado.setTextColor(Color.parseColor("#C62828"));
+                String motivo = report.getMensajeError();
+                holder.txtEstado.setText(motivo != null && !motivo.isEmpty()
+                        ? "✗ Error: " + motivo : "✗ Error al enviar");
+                break;
+            default:
+                break;
+        }
+
         // Filas alternas (zebra striping)
         boolean esPar = position % 2 == 0;
         holder.itemView.setBackgroundResource(
@@ -72,6 +100,8 @@ public class ReportesAdapter extends RecyclerView.Adapter<ReportesAdapter.ViewHo
         TextView txtNombre;
         TextView txtInfo;
         MaterialCheckBox checkBox;
+        TextView txtEstado;
+        ProgressBar progreso;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -79,6 +109,8 @@ public class ReportesAdapter extends RecyclerView.Adapter<ReportesAdapter.ViewHo
             txtNombre = itemView.findViewById(R.id.txtNombre);
             txtInfo = itemView.findViewById(R.id.txtInfo);
             checkBox = itemView.findViewById(R.id.checkReporte);
+            txtEstado = itemView.findViewById(R.id.txtEstado);
+            progreso = itemView.findViewById(R.id.progresoEnvio);
         }
     }
 }

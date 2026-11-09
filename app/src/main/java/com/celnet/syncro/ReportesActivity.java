@@ -241,6 +241,7 @@ public class ReportesActivity extends BaseActivity {
                 final int index = i;
 
                 // Marca "subiendo" y refresca esa fila antes de intentar el envío
+                report.setMensajeError(null);
                 report.setEstado(ReportFile.EstadoEnvio.SUBIENDO);
                 runOnUiThread(() -> adapter.notifyItemChanged(index));
 
@@ -274,6 +275,7 @@ public class ReportesActivity extends BaseActivity {
                 }  catch (Exception e) {
                     com.celnet.syncro.utils.AppLogger.e("ReportesActivity",
                             "Error al subir " + report.getFile().getName() + ": " + e.getMessage());
+                    report.setMensajeError(e.getClass().getSimpleName() + ": " + e.getMessage());
                     fallidos++;
                 }
 
