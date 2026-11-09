@@ -11,7 +11,10 @@ import androidx.core.app.ActivityCompat;
 
 import com.celnet.syncro.client.Iec870Client;
 import com.celnet.syncro.client.Iec870Exception;
+import com.celnet.syncro.IecConfigContadorActivity;
+import com.celnet.syncro.client.Iec870ProbeSerial;
 import com.celnet.syncro.session.ConnectionConfig;
+import com.celnet.syncro.utils.AppLogger;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -50,6 +53,8 @@ public class Iec870Connection implements AutoCloseable {
         try {
             if (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH) {
                 btSocket = openBluetooth(context);
+                // Antes de hablar con el contador, fija en la sonda la configuración serial guardada
+                aplicarConfigSerial(context);
                 return new Iec870Client(btSocket.getInputStream(), btSocket.getOutputStream(),
                         config.getIecLinkAddress(), config.getIecMeasuringPoint(),
                         config.getIecPassword());
@@ -63,6 +68,26 @@ public class Iec870Connection implements AutoCloseable {
         } catch (IOException e) {
             close();
             throw new Iec870Exception("No se pudo abrir la conexión: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Fija en la sonda la configuración serial guardada (IecConfigContadorActivity) con el comando
+     * BaudTran. Una respuesta ausente no impide conectar; queda constancia en el log (etiqueta
+     * IEC870) para saber si la sonda lo ha atendido.
+     */
+    private void aplicarConfigSerial(Context context) throws IOException {
+        IecConfigContadorActivity.Config c = IecConfigContadorActivity.cargar(context);
+        String cmd = Iec870ProbeSerial.comando(c.baud, c.parityIndex(), c.dataBits, c.stopBits);
+        AppLogger.i("IEC870", "Sonda <- " + cmd);
+        String resp = Iec870ProbeSerial.aplicar(btSocket.getInputStream(),
+                btSocket.getOutputStream(), cmd, 2000);
+        AppLogger.i("IEC870", "Sonda -> respuesta: '" + (resp.isEmpty() ? "(sin respuesta)" : resp) + "'");
+        // La sonda necesita un momento para reconfigurar su puerto serie antes de recibir tramas
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 
