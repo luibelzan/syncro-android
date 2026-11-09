@@ -63,6 +63,23 @@ import gurux.dlms.secure.GXDLMSSecureClient;
 
 public class Utils {
 
+    /** Fichero de preferencias de la configuración FTP de DLMS. */
+    public static final String PREFS_DLMS = "ftp_config";
+
+    /**
+     * Sube el fichero con el protocolo ("FTP", "FTPS" o "SFTP"; otro valor = FTP) y la
+     * configuración del fichero de preferencias indicado.
+     */
+    public static UploadResult subirArchivoSegunProtocolo(Context context, File file,
+                                                          String protocolo, String prefsName) {
+        if ("SFTP".equalsIgnoreCase(protocolo)) {
+            return subirArchivoSFTPConDetalle(context, file, prefsName);
+        } else if ("FTPS".equalsIgnoreCase(protocolo)) {
+            return subirArchivoFTPSConDetalle(context, file, prefsName);
+        }
+        return subirArchivoFTPConDetalle(context, file, prefsName);
+    }
+
     public static void moverABackup(File file, Context context) {
 
         File downloadsFolder =
@@ -197,15 +214,17 @@ public class Utils {
 // SUBIDA SFTP
 // =========================
     public static UploadResult subirArchivoSFTPConDetalle(Context context, File file) {
+        return subirArchivoSFTPConDetalle(context, file, PREFS_DLMS);
+    }
+
+    /** Igual, leyendo la configuración del fichero de preferencias indicado (DLMS o IEC). */
+    public static UploadResult subirArchivoSFTPConDetalle(Context context, File file, String prefsName) {
 
         Session session = null;
         ChannelSftp sftp = null;
 
         try {
-            SharedPreferences prefs = context.getSharedPreferences(
-                    "ftp_config",
-                    Context.MODE_PRIVATE
-            );
+            SharedPreferences prefs = context.getSharedPreferences(prefsName, Context.MODE_PRIVATE);
 
             String host = prefs.getString("dir", "").trim();
             int port = Integer.parseInt(prefs.getString("port", "22"));
@@ -291,12 +310,17 @@ public class Utils {
 // SUBIDA FTP
 // =========================
     public static UploadResult subirArchivoFTPConDetalle(Context context, File file) {
+        return subirArchivoFTPConDetalle(context, file, PREFS_DLMS);
+    }
+
+    /** Igual, leyendo la configuración del fichero de preferencias indicado (DLMS o IEC). */
+    public static UploadResult subirArchivoFTPConDetalle(Context context, File file, String prefsName) {
 
         FTPClient ftp = new FTPClient();
 
         try {
             SharedPreferences prefs =
-                    context.getSharedPreferences("ftp_config", Context.MODE_PRIVATE);
+                    context.getSharedPreferences(prefsName, Context.MODE_PRIVATE);
 
             String host = prefs.getString("dir", "").trim();
             int port = Integer.parseInt(prefs.getString("port", "21"));
@@ -453,12 +477,17 @@ public class Utils {
 // SUBIDA FTPS
 // =========================
     public static UploadResult subirArchivoFTPSConDetalle(Context context, File file) {
+        return subirArchivoFTPSConDetalle(context, file, PREFS_DLMS);
+    }
+
+    /** Igual, leyendo la configuración del fichero de preferencias indicado (DLMS o IEC). */
+    public static UploadResult subirArchivoFTPSConDetalle(Context context, File file, String prefsName) {
 
         FTPSClient ftps = new FTPSClient();
 
         try {
             SharedPreferences prefs =
-                    context.getSharedPreferences("ftp_config", Context.MODE_PRIVATE);
+                    context.getSharedPreferences(prefsName, Context.MODE_PRIVATE);
 
             String host = prefs.getString("dir", "").trim();
             int port = Integer.parseInt(prefs.getString("port", "21"));

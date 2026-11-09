@@ -4,6 +4,12 @@ import android.app.Activity;
 import android.os.Environment;
 import android.widget.Toast;
 
+import com.celnet.syncro.IecFtpActivity;
+import com.celnet.syncro.IecStgActivity;
+import com.celnet.syncro.models.UploadResult;
+import com.celnet.syncro.utils.AppLogger;
+import com.celnet.syncro.utils.Utils;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -12,7 +18,8 @@ import java.util.Calendar;
 
 /**
  * Exportación de informes IEC-870 a Excel: genera el .xlsx (nombre con el id del contador) en
- * Descargas/Syncro/Reports/IEC y avisa. No se envía por FTP.
+ * Descargas/Syncro/Reports/IEC y, según la configuración STG de IEC (afterGenerate/afterSend),
+ * lo envía por FTP con la configuración FTP de IEC.
  */
 public final class IecExcelExport {
 
@@ -27,6 +34,10 @@ public final class IecExcelExport {
 
     private static final String[] MESES = {"Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
             "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"};
+
+    private static final String SOLO_GUARDAR = "Solo guardar para enviar al FTP mas tarde";
+    private static final String DEFECTO_AFTER_GENERATE = "Guardar e intentar enviar al FTP inmediatamente";
+    private static final String DEFECTO_AFTER_SEND = "Mover a la carpeta de backup del dispositivo";
 
     private IecExcelExport() {
     }
@@ -44,8 +55,40 @@ public final class IecExcelExport {
                 try (FileOutputStream fos = new FileOutputStream(fichero)) {
                     generador.generar(fos);
                 }
+                String ruta = "Descargas/Syncro/Reports/IEC/" + fichero.getName();
+
+                // Configuración STG de IEC: qué hacer al generar y tras enviar
+                IecStgActivity.Config stg = IecStgActivity.cargar(activity);
+                String afterGenerate = stg.afterGenerate != null ? stg.afterGenerate : DEFECTO_AFTER_GENERATE;
+                String afterSend = stg.afterSend != null ? stg.afterSend : DEFECTO_AFTER_SEND;
+
+                AppLogger.i("IecExport", "Guardado " + ruta + " | afterGenerate='" + afterGenerate
+                        + "' afterSend='" + afterSend + "'");
+
+                if (SOLO_GUARDAR.equals(afterGenerate)) {
+                    AppLogger.i("IecExport", "Solo guardar: no se envía por FTP");
+                    activity.runOnUiThread(() -> Toast.makeText(activity,
+                            "Informe guardado para envío posterior en " + ruta,
+                            Toast.LENGTH_LONG).show());
+                    return;
+                }
+
+                // Subida con la configuración FTP de IEC (no la de DLMS)
+                IecFtpActivity.Config ftp = IecFtpActivity.cargar(activity);
+                AppLogger.i("IecExport", "Enviando por FTP IEC: protocolo='" + ftp.protocolo
+                        + "' host='" + ftp.dir + "' puerto=" + ftp.port + " usuario='" + ftp.user
+                        + "' carpeta='" + ftp.folder + "'");
+                UploadResult res = Utils.subirArchivoSegunProtocolo(
+                        activity, fichero, ftp.protocolo, IecFtpActivity.PREFS_NAME);
+                AppLogger.i("IecExport", res.success ? "Envío correcto"
+                        : "Envío fallido: " + res.errorMessage);
+                if (res.success) {
+                    Utils.gestionarArchivoTrasEnvio(fichero, afterSend, activity);
+                }
                 activity.runOnUiThread(() -> Toast.makeText(activity,
-                        "Informe guardado en Descargas/Syncro/Reports/IEC/" + fichero.getName(),
+                        res.success
+                                ? "Informe guardado y enviado correctamente (" + fichero.getName() + ")"
+                                : "Informe guardado en " + ruta + ", pero falló el envío: " + res.errorMessage,
                         Toast.LENGTH_LONG).show());
             } catch (Exception e) {
                 e.printStackTrace();

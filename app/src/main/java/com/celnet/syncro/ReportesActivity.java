@@ -229,18 +229,6 @@ public class ReportesActivity extends BaseActivity {
 
         new Thread(() -> {
 
-            SharedPreferences prefs =
-                    getSharedPreferences("ftp_config", MODE_PRIVATE);
-
-            String protocolo =
-                    prefs.getString("protocolo", "FTP");
-
-            String afterSend =
-                    prefs.getString(
-                            "afterSend",
-                            "Mover a la carpeta de backup del dispositivo"
-                    );
-
             int enviados = 0;
             int fallidos = 0;
 
@@ -260,15 +248,16 @@ public class ReportesActivity extends BaseActivity {
 
                 try {
 
-                    UploadResult resultado;
+                    // Cada origen usa su propia configuración: FTP y STG de DLMS o de IEC
+                    boolean esIec = report.getOrigen() == ReportFile.Origen.IEC;
+                    String prefsName = esIec ? IecFtpActivity.PREFS_NAME : Utils.PREFS_DLMS;
+                    SharedPreferences prefs = getSharedPreferences(prefsName, MODE_PRIVATE);
+                    String protocolo = prefs.getString("protocolo", esIec ? "" : "FTP");
+                    String afterSend = prefs.getString("afterSend",
+                            "Mover a la carpeta de backup del dispositivo");
 
-                    if ("SFTP".equalsIgnoreCase(protocolo)) {
-                        resultado = Utils.subirArchivoSFTPConDetalle(ReportesActivity.this, report.getFile());
-                    } else if ("FTPS".equalsIgnoreCase(protocolo)) {
-                        resultado = Utils.subirArchivoFTPSConDetalle(ReportesActivity.this, report.getFile());
-                    } else {
-                        resultado = Utils.subirArchivoFTPConDetalle(ReportesActivity.this, report.getFile());
-                    }
+                    UploadResult resultado = Utils.subirArchivoSegunProtocolo(
+                            ReportesActivity.this, report.getFile(), protocolo, prefsName);
 
                     subidaCorrecta = resultado.success;
 
