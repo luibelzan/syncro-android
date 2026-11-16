@@ -11,6 +11,8 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.celnet.syncro.auth.UsuariosActivity;
+
 public class ConfigActivity extends AppCompatActivity {
 
     @Override
@@ -29,6 +31,7 @@ public class ConfigActivity extends AppCompatActivity {
         LinearLayout btnContador = findViewById(R.id.btnContador);
         LinearLayout btnAppLog = findViewById(R.id.btnAppLog);
         LinearLayout btnCambioPassword = findViewById(R.id.btnCambioPassword);
+        LinearLayout btnUsers = findViewById(R.id.btnUsers);
 
         btnFtpStg.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -66,6 +69,14 @@ public class ConfigActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(ConfigActivity.this, CambioPasswordActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        btnUsers.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(ConfigActivity.this, UsuariosActivity.class);
                 startActivity(intent);
             }
         });

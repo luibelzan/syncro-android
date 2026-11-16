@@ -177,6 +177,30 @@
                     android:textSize="20sp" />
             </LinearLayout>
 
+            <!-- ICONO 5 -->
+            <LinearLayout
+                android:id="@+id/btnUsers"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:clickable="true"
+                android:focusable="true">
+
+                <ImageView
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:padding="0dp"
+                    android:src="@drawable/passw" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/users"
+                    android:textSize="20sp" />
+            </LinearLayout>
+
             <!-- Hueco para mantener el tamaño de las columnas -->
             <View
                 android:layout_width="0dp"
