@@ -52,17 +52,17 @@
         android:layout_height="wrap_content">
 
         <RadioButton
-            android:id="@+id/rbLectura"
+            android:id="@+id/rbLector"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:checked="true"
-            android:text="Lectura" />
+            android:text="Lector" />
 
         <RadioButton
-            android:id="@+id/rbEscritura"
+            android:id="@+id/rbGestor"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Escritura" />
+            android:text="Gestor" />
 
         <RadioButton
             android:id="@+id/rbAdmin"

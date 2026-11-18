@@ -1,10 +1,16 @@
 package com.celnet.syncro.auth;
 
-/** Perfiles de usuario. Cada perfil incluye los permisos de los anteriores. */
+/**
+ * Perfiles de usuario.
+ *
+ * ADMIN: todo, incluida la configuración de la aplicación y la gestión de usuarios.
+ * GESTOR: todo excepto configurar los parámetros de la aplicación.
+ * LECTOR: solo funciones de lectura y envío de reportes.
+ */
 public enum Rol {
     ADMIN("Administrador"),
-    ESCRITURA("Escritura"),
-    LECTURA("Lectura");
+    GESTOR("Gestor"),
+    LECTOR("Lector");
 
     private final String etiqueta;
 
@@ -16,25 +22,46 @@ public enum Rol {
         return etiqueta;
     }
 
+    /** Todos los perfiles pueden leer. */
     public boolean puedeLeer() {
         return true;
     }
 
-    /** Programar parámetros y cualquier operación que modifique el contador. */
+    /** Todos los perfiles pueden enviar reportes. */
+    public boolean puedeEnviarReportes() {
+        return true;
+    }
+
+    /** Programar el contador o cualquier operación que lo modifique. */
     public boolean puedeEscribir() {
-        return this == ADMIN || this == ESCRITURA;
+        return this == ADMIN || this == GESTOR;
+    }
+
+    /** Menú de configuración de la aplicación (FTP, STG, contador, log...). */
+    public boolean puedeConfigurar() {
+        return this == ADMIN;
     }
 
     public boolean puedeGestionarUsuarios() {
         return this == ADMIN;
     }
 
-    /** Si el valor guardado no se reconoce, se aplica el perfil con menos permisos. */
+    /**
+     * Si el valor guardado no se reconoce, se aplica el perfil con menos permisos.
+     * Se aceptan los nombres antiguos ESCRITURA y LECTURA por si hay bases de datos
+     * creadas con la versión anterior.
+     */
     public static Rol deNombre(String nombre) {
+        if ("ESCRITURA".equals(nombre)) {
+            return GESTOR;
+        }
+        if ("LECTURA".equals(nombre)) {
+            return LECTOR;
+        }
         try {
             return valueOf(nombre);
         } catch (Exception e) {
-            return LECTURA;
+            return LECTOR;
         }
     }
 }

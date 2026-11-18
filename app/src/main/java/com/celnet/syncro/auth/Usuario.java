@@ -30,7 +30,7 @@ public class Usuario {
     @NonNull public String algoritmo = "";
 
     /** Nombre del enum {@link Rol}. */
-    @NonNull public String rol = Rol.LECTURA.name();
+    @NonNull public String rol = Rol.LECTOR.name();
 
     /** Los usuarios se desactivan, no se borran. */
     public boolean activo = true;

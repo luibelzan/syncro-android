@@ -271,6 +271,11 @@ public final class AuthManager {
         return u != null && u.rolEnum().puedeGestionarUsuarios();
     }
 
+    public static boolean puedeConfigurar() {
+        Usuario u = usuarioActual();
+        return u != null && u.rolEnum().puedeConfigurar();
+    }
+
     /**
      * Para el principio de onCreate de la pantalla que debe quedar protegida. Si no hay
      * sesión, abre el login y devuelve false: la pantalla debe hacer return. Tras iniciar
@@ -296,9 +301,50 @@ public final class AuthManager {
         if (puedeEscribir()) {
             return true;
         }
-        Toast.makeText(contexto, "Tu perfil no permite modificar el contador",
+        Toast.makeText(contexto, "Tu perfil (" + nombrePerfil() + ") no permite modificar el contador",
                 Toast.LENGTH_LONG).show();
         return false;
+    }
+
+    /** Igual que exigirEscritura, para acciones de configuración de la aplicación. */
+    public static boolean exigirConfiguracion(Context contexto) {
+        if (puedeConfigurar()) {
+            return true;
+        }
+        Toast.makeText(contexto, "Solo un administrador puede configurar la aplicación",
+                Toast.LENGTH_LONG).show();
+        return false;
+    }
+
+    /**
+     * Para llamar desde BaseActivity.onCreate: comprueba sesión y perfil según la tabla
+     * de {@link Permisos}. Si no se puede continuar devuelve false (y ya se ha abierto el
+     * login o cerrado la pantalla): quien llama debe hacer return.
+     */
+    public static boolean exigirAcceso(Activity actividad) {
+        Permisos.Nivel nivel = Permisos.nivelDe(actividad.getClass().getSimpleName());
+        if (nivel == Permisos.Nivel.PUBLICA) {
+            return true;
+        }
+        if (!exigirSesion(actividad)) {
+            return false;
+        }
+        Rol rol = usuarioActual().rolEnum();
+        boolean permitido = nivel == Permisos.Nivel.CONFIGURACION ? rol.puedeConfigurar()
+                : nivel == Permisos.Nivel.ESCRITURA ? rol.puedeEscribir()
+                : true;
+        if (!permitido) {
+            Toast.makeText(actividad, "Tu perfil (" + rol.etiqueta() + ") no tiene acceso a esta función",
+                    Toast.LENGTH_LONG).show();
+            actividad.finish();
+            return false;
+        }
+        return true;
+    }
+
+    private static String nombrePerfil() {
+        Usuario u = usuarioActual();
+        return u == null ? "sin sesión" : u.rolEnum().etiqueta();
     }
 
     // -------------------------------------------------------------- internos

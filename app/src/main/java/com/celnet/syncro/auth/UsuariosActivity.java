@@ -161,7 +161,7 @@ public class UsuariosActivity extends AppCompatActivity {
         View vista = LayoutInflater.from(this).inflate(R.layout.dialog_usuario_nuevo, null);
         EditText etNombre = vista.findViewById(R.id.etUsuarioNuevo);
         EditText etPassword = vista.findViewById(R.id.etPasswordNuevo);
-        RadioButton rbEscritura = vista.findViewById(R.id.rbEscritura);
+        RadioButton rbGestor = vista.findViewById(R.id.rbGestor);
         RadioButton rbAdmin = vista.findViewById(R.id.rbAdmin);
         TextView txtError = vista.findViewById(R.id.txtErrorNuevo);
 
@@ -178,7 +178,7 @@ public class UsuariosActivity extends AppCompatActivity {
             String nombre = etNombre.getText().toString();
             char[] password = etPassword.getText().toString().toCharArray();
             Rol rol = rbAdmin.isChecked() ? Rol.ADMIN
-                    : rbEscritura.isChecked() ? Rol.ESCRITURA : Rol.LECTURA;
+                    : rbGestor.isChecked() ? Rol.GESTOR : Rol.LECTOR;
 
             crear.setEnabled(false);
             auth.io().execute(() -> {
