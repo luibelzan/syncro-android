@@ -20,6 +20,12 @@ public class ProgramContract {
 
     private static final int NUM_PERIODOS = 6;
 
+    /**
+     * Tamaño de PDU máximo al escribir por bloques. Con 120 los bloques de datos quedan
+     * en ~95 bytes (< 128), cabiendo en una trama HDLC de 128 bytes sin segmentar.
+     */
+    private static final int MAX_PDU_BLOQUES = 120;
+
     // ── Calendario por tarifa ────────────────────────────────────────────────
     //
     // Datos tomados de la programación de referencia de cada tarifa (tramas
@@ -286,7 +292,36 @@ public class ProgramContract {
         }
 
         cal.setDayProfileTablePassive(dias);
-        reader.writeObject(cal, 9);
+
+        // La tabla de perfiles diarios (500+ bytes) no cabe en una sola petición, así que
+        // se envía por bloques. Con el tamaño de PDU que anuncian algunos Kaifa (240), la
+        // librería genera bloques de más de 127 bytes y escribe su longitud sin el prefijo
+        // 0x81 que exige DLMS (BER): el contador descarta la petición sin contestar.
+        // Limitando el PDU, los bloques salen por debajo de 128 bytes.
+        escribirConBloquesPequenos(reader, cal, 9);
+    }
+
+    /**
+     * Escribe un atributo limitando el tamaño de PDU para que los bloques de la
+     * transferencia por bloques midan menos de 128 bytes. Restaura el valor original
+     * al terminar (también si falla). Si el PDU ya es menor, no cambia nada.
+     */
+    private static void escribirConBloquesPequenos(
+            GXDLMSReader reader, GXDLMSObject objeto, int atributo
+    ) throws Exception {
+        GXDLMSClient client = reader.getClient();
+        int original = client.getMaxReceivePDUSize();
+        boolean limitar = original > MAX_PDU_BLOQUES;
+        if (limitar) {
+            AppLogger.i(TAG, "PDU " + original + " -> " + MAX_PDU_BLOQUES
+                    + " para escribir por bloques de menos de 128 bytes");
+            client.setMaxReceivePDUSize(MAX_PDU_BLOQUES);
+        }
+        try {
+            reader.writeObject(objeto, atributo);
+        } finally {
+            if (limitar) client.setMaxReceivePDUSize(original);
+        }
     }
 
     private static GXDLMSDayProfile makeDayProfile(
