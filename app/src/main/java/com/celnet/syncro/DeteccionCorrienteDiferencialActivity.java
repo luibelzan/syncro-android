@@ -11,6 +11,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.celnet.syncro.audit.AuditLog;
 import com.celnet.syncro.client.DLMSConnection;
 import com.celnet.syncro.models.parameters.DifferentialCurrentDetectionInfo;
 import com.celnet.syncro.objects.params.DifferentialCurrentDetectionReader;
@@ -72,6 +73,7 @@ public class DeteccionCorrienteDiferencialActivity extends BaseActivity {
                         DifferentialCurrentDetectionReader.leerDifferentialCurrentDetection(res.reader);
 
                 AppLogger.i("DifferentialCurrent", "Resultado lectura:\n" + datos.toString());
+                AuditLog.log(this, "LECTURA DE DETECCION DE CORRIENTE DIFERENCIAL", res.serialNumber);
 
                 runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);
@@ -134,6 +136,10 @@ public class DeteccionCorrienteDiferencialActivity extends BaseActivity {
                 DifferentialCurrentDetectionWriter.programarDifferentialCurrentDetection(
                         res.reader, umbralVariacion, umbralTiempo, umbralCorrienteMinima);
 
+                AuditLog.log(this, "PROGRAMACION DE DETECCION DE CORRIENTE DIFERENCIAL [UMBRAL DE VARIACION "
+                        + umbralVariacion + ", UMBRAL DE TIEMPO " + umbralTiempo
+                        + ", CORRIENTE MINIMA " + umbralCorrienteMinima + "]", res.serialNumber);
+
                 runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);
                     btnLeerActual.setEnabled(true);
@@ -144,6 +150,7 @@ public class DeteccionCorrienteDiferencialActivity extends BaseActivity {
 
             } catch (Exception e) {
                 e.printStackTrace();
+                AuditLog.log(this, "ERROR AL PROGRAMAR DETECCION DE CORRIENTE DIFERENCIAL");
                 runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);
                     btnLeerActual.setEnabled(true);
