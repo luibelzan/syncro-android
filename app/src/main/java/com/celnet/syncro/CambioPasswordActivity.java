@@ -1,5 +1,7 @@
 package com.celnet.syncro;
 
+import com.celnet.syncro.audit.AuditLog;
+
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
@@ -85,12 +87,14 @@ public class CambioPasswordActivity extends BaseActivity {
             new Thread(() -> {
                 DLMSConnection conn = nuevaConexion(config);
                 DLMSConnection connFw = null;
+                String serie = null;
 
                 try {
                     PasswordParams.ProgramarResult resultado = new PasswordParams.ProgramarResult();
 
                     if (progLectura || progMgmt) {
                         DLMSConnection.ConnectionResult res = conn.connectWithAutoDetect(CambioPasswordActivity.this);
+                        serie = res.serialNumber;
                         if (progLectura) {
                             resultado = PasswordParams.programarPasswordLectura(res.reader, password);
                         }
@@ -100,7 +104,7 @@ public class CambioPasswordActivity extends BaseActivity {
                         }
                     } else {
                         // Solo firmware: una conexión previa fija el addressSize y comprueba el contador.
-                        conn.connectWithAutoDetect(CambioPasswordActivity.this);
+                        serie = conn.connectWithAutoDetect(CambioPasswordActivity.this).serialNumber;
                     }
 
                     if (progFirmware) {
@@ -117,6 +121,20 @@ public class CambioPasswordActivity extends BaseActivity {
                         }
                     }
                     final PasswordParams.ProgramarResult fin = resultado;
+
+                    // Se anota qué contraseñas se cambiaron y si salió bien; nunca su valor.
+                    if (progLectura) {
+                        AuditLog.log(CambioPasswordActivity.this, (fin.lecturaOk ? "" : "SIN EXITO: ")
+                                + "CAMBIO DE CONTRASEÑA DE LECTURA", serie);
+                    }
+                    if (progMgmt) {
+                        AuditLog.log(CambioPasswordActivity.this, (fin.mgmtOk ? "" : "SIN EXITO: ")
+                                + "CAMBIO DE CONTRASEÑA DE GESTION", serie);
+                    }
+                    if (progFirmware) {
+                        AuditLog.log(CambioPasswordActivity.this, (fin.firmwareOk ? "" : "SIN EXITO: ")
+                                + "CAMBIO DE CONTRASEÑA DE FIRMWARE", serie);
+                    }
 
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);
@@ -141,6 +159,7 @@ public class CambioPasswordActivity extends BaseActivity {
                     });
                 } catch (Exception e) {
                     e.printStackTrace();
+                    AuditLog.log(CambioPasswordActivity.this, "ERROR AL CAMBIAR CONTRASEÑAS DEL CONTADOR", serie);
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);
                         btnNext.setEnabled(true);
