@@ -20,6 +20,114 @@ public class ProgramContract {
 
     private static final int NUM_PERIODOS = 6;
 
+    /**
+     * Tamaño de PDU máximo al escribir por bloques. Con 120 los bloques de datos quedan
+     * en ~95 bytes (< 128), cabiendo en una trama HDLC de 128 bytes sin segmentar.
+     */
+    private static final int MAX_PDU_BLOQUES = 120;
+
+    // ── Calendario por tarifa ────────────────────────────────────────────────
+    //
+    // Datos tomados de la programación de referencia de cada tarifa (tramas
+    // verificadas byte a byte contra el calendario pasivo que el contador acepta).
+    // Para añadir otra tarifa (p. ej. 6.1TD) basta con definir otra constante
+    // CalendarioTarifa y añadirla en calendarioDe().
+
+    /** Perfil diario: id y lista de acciones {hora, minuto, selector de script (periodo)}. */
+    private static final class DiaPerfil {
+        final int id;
+        final int[][] acciones;
+
+        DiaPerfil(int id, int[][] acciones) {
+            this.id = id;
+            this.acciones = acciones;
+        }
+    }
+
+    private static final class CalendarioTarifa {
+        /** Nombre del calendario tal y como se escribe (6 caracteres, con espacio final). */
+        final String nombre;
+        /** {id, mes, día, id de semana} */
+        final int[][] temporadas;
+        /** {id, lun, mar, mié, jue, vie, sáb, dom} (cada día = id de perfil diario) */
+        final int[][] semanas;
+        final DiaPerfil[] dias;
+        /** Perfil diario que se aplica a los festivos de la Special Days Table. */
+        final int diaFestivo;
+
+        CalendarioTarifa(String nombre, int[][] temporadas, int[][] semanas,
+                         DiaPerfil[] dias, int diaFestivo) {
+            this.nombre = nombre;
+            this.temporadas = temporadas;
+            this.semanas = semanas;
+            this.dias = dias;
+            this.diaFestivo = diaFestivo;
+        }
+    }
+
+    /** 2.0TD: 3 periodos. Fines de semana y festivos todo el día en P3. */
+    private static final CalendarioTarifa TARIFA_2_0TD = new CalendarioTarifa(
+            "2.0TD ",
+            new int[][]{
+                    {1, 1, 1, 1},
+            },
+            new int[][]{
+                    {1, 1, 1, 1, 1, 1, 2, 2},
+            },
+            new DiaPerfil[]{
+                    new DiaPerfil(1, new int[][]{
+                            {0, 0, 3}, {8, 0, 2}, {10, 0, 1}, {14, 0, 2}, {18, 0, 1}, {22, 0, 2}}),
+                    new DiaPerfil(2, new int[][]{
+                            {0, 0, 3}}),
+            },
+            2);
+
+    /** 3.0TD: 6 periodos, 9 temporadas, fines de semana y festivos todo el día en P6. */
+    private static final CalendarioTarifa TARIFA_3_0TD = new CalendarioTarifa(
+            "3.0TD ",
+            new int[][]{
+                    {1, 1, 1, 1}, {2, 3, 1, 2}, {3, 4, 1, 4}, {4, 6, 1, 3}, {5, 7, 1, 1},
+                    {6, 8, 1, 3}, {7, 10, 1, 4}, {8, 11, 1, 2}, {9, 12, 1, 1},
+            },
+            new int[][]{
+                    {1, 1, 1, 1, 1, 1, 5, 5},
+                    {2, 2, 2, 2, 2, 2, 5, 5},
+                    {3, 3, 3, 3, 3, 3, 5, 5},
+                    {4, 4, 4, 4, 4, 4, 5, 5},
+            },
+            new DiaPerfil[]{
+                    new DiaPerfil(1, new int[][]{
+                            {0, 0, 6}, {8, 0, 2}, {9, 0, 1}, {14, 0, 2}, {18, 0, 1}, {22, 0, 2}}),
+                    new DiaPerfil(2, new int[][]{
+                            {0, 0, 6}, {8, 0, 3}, {9, 0, 2}, {14, 0, 3}, {18, 0, 2}, {22, 0, 3}}),
+                    new DiaPerfil(3, new int[][]{
+                            {0, 0, 6}, {8, 0, 4}, {9, 0, 3}, {14, 0, 4}, {18, 0, 3}, {22, 0, 4}}),
+                    new DiaPerfil(4, new int[][]{
+                            {0, 0, 6}, {8, 0, 5}, {9, 0, 4}, {14, 0, 5}, {18, 0, 4}, {22, 0, 5}}),
+                    new DiaPerfil(5, new int[][]{
+                            {0, 0, 6}}),
+            },
+            5);
+
+    /** Festivos nacionales {mes, día}; son los mismos en todas las tarifas. */
+    private static final int[][] FESTIVOS = {
+            {1, 1}, {1, 6}, {5, 1}, {8, 15}, {10, 12}, {11, 1}, {12, 6}, {12, 8}, {12, 25},
+    };
+
+    /**
+     * Devuelve el calendario de la tarifa indicada. Acepta etiquetas con texto añadido
+     * o espacios (por ejemplo "2.0TD" o "Tarifa 2.0TD").
+     *
+     * @throws IllegalArgumentException si no hay calendario definido para esa tarifa
+     */
+    private static CalendarioTarifa calendarioDe(String tarifa) {
+        String t = tarifa == null ? "" : tarifa.replaceAll("\\s+", "").toUpperCase(Locale.ROOT);
+        if (t.contains("2.0TD")) return TARIFA_2_0TD;
+        if (t.contains("3.0TD")) return TARIFA_3_0TD;
+        throw new IllegalArgumentException(
+                "Tarifa no soportada: '" + tarifa + "'. Disponibles: 2.0TD, 3.0TD");
+    }
+
     public static void programarContrato(
             GXDLMSReader reader,
             int          contract,
@@ -28,22 +136,29 @@ public class ProgramContract {
             Date         activacion,
             String       cierreMes
     ) {
+        // Se resuelve antes de escribir nada: una tarifa desconocida debe fallar sin
+        // tocar el contador (la excepción llega a la pantalla; el try de abajo la tragaría).
+        final CalendarioTarifa calendario = (tarifa != null) ? calendarioDe(tarifa) : null;
+
         AppLogger.i(TAG, "=== Programando contrato " + contract
-                + (tarifa != null ? " tarifa " + tarifa : "") + " ===");
+                + (calendario != null ? " tarifa " + calendario.nombre.trim() : "") + " ===");
 
         try {
             // ── SESIÓN 1 ────────────────────────────────────────────────────
-            if (tarifa != null) {
-                escribirNombreCalendarioPasivo(reader, contract, tarifa);
-                escribirSeasonProfilePasivo(reader, contract);
-                escribirWeekProfilePasivo(reader, contract);
-                escribirDayProfilePasivo(reader, contract);
-            }
+            if (calendario != null) {
+                AppLogger.i(TAG, "Writing contract " + calendario.nombre);
+                escribirNombreCalendarioPasivo(reader, contract, calendario);
+                escribirSeasonProfilePasivo(reader, contract, calendario);
+                escribirWeekProfilePasivo(reader, contract, calendario);
+                escribirDayProfilePasivo(reader, contract, calendario);
 
-            try {
-                escribirDiasEspeciales(reader, contract);
-            } catch (Exception e) {
-                AppLogger.i(TAG, "Special Days Table no soportada, omitiendo: " + e.getMessage());
+                // Los festivos apuntan a un perfil diario del calendario que se acaba de
+                // escribir, así que solo se escriben junto con una tarifa.
+                try {
+                    escribirDiasEspeciales(reader, calendario);
+                } catch (Exception e) {
+                    AppLogger.i(TAG, "Special Days Table no soportada, omitiendo: " + e.getMessage());
+                }
             }
 
             if (cierreMes != null) {
@@ -71,17 +186,17 @@ public class ProgramContract {
     // ── Sesión 1 ─────────────────────────────────────────────────────────────
 
     private static void escribirNombreCalendarioPasivo(
-            GXDLMSReader reader, int contract, String tarifa
+            GXDLMSReader reader, int contract, CalendarioTarifa calendario
     ) throws Exception {
         String obis = String.format(OBIS_ACTIVITY_CALENDAR, contract);
         GXDLMSActivityCalendar cal = new GXDLMSActivityCalendar(obis);
         AppLogger.i(TAG, "Updating calendar_name_passive");
-        cal.setCalendarNamePassive(tarifa);
+        cal.setCalendarNamePassive(calendario.nombre);
         reader.writeObject(cal, 6);
     }
 
     private static void escribirSeasonProfilePasivo(
-            GXDLMSReader reader, int contract
+            GXDLMSReader reader, int contract, CalendarioTarifa calendario
     ) throws Exception {
         String obis = String.format(OBIS_ACTIVITY_CALENDAR, contract);
         GXDLMSActivityCalendar cal = new GXDLMSActivityCalendar(obis);
@@ -90,15 +205,9 @@ public class ProgramContract {
         // Construir seasons como raw List para evitar que Gurux serialice
         // fechas incorrectas al usar GXDateTime con wildcards
         List<Object> seasons = new ArrayList<>();
-        seasons.add(buildSeasonRaw((byte)1,  1,  1, (byte)1));
-        seasons.add(buildSeasonRaw((byte)2,  3,  1, (byte)2));
-        seasons.add(buildSeasonRaw((byte)3,  4,  1, (byte)4));
-        seasons.add(buildSeasonRaw((byte)4,  6,  1, (byte)3));
-        seasons.add(buildSeasonRaw((byte)5,  7,  1, (byte)1));
-        seasons.add(buildSeasonRaw((byte)6,  8,  1, (byte)3));
-        seasons.add(buildSeasonRaw((byte)7, 10,  1, (byte)4));
-        seasons.add(buildSeasonRaw((byte)8, 11,  1, (byte)2));
-        seasons.add(buildSeasonRaw((byte)9, 12,  1, (byte)1));
+        for (int[] s : calendario.temporadas) {
+            seasons.add(buildSeasonRaw((byte) s[0], s[1], s[2], (byte) s[3]));
+        }
 
         reader.getClient().updateValue(cal, 7, seasons);
         reader.writeObject(cal, 7);
@@ -111,8 +220,8 @@ public class ProgramContract {
      * Con year=FFFF (skip), dow=7 (wildcard), hora=0.
      *
      * deviation/status: estas seasons son fechas RECURRENTES cada año (no un
-     * instante concreto), por lo que dejamos deviation "no especificado"
-     * (0x8000) en vez de un valor de zona horaria — no aplica a un patrón anual.
+     * instante concreto). Se escriben igual que en la programación de referencia:
+     * deviation=0x8000 (no especificado) y status=0x80.
      */
     private static List<Object> buildSeasonRaw(byte name, int month, int day, byte weekName) {
         List<Object> season = new ArrayList<>();
@@ -127,7 +236,7 @@ public class ProgramContract {
                 (byte) 0x00,               // second = 0
                 (byte) 0x00,               // millisecond = 0
                 (byte) 0x80, (byte) 0x00,  // deviation = 0x8000 (no especificado)
-                (byte) 0x00                // status = 0x00
+                (byte) 0x80                // status = 0x80
         };
         season.add(dt);
         season.add(new byte[]{weekName});
@@ -135,18 +244,19 @@ public class ProgramContract {
     }
 
     private static void escribirWeekProfilePasivo(
-            GXDLMSReader reader, int contract
+            GXDLMSReader reader, int contract, CalendarioTarifa calendario
     ) throws Exception {
         String obis = String.format(OBIS_ACTIVITY_CALENDAR, contract);
         GXDLMSActivityCalendar cal = new GXDLMSActivityCalendar(obis);
         AppLogger.i(TAG, "Updating week_profile_table_passive");
 
-        GXDLMSWeekProfile w1 = makeWeekProfile((byte)1, 1, 1, 1, 1, 1, 5, 5);
-        GXDLMSWeekProfile w2 = makeWeekProfile((byte)2, 2, 2, 2, 2, 2, 5, 5);
-        GXDLMSWeekProfile w3 = makeWeekProfile((byte)3, 3, 3, 3, 3, 3, 5, 5);
-        GXDLMSWeekProfile w4 = makeWeekProfile((byte)4, 4, 4, 4, 4, 4, 5, 5);
+        GXDLMSWeekProfile[] semanas = new GXDLMSWeekProfile[calendario.semanas.length];
+        for (int i = 0; i < semanas.length; i++) {
+            int[] w = calendario.semanas[i];
+            semanas[i] = makeWeekProfile((byte) w[0], w[1], w[2], w[3], w[4], w[5], w[6], w[7]);
+        }
 
-        cal.setWeekProfileTablePassive(new GXDLMSWeekProfile[]{w1, w2, w3, w4});
+        cal.setWeekProfileTablePassive(semanas);
         reader.writeObject(cal, 8);
     }
 
@@ -161,7 +271,7 @@ public class ProgramContract {
     }
 
     private static void escribirDayProfilePasivo(
-            GXDLMSReader reader, int contract
+            GXDLMSReader reader, int contract, CalendarioTarifa calendario
     ) throws Exception {
         String obis = String.format(OBIS_ACTIVITY_CALENDAR, contract);
         GXDLMSActivityCalendar cal = new GXDLMSActivityCalendar(obis);
@@ -169,44 +279,49 @@ public class ProgramContract {
 
         String scriptObis = "0.0.0.0.0.0";
 
-        GXDLMSDayProfile day1 = makeDayProfile(1, new GXDLMSDayProfileAction[]{
-                makeDayAction("00:00:00", scriptObis, 6),
-                makeDayAction("08:00:00", scriptObis, 2),
-                makeDayAction("09:00:00", scriptObis, 1),
-                makeDayAction("14:00:00", scriptObis, 2),
-                makeDayAction("18:00:00", scriptObis, 1),
-                makeDayAction("22:00:00", scriptObis, 2),
-        });
-        GXDLMSDayProfile day2 = makeDayProfile(2, new GXDLMSDayProfileAction[]{
-                makeDayAction("00:00:00", scriptObis, 6),
-                makeDayAction("08:00:00", scriptObis, 3),
-                makeDayAction("09:00:00", scriptObis, 2),
-                makeDayAction("14:00:00", scriptObis, 3),
-                makeDayAction("18:00:00", scriptObis, 2),
-                makeDayAction("22:00:00", scriptObis, 3),
-        });
-        GXDLMSDayProfile day3 = makeDayProfile(3, new GXDLMSDayProfileAction[]{
-                makeDayAction("00:00:00", scriptObis, 6),
-                makeDayAction("08:00:00", scriptObis, 4),
-                makeDayAction("09:00:00", scriptObis, 3),
-                makeDayAction("14:00:00", scriptObis, 4),
-                makeDayAction("18:00:00", scriptObis, 3),
-                makeDayAction("22:00:00", scriptObis, 4),
-        });
-        GXDLMSDayProfile day4 = makeDayProfile(4, new GXDLMSDayProfileAction[]{
-                makeDayAction("00:00:00", scriptObis, 6),
-                makeDayAction("08:00:00", scriptObis, 5),
-                makeDayAction("09:00:00", scriptObis, 4),
-                makeDayAction("14:00:00", scriptObis, 5),
-                makeDayAction("18:00:00", scriptObis, 4),
-                makeDayAction("22:00:00", scriptObis, 5),
-        });
-        GXDLMSDayProfile day5 = makeDayProfile(5, new GXDLMSDayProfileAction[]{
-                makeDayAction("00:00:00", scriptObis, 6),
-        });
+        GXDLMSDayProfile[] dias = new GXDLMSDayProfile[calendario.dias.length];
+        for (int i = 0; i < dias.length; i++) {
+            DiaPerfil d = calendario.dias[i];
+            GXDLMSDayProfileAction[] acciones = new GXDLMSDayProfileAction[d.acciones.length];
+            for (int j = 0; j < acciones.length; j++) {
+                int[] a = d.acciones[j];
+                acciones[j] = makeDayAction(
+                        String.format(Locale.ROOT, "%02d:%02d:00", a[0], a[1]), scriptObis, a[2]);
+            }
+            dias[i] = makeDayProfile(d.id, acciones);
+        }
 
-        cal.setDayProfileTablePassive(new GXDLMSDayProfile[]{day1, day2, day3, day4, day5});
-        reader.writeObject(cal, 9);
+        cal.setDayProfileTablePassive(dias);
+
+        // La tabla de perfiles diarios (500+ bytes) no cabe en una sola petición, así que
+        // se envía por bloques. Con el tamaño de PDU que anuncian algunos Kaifa (240), la
+        // librería genera bloques de más de 127 bytes y escribe su longitud sin el prefijo
+        // 0x81 que exige DLMS (BER): el contador descarta la petición sin contestar.
+        // Limitando el PDU, los bloques salen por debajo de 128 bytes.
+        escribirConBloquesPequenos(reader, cal, 9);
+    }
+
+    /**
+     * Escribe un atributo limitando el tamaño de PDU para que los bloques de la
+     * transferencia por bloques midan menos de 128 bytes. Restaura el valor original
+     * al terminar (también si falla). Si el PDU ya es menor, no cambia nada.
+     */
+    private static void escribirConBloquesPequenos(
+            GXDLMSReader reader, GXDLMSObject objeto, int atributo
+    ) throws Exception {
+        GXDLMSClient client = reader.getClient();
+        int original = client.getMaxReceivePDUSize();
+        boolean limitar = original > MAX_PDU_BLOQUES;
+        if (limitar) {
+            AppLogger.i(TAG, "PDU " + original + " -> " + MAX_PDU_BLOQUES
+                    + " para escribir por bloques de menos de 128 bytes");
+            client.setMaxReceivePDUSize(MAX_PDU_BLOQUES);
+        }
+        try {
+            reader.writeObject(objeto, atributo);
+        } finally {
+            if (limitar) client.setMaxReceivePDUSize(original);
+        }
     }
 
     private static GXDLMSDayProfile makeDayProfile(
@@ -228,23 +343,20 @@ public class ProgramContract {
         return action;
     }
 
-    private static void escribirDiasEspeciales(GXDLMSReader reader, int contract) throws Exception {
+    private static void escribirDiasEspeciales(
+            GXDLMSReader reader, CalendarioTarifa calendario
+    ) throws Exception {
         // El contador usa 0.0.11.0.4.255 para escritura del pasivo
         // independientemente del contrato activo
         String obis = "0.0.11.0.4.255";
-        AppLogger.i(TAG, "Updating Special Days Table " + obis);
+        AppLogger.i(TAG, "Updating Special Days Table " + obis
+                + " (perfil diario de festivos: " + calendario.diaFestivo + ")");
         GXDLMSSpecialDaysTable sdt = new GXDLMSSpecialDaysTable(obis);
-        GXDLMSSpecialDay[] specialDays = {
-                makeSpecialDay(1, -1,  1,  1, 5),
-                makeSpecialDay(2, -1,  1,  6, 5),
-                makeSpecialDay(3, -1,  5,  1, 5),
-                makeSpecialDay(4, -1,  8, 15, 5),
-                makeSpecialDay(5, -1, 10, 12, 5),
-                makeSpecialDay(6, -1, 11,  1, 5),
-                makeSpecialDay(7, -1, 12,  6, 5),
-                makeSpecialDay(8, -1, 12,  8, 5),
-                makeSpecialDay(9, -1, 12, 25, 5),
-        };
+        GXDLMSSpecialDay[] specialDays = new GXDLMSSpecialDay[FESTIVOS.length];
+        for (int i = 0; i < specialDays.length; i++) {
+            specialDays[i] = makeSpecialDay(
+                    i + 1, -1, FESTIVOS[i][0], FESTIVOS[i][1], calendario.diaFestivo);
+        }
         sdt.setEntries(specialDays);
         reader.writeObject(sdt, 2);
     }
