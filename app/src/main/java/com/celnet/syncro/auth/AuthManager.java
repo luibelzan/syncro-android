@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.database.sqlite.SQLiteConstraintException;
 import android.widget.Toast;
 
+import com.celnet.syncro.audit.AuditLog;
+
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -40,11 +42,13 @@ public final class AuthManager {
     private static volatile AuthManager instancia;
 
     private final UsuarioDao dao;
+    private final AuditLog auditoria;
     private final ExecutorService io = Executors.newSingleThreadExecutor();
     private volatile Usuario actual;
 
     private AuthManager(Context contexto) {
         this.dao = AuthDatabase.get(contexto).usuarioDao();
+        this.auditoria = AuditLog.get(contexto);
     }
 
     public static AuthManager get(Context contexto) {
@@ -71,12 +75,14 @@ public final class AuthManager {
 
         Usuario u = (nombre == null) ? null : dao.porNombre(nombre.trim());
         if (u == null) {
+            auditoria.registrarSinSesion(recortar(nombre), "ACCESO FALLIDO: USUARIO INEXISTENTE");
             r.estado = Estado.CREDENCIALES_INVALIDAS;
             return r;
         }
 
         long ahora = System.currentTimeMillis();
         if (u.bloqueadoHasta > ahora) {
+            auditoria.registrarSinSesion(u.nombreUsuario, "ACCESO RECHAZADO: USUARIO BLOQUEADO");
             r.estado = Estado.BLOQUEADO;
             r.bloqueadoHasta = u.bloqueadoHasta;
             return r;
@@ -85,11 +91,15 @@ public final class AuthManager {
         if (!PasswordHasher.verificar(password, u)) {
             u.intentosFallidos++;
             if (u.intentosFallidos >= MAX_INTENTOS) {
+                auditoria.registrarSinSesion(u.nombreUsuario,
+                        "ACCESO FALLIDO: CONTRASEÑA INCORRECTA. USUARIO BLOQUEADO TRAS "
+                                + MAX_INTENTOS + " INTENTOS");
                 u.bloqueadoHasta = ahora + BLOQUEO_MS;
                 u.intentosFallidos = 0;
                 r.estado = Estado.BLOQUEADO;
                 r.bloqueadoHasta = u.bloqueadoHasta;
             } else {
+                auditoria.registrarSinSesion(u.nombreUsuario, "ACCESO FALLIDO: CONTRASEÑA INCORRECTA");
                 r.estado = Estado.CREDENCIALES_INVALIDAS;
                 r.intentosRestantes = MAX_INTENTOS - u.intentosFallidos;
             }
@@ -98,6 +108,7 @@ public final class AuthManager {
         }
 
         if (!u.activo) {
+            auditoria.registrarSinSesion(u.nombreUsuario, "ACCESO RECHAZADO: USUARIO DESACTIVADO");
             r.estado = Estado.DESACTIVADO;
             return r;
         }
@@ -107,13 +118,23 @@ public final class AuthManager {
         u.ultimoAcceso = ahora;
         dao.actualizar(u);
         actual = u;
+        auditoria.iniciarSesion(u.nombreUsuario);
         r.estado = Estado.OK;
         r.usuario = u;
         return r;
     }
 
     public void logout() {
+        if (actual != null) {
+            auditoria.cerrarSesion();
+        }
         actual = null;
+    }
+
+    /** Evita que un texto escrito en el campo de usuario llene el registro. */
+    private static String recortar(String s) {
+        String t = s == null ? "" : s.trim();
+        return t.length() > 30 ? t.substring(0, 30) : t;
     }
 
     /** Crea el administrador predefinido si todavía no hay ningún usuario. */
@@ -146,6 +167,7 @@ public final class AuthManager {
         u.debeCambiarPassword = false;
         dao.actualizar(u);
         actual = u;
+        auditoria.registrar("CAMBIO DE CONTRASEÑA PROPIA");
         return null;
     }
 
@@ -171,6 +193,7 @@ public final class AuthManager {
         u.intentosFallidos = 0;
         u.bloqueadoHasta = 0;
         dao.actualizar(u);
+        auditoria.registrar("RESTABLECIMIENTO DE CONTRASEÑA DEL USUARIO " + u.nombreUsuario);
         return null;
     }
 
@@ -200,6 +223,7 @@ public final class AuthManager {
         } catch (SQLiteConstraintException e) {
             return "Ya existe un usuario con ese nombre";
         }
+        auditoria.registrar("ALTA DE USUARIO " + n + " CON PERFIL " + rol.name());
         return null;
     }
 
@@ -221,6 +245,7 @@ public final class AuthManager {
         if (actual != null && actual.id.equals(u.id)) {
             actual = u;
         }
+        auditoria.registrar("CAMBIO DE PERFIL DEL USUARIO " + u.nombreUsuario + " A " + rol.name());
         return null;
     }
 
@@ -247,6 +272,7 @@ public final class AuthManager {
             u.bloqueadoHasta = 0;
         }
         dao.actualizar(u);
+        auditoria.registrar((activo ? "ACTIVACION" : "DESACTIVACION") + " DEL USUARIO " + u.nombreUsuario);
         return null;
     }
 
