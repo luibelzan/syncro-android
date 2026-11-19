@@ -17,6 +17,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.celnet.syncro.audit.AuditLog;
 import com.celnet.syncro.client.DLMSConnection;
 import com.celnet.syncro.models.curvas.CurvaCorrienteFila;
 import com.celnet.syncro.models.curvas.CurvaEnergiaFaseFila;
@@ -194,6 +195,9 @@ public class CurvasActivity extends BaseActivity {
                     }
 
                     conn.close();
+
+                    AuditLog.log(CurvasActivity.this, "LECTURA DE CURVA " + tipoFinal
+                            + " DEL " + fechaInicio + " AL " + fechaFin, res.serialNumber);
 
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);

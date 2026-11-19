@@ -15,6 +15,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.celnet.syncro.audit.AuditLog;
 import com.celnet.syncro.client.DLMSConnection;
 import com.celnet.syncro.models.cierres.CierreEnCursoFila;
 import com.celnet.syncro.models.cierres.CierreFila;
@@ -231,6 +232,14 @@ public class CierresActivity extends BaseActivity {
                             startActivity(intent);
                         });
                     }
+
+                    boolean enCurso = tipoCierre.equals("Actuales (S27)");
+                    AuditLog.log(CierresActivity.this, "LECTURA DE CIERRES "
+                                    + tipoCierre.toUpperCase(Locale.ROOT) + " "
+                                    + (posicionContratoFinal == 3 ? "DE TODOS LOS CONTRATOS"
+                                    : "DEL CONTRATO " + contratoFinal)
+                                    + (enCurso ? "" : " DEL " + fechaInicio + " AL " + fechaFin),
+                            res.serialNumber);
                 } catch (Exception e) {
                     e.printStackTrace();
                     runOnUiThread(() -> {
