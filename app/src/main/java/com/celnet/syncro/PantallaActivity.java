@@ -17,6 +17,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.celnet.syncro.audit.AuditLog;
 import com.celnet.syncro.client.DLMSConnection;
 import com.celnet.syncro.objects.params.ScreenParams;
 import com.celnet.syncro.session.ConnectionConfig;
@@ -117,6 +118,7 @@ public class PantallaActivity extends AppCompatActivity {
                 DLMSConnection.ConnectionResult res = conn.connectWithAutoDetect(PantallaActivity.this);
                 ScreenParams.ScreenParamsResult params = ScreenParams.leerParametrosPantalla(res.reader);
                 conn.close();
+                AuditLog.log(PantallaActivity.this, "LECTURA DE PARAMETROS DE PANTALLA", res.serialNumber);
 
                 runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);
@@ -228,6 +230,21 @@ public class PantallaActivity extends AppCompatActivity {
                         res.reader, finalModo, finalTiempo, finalOutputLed);
                 conn.close();
 
+                StringBuilder det = new StringBuilder();
+                if (finalModo != null) det.append("MODO ").append(finalModo);
+                if (finalTiempo != null) {
+                    if (det.length() > 0) det.append(", ");
+                    det.append("TIEMPO DE DESPLAZAMIENTO ").append(finalTiempo);
+                }
+                if (finalOutputLed != null) {
+                    if (det.length() > 0) det.append(", ");
+                    det.append("OUTPUT LED ").append(finalOutputLed);
+                }
+                AuditLog.log(PantallaActivity.this,
+                        (result.todoOk() ? "" : "PARCIAL O SIN EXITO: ")
+                                + "PROGRAMACION DE PARAMETROS DE PANTALLA [" + det + "]",
+                        res.serialNumber);
+
                 runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);
                     setBotonesEnabled(true);
@@ -249,6 +266,7 @@ public class PantallaActivity extends AppCompatActivity {
 
             } catch (Exception e) {
                 e.printStackTrace();
+                AuditLog.log(PantallaActivity.this, "ERROR AL PROGRAMAR PARAMETROS DE PANTALLA");
                 runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);
                     setBotonesEnabled(true);

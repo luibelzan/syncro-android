@@ -13,6 +13,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.celnet.syncro.audit.AuditLog;
 import com.celnet.syncro.client.DLMSConnection;
 import com.celnet.syncro.objects.contracts.ViewContract;
 import com.celnet.syncro.session.ConnectionConfig;
@@ -75,6 +76,9 @@ public class VerContratoActivity extends BaseActivity {
                     String datos = ViewContract.leerContrato(res.reader, contract);
 
                     conn.close();
+
+                    AuditLog.log(VerContratoActivity.this, "LECTURA DE CONTRATO " + contract,
+                            res.serialNumber);
 
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);

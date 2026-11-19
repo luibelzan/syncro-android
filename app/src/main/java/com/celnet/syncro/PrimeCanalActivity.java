@@ -18,6 +18,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.celnet.syncro.audit.AuditLog;
 import com.celnet.syncro.client.DLMSConnection;
 import com.celnet.syncro.objects.prime.PrimeChannelReader;
 import com.celnet.syncro.objects.prime.PrimeChannelWriter;
@@ -140,6 +141,7 @@ public class PrimeCanalActivity extends BaseActivity {
                     DLMSConnection.ConnectionResult res = conn.connectWithAutoDetect(PrimeCanalActivity.this);
 
                     PrimeChannelReader.Resultado resultado = PrimeChannelReader.leerCanalPrime(res.reader);
+                    AuditLog.log(PrimeCanalActivity.this, "LECTURA DE CANAL PRIME", res.serialNumber);
                     SpannableStringBuilder textoResultado = formatearResultadoCanalPrime(resultado);
 
                     runOnUiThread(() -> {
@@ -225,6 +227,24 @@ public class PrimeCanalActivity extends BaseActivity {
                             escribirCanalFinal, canalMascara,
                             escribirDualStackFinal, dualStackOpcionFinal);
 
+                    StringBuilder det = new StringBuilder();
+                    if (escribirCanalFinal) {
+                        StringBuilder canalesSel = new StringBuilder();
+                        for (int i = 0; i < canalMascara.length; i++) {
+                            if (canalMascara[i]) {
+                                if (canalesSel.length() > 0) canalesSel.append(',');
+                                canalesSel.append(i + 1);
+                            }
+                        }
+                        det.append("CANAL ").append(canalesSel.length() > 0 ? canalesSel : "AUTO");
+                    }
+                    if (escribirDualStackFinal) {
+                        if (det.length() > 0) det.append(", ");
+                        det.append("DUAL STACK OPCION ").append(dualStackOpcionFinal);
+                    }
+                    AuditLog.log(PrimeCanalActivity.this,
+                            "PROGRAMACION DE CANAL PRIME [" + det + "]", res.serialNumber);
+
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);
                         btnLeerActual.setEnabled(true);
@@ -236,6 +256,7 @@ public class PrimeCanalActivity extends BaseActivity {
 
                 } catch (Exception e) {
                     e.printStackTrace();
+                    AuditLog.log(PrimeCanalActivity.this, "ERROR AL PROGRAMAR CANAL PRIME");
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);
                         btnLeerActual.setEnabled(true);

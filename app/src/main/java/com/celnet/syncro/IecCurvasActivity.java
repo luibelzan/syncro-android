@@ -17,6 +17,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.celnet.syncro.audit.AuditLog;
 import com.celnet.syncro.models.curvas.TipoCurva;
 import com.celnet.syncro.client.Iec870Client;
 import com.celnet.syncro.objects.iec870.curvas.Iec870LoadProfileReader;
@@ -121,6 +122,10 @@ public class IecCurvasActivity extends BaseActivity {
                 try {
                     Iec870LoadProfileReader.Resultado res = Iec870LoadProfileReader
                             .leerCurvaCarga(IecCurvasActivity.this, config, fechaInicio, fechaFin, periodoIec);
+
+                    AuditLog.log(IecCurvasActivity.this, "LECTURA DE CURVA DE CARGA "
+                            + periodo.toUpperCase(Locale.ROOT) + " DEL " + fechaInicio + " AL " + fechaFin
+                            + " (IEC-870)", res.serie);
 
                     Intent intent = new Intent(IecCurvasActivity.this, ResultadosCurvasActivity.class);
                     intent.putExtra("tipoCurva", TipoCurva.INCREMENTAL_S02.name());

@@ -10,6 +10,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.celnet.syncro.audit.AuditLog;
 import com.celnet.syncro.client.DLMSConnection;
 import com.celnet.syncro.objects.params.TrafoParams;
 import com.celnet.syncro.session.ConnectionConfig;
@@ -78,6 +79,9 @@ public class TrafoActivity extends BaseActivity {
                 conn = crearConexion(config);
                 DLMSConnection.ConnectionResult res = conn.connectWithAutoDetect(TrafoActivity.this);
                 TrafoParams.RelacionesResult r = TrafoParams.leerRelaciones(res.reader);
+                if (r.algunValor()) {
+                    AuditLog.log(TrafoActivity.this, "LECTURA DE RELACION DE TRANSFORMACION", res.serialNumber);
+                }
 
                 runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);
@@ -150,6 +154,17 @@ public class TrafoActivity extends BaseActivity {
                 TrafoParams.ProgramarResult result =
                         TrafoParams.programarRelaciones(res.reader, fVp, fVs, fCp, fCs);
 
+                StringBuilder det = new StringBuilder();
+                if (fVp != null) det.append("TENSION ").append(fVp).append("/").append(fVs)
+                        .append(result.tensionOk ? "" : " (ERROR)");
+                if (fCp != null) {
+                    if (det.length() > 0) det.append(", ");
+                    det.append("CORRIENTE ").append(fCp).append("/").append(fCs)
+                            .append(result.corrienteOk ? "" : " (ERROR)");
+                }
+                AuditLog.log(TrafoActivity.this, (result.todoOk() ? "" : "PARCIAL O SIN EXITO: ")
+                        + "PROGRAMACION DE RELACION DE TRANSFORMACION [" + det + "]", res.serialNumber);
+
                 runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);
                     setBotonesEnabled(true);
@@ -176,6 +191,7 @@ public class TrafoActivity extends BaseActivity {
 
             } catch (Exception e) {
                 e.printStackTrace();
+                AuditLog.log(TrafoActivity.this, "ERROR AL PROGRAMAR RELACION DE TRANSFORMACION");
                 mostrarErrorConexion(e);
             } finally {
                 cerrar(conn);

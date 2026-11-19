@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.celnet.syncro.adapters.CierreMensualAdapter;
+import com.celnet.syncro.audit.AuditLog;
 import com.celnet.syncro.models.cierres.CierreMensualFila;
 import com.celnet.syncro.utils.Utils;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
@@ -134,6 +135,8 @@ public class ResultadosCierresMensualesActivity extends AppCompatActivity {
                 try (FileOutputStream fos = new FileOutputStream(file)) {
                     fos.write(xml.getBytes());
                     fos.flush();
+                    AuditLog.log(ResultadosCierresMensualesActivity.this,
+                            "GENERACION DE REPORTE DE CIERRES MENSUALES " + file.getName(), cntId);
 
                     String afterGenerate = prefs.getString(
                             "afterGenerate",
@@ -193,6 +196,10 @@ public class ResultadosCierresMensualesActivity extends AppCompatActivity {
                                         );
                             }
 
+                            AuditLog.log(ResultadosCierresMensualesActivity.this,
+                                    (subidaCorrecta ? "ENVIO DE REPORTE " : "ERROR AL ENVIAR REPORTE ")
+                                            + file.getName() + " (" + protocolo + ")", cntId);
+
                             if (subidaCorrecta) {
 
                                 Utils.gestionarArchivoTrasEnvio(
@@ -204,6 +211,8 @@ public class ResultadosCierresMensualesActivity extends AppCompatActivity {
 
                         } catch (Exception e) {
                             e.printStackTrace();
+                            AuditLog.log(ResultadosCierresMensualesActivity.this,
+                                    "ERROR AL ENVIAR REPORTE " + file.getName(), cntId);
                         }
 
                         boolean resultadoFinal = subidaCorrecta;
@@ -231,6 +240,8 @@ public class ResultadosCierresMensualesActivity extends AppCompatActivity {
                     }).start();
                 } catch (IOException e) {
                     e.printStackTrace();
+                    AuditLog.log(ResultadosCierresMensualesActivity.this,
+                            "ERROR AL GENERAR REPORTE DE CIERRES MENSUALES " + nombreFichero, cntId);
                 }
             } else {
                 Toast.makeText(this, "No hay datos para exportar", Toast.LENGTH_SHORT).show();

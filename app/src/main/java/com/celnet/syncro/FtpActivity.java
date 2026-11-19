@@ -11,6 +11,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.celnet.syncro.audit.AuditLog;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 
@@ -60,6 +61,16 @@ public class FtpActivity extends BaseActivity {
 
     private void guardarConfiguracion() {
         SharedPreferences prefs = getSharedPreferences("ftp_config", MODE_PRIVATE);
+
+        // Se anota qué se configuró, pero nunca el valor de la contraseña.
+        boolean passCambiada = !prefs.getString("pass", "").equals(editPassFtp.getText().toString());
+        AuditLog.log(this, "MODIFICACION DE CONFIGURACION FTP DE ENVIO DE REPORTES ["
+                + "PROTOCOLO " + spinnerProtocolo.getText()
+                + ", SERVIDOR " + editDirFtp.getText() + ":" + editPortFtp.getText()
+                + ", CARPETA " + editFolderFtp.getText()
+                + ", USUARIO " + editUserFtp.getText()
+                + (passCambiada ? ", CONTRASEÑA MODIFICADA" : "") + "]");
+
         SharedPreferences.Editor editor = prefs.edit();
 
         editor.putString("protocolo", spinnerProtocolo.getText().toString());

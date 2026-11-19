@@ -23,6 +23,7 @@ import com.celnet.syncro.adapters.CurvaAdapter;
 import com.celnet.syncro.adapters.CurvaCorrienteAdapter;
 import com.celnet.syncro.adapters.CurvaEnergiaFaseAdapter;
 import com.celnet.syncro.adapters.CurvaVoltajeAdapter;
+import com.celnet.syncro.audit.AuditLog;
 import com.celnet.syncro.export.IecExcelExport;
 import com.celnet.syncro.models.curvas.CurvaCorrienteFila;
 import com.celnet.syncro.models.curvas.CurvaEnergiaFaseFila;
@@ -330,6 +331,8 @@ public class ResultadosCurvasActivity extends BaseActivity {
             try (FileOutputStream fos = new FileOutputStream(file)) {
                 fos.write(xml.getBytes());
                 fos.flush();
+                AuditLog.log(ResultadosCurvasActivity.this,
+                        "GENERACION DE REPORTE DE CURVAS (" + idReporte + ") " + file.getName(), cntId);
 
                 String afterGenerate = prefs.getString("afterGenerate", "Guardar e intentar enviar al FTP inmediatamente");
                 String afterSend = prefs.getString("afterSend", "Mover a la carpeta de backup del dispositivo");
@@ -350,11 +353,16 @@ public class ResultadosCurvasActivity extends BaseActivity {
                         } else {
                             subidaCorrecta = Utils.subirArchivoFTP(ResultadosCurvasActivity.this, file);
                         }
+                        AuditLog.log(ResultadosCurvasActivity.this,
+                                (subidaCorrecta ? "ENVIO DE REPORTE " : "ERROR AL ENVIAR REPORTE ")
+                                        + file.getName() + " (" + protocolo + ")", cntId);
                         if (subidaCorrecta) {
                             Utils.gestionarArchivoTrasEnvio(file, afterSend, ResultadosCurvasActivity.this);
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
+                        AuditLog.log(ResultadosCurvasActivity.this,
+                                "ERROR AL ENVIAR REPORTE " + file.getName(), cntId);
                     }
 
                     boolean resultadoFinal = subidaCorrecta;
@@ -367,6 +375,8 @@ public class ResultadosCurvasActivity extends BaseActivity {
 
             } catch (IOException e) {
                 e.printStackTrace();
+                AuditLog.log(ResultadosCurvasActivity.this,
+                        "ERROR AL GENERAR REPORTE DE CURVAS (" + idReporte + ") " + nombreFichero, cntId);
                 Toast.makeText(this, "Error al generar el fichero XML", Toast.LENGTH_LONG).show();
             }
         });
@@ -382,6 +392,7 @@ public class ResultadosCurvasActivity extends BaseActivity {
             Toast.makeText(this, "No hay datos para exportar", Toast.LENGTH_SHORT).show();
             return;
         }
+        AuditLog.log(this, "EXPORTACION A EXCEL DE CURVA (IEC-870)", contador);
         IecExcelExport.exportar(this, contador,
                 id -> nombreExcel(id, registros),
                 out -> Iec870CurvasXlsx.generar(out, contador, registros));

@@ -17,6 +17,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.celnet.syncro.audit.AuditLog;
 import com.celnet.syncro.models.iec870.eventos.Iec870Events;
 import com.celnet.syncro.objects.iec870.events.Iec870EventsReader;
 import com.celnet.syncro.session.ConnectionConfig;
@@ -132,6 +133,9 @@ public class IecEventsActivity extends BaseActivity {
                 try {
                     Iec870EventsReader.Resultado res = Iec870EventsReader.leerEventos(
                             IecEventsActivity.this, config, registroFinal, fechaInicio, fechaFin);
+
+                    AuditLog.log(IecEventsActivity.this, "LECTURA DE EVENTOS [" + seleccion + "] DEL "
+                            + fechaInicio + " AL " + fechaFin + " (IEC-870)", res.serie);
 
                     if (res.filas.isEmpty()) {
                         runOnUiThread(() -> {

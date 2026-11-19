@@ -128,7 +128,12 @@ public class ProgramContract {
                 "Tarifa no soportada: '" + tarifa + "'. Disponibles: 2.0TD, 3.0TD");
     }
 
-    public static void programarContrato(
+    /**
+     * Programa el contrato en el contador.
+     *
+     * @return true si se escribió todo lo pedido; false si algo falló (el detalle queda en el log).
+     */
+    public static boolean programarContrato(
             GXDLMSReader reader,
             int          contract,
             String       tarifa,
@@ -177,9 +182,11 @@ public class ProgramContract {
             }
 
             AppLogger.i(TAG, "=== Contrato " + contract + " programado correctamente ===");
+            return true;
 
         } catch (Exception e) {
             AppLogger.e(TAG, "Error al programar contrato " + contract + ": " + e.getMessage());
+            return false;
         }
     }
 

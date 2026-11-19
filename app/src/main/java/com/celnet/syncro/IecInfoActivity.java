@@ -15,6 +15,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.celnet.syncro.audit.AuditLog;
 import com.celnet.syncro.models.iec870.params.Iec870DeviceInfo;
 import com.celnet.syncro.objects.iec870.params.Iec870InfoReader;
 import com.celnet.syncro.models.iec870.params.Iec870PortConfig;
@@ -69,6 +70,7 @@ public class IecInfoActivity extends BaseActivity {
             new Thread(() -> {
                 try {
                     Iec870DeviceInfo info = Iec870InfoReader.leer(IecInfoActivity.this, config);
+                    AuditLog.log(IecInfoActivity.this, "LECTURA DE CONFIGURACION DE PUERTOS (IEC-870)", info.serie);
 
                     runOnUiThread(() -> {
                         bloquear(false, btnRead, btnNext, progressBar);
@@ -126,8 +128,12 @@ public class IecInfoActivity extends BaseActivity {
                         bloquear(true, btnRead, btnNext, progressBar);
                         new Thread(() -> {
                             try {
-                                Iec870InfoReader.programar(IecInfoActivity.this, config,
+                                String serie = Iec870InfoReader.programar(IecInfoActivity.this, config,
                                         fp1, fp2, fpo);
+                                AuditLog.log(IecInfoActivity.this,
+                                        "PROGRAMACION DE PUERTOS (IEC-870) [SERIE 1: " + resumen(fp1)
+                                                + ", SERIE 2: " + resumen(fp2)
+                                                + ", OPTICO: " + resumen(fpo) + "]", serie);
                                 runOnUiThread(() -> {
                                     bloquear(false, btnRead, btnNext, progressBar);
                                     Toast.makeText(IecInfoActivity.this,
@@ -136,6 +142,7 @@ public class IecInfoActivity extends BaseActivity {
                                 });
                             } catch (Exception e) {
                                 e.printStackTrace();
+                                AuditLog.log(IecInfoActivity.this, "ERROR AL PROGRAMAR PUERTOS (IEC-870)");
                                 runOnUiThread(() -> {
                                     bloquear(false, btnRead, btnNext, progressBar);
                                     mostrarError("No se pudo programar la configuración de puertos.", e);

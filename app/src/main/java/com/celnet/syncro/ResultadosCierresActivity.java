@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.celnet.syncro.adapters.CierreAdapter;
+import com.celnet.syncro.audit.AuditLog;
 import com.celnet.syncro.models.cierres.CierreFila;
 import com.celnet.syncro.utils.Utils;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
@@ -120,6 +121,8 @@ public class ResultadosCierresActivity extends BaseActivity {
                 try (FileOutputStream fos = new FileOutputStream(file)) {
                     fos.write(xml.getBytes());
                     fos.flush();
+                    AuditLog.log(ResultadosCierresActivity.this,
+                            "GENERACION DE REPORTE DE CIERRES " + file.getName(), cntId);
 
                     String afterGenerate = prefs.getString(
                             "afterGenerate",
@@ -183,6 +186,10 @@ public class ResultadosCierresActivity extends BaseActivity {
                                         );
                             }
 
+                            AuditLog.log(ResultadosCierresActivity.this,
+                                    (subidaCorrecta ? "ENVIO DE REPORTE " : "ERROR AL ENVIAR REPORTE ")
+                                            + file.getName() + " (" + protocolo + ")", cntId);
+
                             if (subidaCorrecta) {
 
                                 Utils.gestionarArchivoTrasEnvio(
@@ -194,6 +201,8 @@ public class ResultadosCierresActivity extends BaseActivity {
 
                         } catch (Exception e) {
                             e.printStackTrace();
+                            AuditLog.log(ResultadosCierresActivity.this,
+                                    "ERROR AL ENVIAR REPORTE " + file.getName(), cntId);
                         }
 
                         boolean resultadoFinal = subidaCorrecta;
@@ -221,6 +230,8 @@ public class ResultadosCierresActivity extends BaseActivity {
                     }).start();
                 } catch (IOException e) {
                     e.printStackTrace();
+                    AuditLog.log(ResultadosCierresActivity.this,
+                            "ERROR AL GENERAR REPORTE DE CIERRES " + nombreFichero, cntId);
                 }
             } else {
                 Toast.makeText(this, "No hay datos para exportar", Toast.LENGTH_SHORT).show();

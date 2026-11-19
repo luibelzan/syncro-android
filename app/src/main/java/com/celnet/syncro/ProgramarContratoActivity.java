@@ -18,6 +18,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.celnet.syncro.audit.AuditLog;
 import com.celnet.syncro.client.DLMSConnection;
 import com.celnet.syncro.objects.contracts.ProgramContract;
 import com.celnet.syncro.session.ConnectionConfig;
@@ -318,7 +319,7 @@ public class ProgramarContratoActivity extends AppCompatActivity {
                     DLMSConnection.ConnectionResult res = conn.connectWithAutoDetect(ProgramarContratoActivity.this);
 
 
-                    ProgramContract.programarContrato(
+                    boolean ok = ProgramContract.programarContrato(
                             res.reader,
                             contractFinal,
                             tarifaFinal,
@@ -330,14 +331,41 @@ public class ProgramarContratoActivity extends AppCompatActivity {
                     conn.close();
                     showProgress(false);
 
+                    StringBuilder det = new StringBuilder();
+                    if (tarifaFinal != null) det.append("TARIFA ").append(tarifaFinal.trim());
+                    if (thresholdsFinal != null) {
+                        if (det.length() > 0) det.append(", ");
+                        det.append("POTENCIAS ");
+                        for (int i = 0; i < thresholdsFinal.length; i++) {
+                            if (i > 0) det.append(",");
+                            det.append(thresholdsFinal[i]);
+                        }
+                    }
+                    if (activacionFinal != null) {
+                        if (det.length() > 0) det.append(", ");
+                        det.append("ACTIVACION ").append(
+                                new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.ROOT).format(activacionFinal));
+                    }
+                    if (cierreFinal != null) {
+                        if (det.length() > 0) det.append(", ");
+                        det.append("CIERRE DE FACTURACION ").append(cierreFinal.replace("FFFF/", ""));
+                    }
+                    AuditLog.log(ProgramarContratoActivity.this, (ok ? "" : "SIN EXITO: ")
+                                    + "PROGRAMACION DE CONTRATO " + contractFinal + " [" + det + "]",
+                            res.serialNumber);
+
                     // Volver al hilo UI para mostrar resultado
                     runOnUiThread(() ->
                             Toast.makeText(this,
-                                    "Contrato " + contractFinal + " programado correctamente",
+                                    ok ? "Contrato " + contractFinal + " programado correctamente"
+                                            : "Error al programar el contrato " + contractFinal
+                                            + ". Revisa el log de la aplicación.",
                                     Toast.LENGTH_LONG).show()
                     );
 
                 } catch (Exception e) {
+                    AuditLog.log(ProgramarContratoActivity.this,
+                            "ERROR AL PROGRAMAR CONTRATO " + contractFinal);
                     showProgress(false);
                     runOnUiThread(() ->
                             Toast.makeText(this,

@@ -12,6 +12,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.celnet.syncro.audit.AuditLog;
 import com.celnet.syncro.client.DLMSConnection;
 import com.celnet.syncro.models.parameters.ControlModeResult;
 import com.celnet.syncro.objects.params.ControlDisconnectMode;
@@ -51,6 +52,8 @@ public class IcpActivity extends AppCompatActivity {
                     DLMSConnection.ConnectionResult res = conn.connectWithAutoDetect(IcpActivity.this);
 
                     ControlModeResult result = ControlDisconnectMode.readControlDisconnectMode(res.reader, conn.getClient());
+
+                    AuditLog.log(IcpActivity.this, "LECTURA DE ESTADO DE ICP", res.serialNumber);
 
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);

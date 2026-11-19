@@ -15,6 +15,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.celnet.syncro.audit.AuditLog;
 import com.celnet.syncro.objects.iec870.params.Iec870DateReader;
 import com.celnet.syncro.models.iec870.params.Iec870DateTime;
 import com.celnet.syncro.models.iec870.params.Iec870DaylightChange;
@@ -153,6 +154,8 @@ public class IecDateActivity extends BaseActivity {
                     Iec870DateReader.Resultado res =
                             Iec870DateReader.leerFecha(IecDateActivity.this, config);
 
+                    AuditLog.log(IecDateActivity.this, "LECTURA DE FECHA Y HORA (IEC-870)");
+
                     runOnUiThread(() -> {
                         bloquear(false, btnRead, btnNext, checkBoxManual, progressBar);
                         Intent intent = new Intent(IecDateActivity.this, ResultadosIecDateActivity.class);
@@ -219,6 +222,15 @@ public class IecDateActivity extends BaseActivity {
                     Iec870DateTime leida = Iec870DateReader
                             .programar(IecDateActivity.this, config, fNueva, fCambio);
 
+                    StringBuilder det = new StringBuilder();
+                    if (fNueva != null) det.append("FECHA Y HORA ").append(fNueva.toText());
+                    if (fCambio != null) {
+                        if (det.length() > 0) det.append(", ");
+                        det.append("CAMBIO DE HORA OFICIAL");
+                    }
+                    AuditLog.log(IecDateActivity.this,
+                            "SINCRONIZACION DE FECHA Y HORA (IEC-870) [" + det + "]");
+
                     runOnUiThread(() -> {
                         bloquear(false, btnRead, btnNext, checkBoxManual, progressBar);
                         StringBuilder msg = new StringBuilder();
@@ -235,6 +247,7 @@ public class IecDateActivity extends BaseActivity {
                     });
                 } catch (Exception e) {
                     e.printStackTrace();
+                    AuditLog.log(IecDateActivity.this, "ERROR AL PROGRAMAR FECHA Y HORA (IEC-870)");
                     runOnUiThread(() -> {
                         bloquear(false, btnRead, btnNext, checkBoxManual, progressBar);
                         mostrarError("No se pudo programar el contador.", e);

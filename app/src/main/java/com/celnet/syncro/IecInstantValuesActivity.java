@@ -12,6 +12,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.celnet.syncro.audit.AuditLog;
 import com.celnet.syncro.models.iec870.instantValues.Iec870InstantValues;
 import com.celnet.syncro.objects.iec870.instantValues.Iec870InstantValuesReader;
 import com.celnet.syncro.session.ConnectionConfig;
@@ -73,6 +74,8 @@ public class IecInstantValuesActivity extends BaseActivity {
             try {
                 Iec870InstantValues valores = Iec870InstantValuesReader
                         .leerValoresInstantaneos(IecInstantValuesActivity.this, config);
+
+                AuditLog.log(IecInstantValuesActivity.this, "LECTURA DE VALORES INSTANTANEOS (IEC-870)", valores.serie);
 
                 runOnUiThread(() -> {
                     leyendo = false;

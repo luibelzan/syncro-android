@@ -18,6 +18,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.celnet.syncro.audit.AuditLog;
 import com.celnet.syncro.client.DLMSConnection;
 import com.celnet.syncro.models.events.EventFila;
 import com.celnet.syncro.objects.events.CommonEventLog;
@@ -269,6 +270,17 @@ public class EventsActivity extends BaseActivity {
                             tiposConError.add(nombreTipoEvento(event) + ": " + e.getMessage());
                         }
                     }
+
+                    StringBuilder tiposLeidos = new StringBuilder();
+                    for (Integer ev : eventosSeleccionados) {
+                        if (tiposLeidos.length() > 0) tiposLeidos.append(", ");
+                        tiposLeidos.append(nombreTipoEvento(ev));
+                    }
+                    AuditLog.log(EventsActivity.this, "LECTURA DE EVENTOS [" + tiposLeidos + "] DEL "
+                                    + fechaInicio + " AL " + fechaFin
+                                    + (tiposConError.isEmpty() ? ""
+                                    : " (CON ERROR EN " + tiposConError.size() + " TIPO(S))"),
+                            res.serialNumber);
 
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);

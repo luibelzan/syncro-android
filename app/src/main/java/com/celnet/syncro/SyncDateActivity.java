@@ -13,6 +13,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.celnet.syncro.audit.AuditLog;
 import com.celnet.syncro.client.DLMSConnection;
 import com.celnet.syncro.client.GXDLMSSecureClient2;
 import com.celnet.syncro.objects.params.DateReader;
@@ -92,6 +93,7 @@ public class SyncDateActivity extends BaseActivity {
 
             final Date finalDateTime = fechaSeleccionada;
             final int finalOffset = utcOffsetMinutes;
+            final String fechaTexto = SDF.format(finalDateTime);
 
             progressBar.setVisibility(View.VISIBLE);
 
@@ -107,6 +109,10 @@ public class SyncDateActivity extends BaseActivity {
 
                     DateReader.syncClock(res.reader, client, finalOffset, finalDateTime);
 
+                    AuditLog.log(SyncDateActivity.this, "SINCRONIZACION DE FECHA Y HORA A "
+                                    + fechaTexto + " (UTC" + (finalOffset >= 0 ? "+" : "") + finalOffset + " MIN)",
+                            res.serialNumber);
+
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);
                         btnNext.setEnabled(true);
@@ -119,6 +125,7 @@ public class SyncDateActivity extends BaseActivity {
 
                 } catch (Exception e) {
                     e.printStackTrace();
+                    AuditLog.log(SyncDateActivity.this, "ERROR AL SINCRONIZAR FECHA Y HORA");
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);
                         btnNext.setEnabled(true);

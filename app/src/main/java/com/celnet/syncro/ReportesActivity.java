@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.celnet.syncro.adapters.ReportesAdapter;
+import com.celnet.syncro.audit.AuditLog;
 import com.celnet.syncro.models.ReportFile;
 import com.celnet.syncro.models.UploadResult;
 import com.celnet.syncro.utils.Utils;
@@ -181,6 +182,7 @@ public class ReportesActivity extends BaseActivity {
 
         int eliminados = 0;
         int fallidos = 0;
+        StringBuilder nombresEliminados = new StringBuilder();
 
         Iterator<ReportFile> iterator = lista.iterator();
         while (iterator.hasNext()) {
@@ -192,6 +194,8 @@ public class ReportesActivity extends BaseActivity {
             boolean borrado = report.getFile().delete();
             if (borrado) {
                 eliminados++;
+                if (nombresEliminados.length() > 0) nombresEliminados.append(", ");
+                nombresEliminados.append(report.getFile().getName());
                 iterator.remove();
                 todos.remove(report);
             } else {
@@ -199,6 +203,12 @@ public class ReportesActivity extends BaseActivity {
                 android.util.Log.e("ReportesActivity",
                         "No se pudo eliminar el archivo: " + report.getFile().getName());
             }
+        }
+
+        if (eliminados > 0 || fallidos > 0) {
+            AuditLog.log(ReportesActivity.this, (fallidos > 0 ? "PARCIAL O SIN EXITO: " : "")
+                    + "ELIMINACION DE REPORTES [" + (eliminados > 0 ? nombresEliminados : "NINGUNO")
+                    + "]" + (fallidos > 0 ? " (" + fallidos + " CON ERROR)" : ""));
         }
 
         adapter.notifyDataSetChanged();
@@ -264,9 +274,13 @@ public class ReportesActivity extends BaseActivity {
 
                     if (subidaCorrecta) {
                         enviados++;
+                        AuditLog.log(ReportesActivity.this, "ENVIO DE REPORTE "
+                                + report.getFile().getName() + " (" + protocolo + ")");
                         Utils.gestionarArchivoTrasEnvio(report.getFile(), afterSend, ReportesActivity.this);
                     } else {
                         fallidos++;
+                        AuditLog.log(ReportesActivity.this, "ERROR AL ENVIAR REPORTE "
+                                + report.getFile().getName() + " (" + protocolo + ")");
                         report.setMensajeError(resultado.errorMessage);
                         android.util.Log.e("ReportesActivity",
                                 "Fallo al subir " + report.getFile().getName() + ": " + resultado.errorMessage);
@@ -277,6 +291,8 @@ public class ReportesActivity extends BaseActivity {
                             "Error al subir " + report.getFile().getName() + ": " + e.getMessage());
                     report.setMensajeError(e.getClass().getSimpleName() + ": " + e.getMessage());
                     fallidos++;
+                    AuditLog.log(ReportesActivity.this, "ERROR AL ENVIAR REPORTE "
+                            + report.getFile().getName());
                 }
 
                 // Marca el resultado final de ESTE archivo y refresca su fila

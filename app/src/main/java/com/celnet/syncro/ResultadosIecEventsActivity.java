@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.celnet.syncro.adapters.iec870.IecEventAdapter;
+import com.celnet.syncro.audit.AuditLog;
 import com.celnet.syncro.export.Iec870EventsXlsx;
 import com.celnet.syncro.export.IecExcelExport;
 import com.celnet.syncro.models.iec870.eventos.Iec870EventFila;
@@ -51,6 +52,7 @@ public class ResultadosIecEventsActivity extends BaseActivity {
                 Toast.makeText(this, "No hay datos para exportar", Toast.LENGTH_SHORT).show();
                 return;
             }
+            AuditLog.log(this, "EXPORTACION A EXCEL DE EVENTOS (IEC-870)", cntId);
             IecExcelExport.exportar(this, cntId,
                     id -> nombreExcel(id, datos),
                     out -> Iec870EventsXlsx.generar(out, cntId != null ? cntId : "", datos));

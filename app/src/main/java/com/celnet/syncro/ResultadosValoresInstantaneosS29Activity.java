@@ -21,6 +21,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.celnet.syncro.adapters.ResultadosS29Adapter;
+import com.celnet.syncro.audit.AuditLog;
 import com.celnet.syncro.models.instantvalues.RegistroS29;
 import com.celnet.syncro.utils.Utils;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
@@ -153,6 +154,8 @@ public class ResultadosValoresInstantaneosS29Activity extends BaseActivity {
             try (FileOutputStream fos = new FileOutputStream(file)) {
                 fos.write(xml.getBytes());
                 fos.flush();
+                AuditLog.log(ResultadosValoresInstantaneosS29Activity.this,
+                        "GENERACION DE REPORTE DE VALORES INSTANTANEOS (S29) " + file.getName(), cntId);
 
                 String afterGenerate = prefs.getString("afterGenerate", "Guardar e intentar enviar al FTP inmediatamente");
                 String afterSend = prefs.getString("afterSend", "Mover a la carpeta de backup del dispositivo");
@@ -173,11 +176,16 @@ public class ResultadosValoresInstantaneosS29Activity extends BaseActivity {
                         } else {
                             subidaCorrecta = Utils.subirArchivoFTP(ResultadosValoresInstantaneosS29Activity.this, file);
                         }
+                        AuditLog.log(ResultadosValoresInstantaneosS29Activity.this,
+                                (subidaCorrecta ? "ENVIO DE REPORTE " : "ERROR AL ENVIAR REPORTE ")
+                                        + file.getName() + " (" + protocolo + ")", cntId);
                         if (subidaCorrecta) {
                             Utils.gestionarArchivoTrasEnvio(file, afterSend, ResultadosValoresInstantaneosS29Activity.this);
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
+                        AuditLog.log(ResultadosValoresInstantaneosS29Activity.this,
+                                "ERROR AL ENVIAR REPORTE " + file.getName(), cntId);
                     }
 
                     boolean resultadoFinal = subidaCorrecta;
@@ -190,6 +198,8 @@ public class ResultadosValoresInstantaneosS29Activity extends BaseActivity {
 
             } catch (IOException e) {
                 e.printStackTrace();
+                AuditLog.log(ResultadosValoresInstantaneosS29Activity.this,
+                        "ERROR AL GENERAR REPORTE DE VALORES INSTANTANEOS (S29) " + nombreFichero, cntId);
                 Toast.makeText(this, "Error al generar el fichero XML", Toast.LENGTH_LONG).show();
             }
         });

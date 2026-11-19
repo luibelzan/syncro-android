@@ -12,6 +12,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.celnet.syncro.audit.AuditLog;
 import com.celnet.syncro.client.DLMSConnection;
 import com.celnet.syncro.models.prime.ConstellationCoding;
 import com.celnet.syncro.models.prime.PrimeSecurityInfo;
@@ -124,6 +125,7 @@ public class PrimeSeguridadActivity extends BaseActivity {
                 PrimeSecurityInfo datos = PrimeSecurityReader.leerSeguridadPrime(res.reader);
 
                 AppLogger.i("PrimeSeguridad", "Resultado lectura seguridad PRIME:\n" + datos.toString());
+                AuditLog.log(PrimeSeguridadActivity.this, "LECTURA DE SEGURIDAD PRIME", res.serialNumber);
 
                 runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);
@@ -218,6 +220,28 @@ public class PrimeSeguridadActivity extends BaseActivity {
                         escribirMacMinFinal, macMinFinal,
                         escribirMacMaxFinal, macMaxFinal);
 
+                StringBuilder det = new StringBuilder();
+                if (enviarConstellationCoding) {
+                    StringBuilder bitsSel = new StringBuilder();
+                    for (int i = 0; i < bits.length; i++) {
+                        if (bits[i]) {
+                            if (bitsSel.length() > 0) bitsSel.append(',');
+                            bitsSel.append(i);
+                        }
+                    }
+                    det.append("CONSTELLATION CODING BITS ").append(bitsSel.length() > 0 ? bitsSel : "NINGUNO");
+                }
+                if (escribirMacMinFinal) {
+                    if (det.length() > 0) det.append(", ");
+                    det.append("MAC MIN BAND SEARCH TIME ").append(macMinFinal);
+                }
+                if (escribirMacMaxFinal) {
+                    if (det.length() > 0) det.append(", ");
+                    det.append("MAC MAX BAND SEARCH TIME ").append(macMaxFinal);
+                }
+                AuditLog.log(PrimeSeguridadActivity.this,
+                        "PROGRAMACION DE SEGURIDAD PRIME [" + det + "]", res.serialNumber);
+
                 runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);
                     btnLeerActual.setEnabled(true);
@@ -227,6 +251,7 @@ public class PrimeSeguridadActivity extends BaseActivity {
 
             } catch (Exception e) {
                 e.printStackTrace();
+                AuditLog.log(PrimeSeguridadActivity.this, "ERROR AL PROGRAMAR SEGURIDAD PRIME");
                 runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);
                     btnLeerActual.setEnabled(true);

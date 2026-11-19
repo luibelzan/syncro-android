@@ -16,6 +16,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.celnet.syncro.audit.AuditLog;
 import com.celnet.syncro.client.DLMSConnection;
 import com.celnet.syncro.models.parameters.ControlModeResult;
 import com.celnet.syncro.objects.params.ControlDisconnectMode;
@@ -108,6 +109,11 @@ public class IcpExecuteActivity extends AppCompatActivity {
 
             ConnectionConfig config = SessionManager.getInstance().getConnectionConfig();
 
+            final String accionIcp = connect ? "CONEXION DE ICP" : "CORTE DE ICP";
+            final String detalleIcp = esAutomatico
+                    ? "PROGRAMADO PARA " + FORMATO_VISUAL.format(fechaActivacionSeleccionada.getTime())
+                    : tipoOperacion.toUpperCase(Locale.ROOT);
+
             Toast.makeText(IcpExecuteActivity.this,
                     "Conexión: " + config.getType() + "\n",
                     Toast.LENGTH_LONG).show();
@@ -137,6 +143,10 @@ public class IcpExecuteActivity extends AppCompatActivity {
                                 res.reader, conn.getClient(), connect);
                     }
 
+                    AuditLog.log(IcpExecuteActivity.this,
+                            (result.success ? "" : "SIN EXITO: ") + accionIcp + " (" + detalleIcp + ")",
+                            res.serialNumber);
+
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);
                         btnNext.setEnabled(true);
@@ -156,6 +166,8 @@ public class IcpExecuteActivity extends AppCompatActivity {
 
                 } catch (Exception e) {
                     e.printStackTrace();
+                    AuditLog.log(IcpExecuteActivity.this,
+                            "ERROR AL EJECUTAR " + accionIcp + " (" + detalleIcp + ")");
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);
                         btnNext.setEnabled(true);

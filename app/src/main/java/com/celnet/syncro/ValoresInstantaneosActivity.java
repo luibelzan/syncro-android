@@ -13,6 +13,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.celnet.syncro.audit.AuditLog;
 import com.celnet.syncro.client.DLMSConnection;
 import com.celnet.syncro.models.instantvalues.RegistroS29;
 import com.celnet.syncro.models.instantvalues.TipoLecturaInstantanea;
@@ -83,6 +84,8 @@ public class ValoresInstantaneosActivity extends BaseActivity {
                     if (tipoFinal == TipoLecturaInstantanea.VALORES_S28) {
                         // S28: sin cambios, se sigue mostrando en esta misma pantalla.
                         String datos = InstantaneousValuesReader.leerValores(res.reader);
+                        AuditLog.log(ValoresInstantaneosActivity.this, "LECTURA DE VALORES INSTANTANEOS ["
+                                + tipoFinal.toString().toUpperCase(java.util.Locale.ROOT) + "]", res.serialNumber);
 
                         runOnUiThread(() -> {
                             progressBar.setVisibility(View.GONE);
@@ -97,6 +100,8 @@ public class ValoresInstantaneosActivity extends BaseActivity {
                         // S29: histórico completo, se muestra en su propia pantalla
                         // como tabla (RecyclerView + adapter, igual que CurvaFila).
                         List<RegistroS29> registros = InstantaneousValuesReader.leerValoresS29(res.reader);
+                        AuditLog.log(ValoresInstantaneosActivity.this, "LECTURA DE VALORES INSTANTANEOS ["
+                                + tipoFinal.toString().toUpperCase(java.util.Locale.ROOT) + "]", res.serialNumber);
                         //Intent intent = new Intent(ValoresInstantaneosActivity.this, ResultadosValoresInstantaneosS29Activity.class);
 
                         runOnUiThread(() -> {

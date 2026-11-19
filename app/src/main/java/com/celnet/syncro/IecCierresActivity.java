@@ -16,6 +16,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.celnet.syncro.audit.AuditLog;
 import com.celnet.syncro.objects.iec870.cierres.Iec870BillingReader;
 import com.celnet.syncro.session.ConnectionConfig;
 import com.celnet.syncro.session.SessionManager;
@@ -128,6 +129,12 @@ public class IecCierresActivity extends BaseActivity {
                             : Iec870BillingReader.leerMemorizados(
                             IecCierresActivity.this, config, contratos,
                             fechaInicio, fechaFin);
+
+                    AuditLog.log(IecCierresActivity.this, (enCurso
+                            ? "LECTURA DE CIERRES EN CURSO"
+                            : "LECTURA DE CIERRES MEMORIZADOS DEL " + fechaInicio + " AL " + fechaFin)
+                            + (posicion == 3 ? " DE TODOS LOS CONTRATOS" : " DEL CONTRATO " + (posicion + 1))
+                            + " (IEC-870)", res.serie);
 
                     runOnUiThread(() -> {
                         bloquear(false, btnNext, spinnerTipoCierre, spinnerContrato,

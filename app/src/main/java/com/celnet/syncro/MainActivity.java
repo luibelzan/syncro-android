@@ -10,6 +10,7 @@ import android.widget.AutoCompleteTextView;
 import android.widget.LinearLayout;
 import android.widget.RadioGroup;
 
+import com.celnet.syncro.audit.AuditLog;
 import com.celnet.syncro.auth.AuthManager;
 import com.celnet.syncro.client.DLMSConnection;
 
@@ -252,6 +253,12 @@ public class MainActivity extends BaseActivity {
 
             // Guardamos la configuración actual
             SessionManager.getInstance().setConnectionConfig(config);
+
+            AuditLog.log(MainActivity.this, "CONEXION CON "
+                    + (config.getType() == ConnectionConfig.ConnectionType.BLUETOOTH
+                    ? "SONDA " + config.getBluetoothDeviceName()
+                    : "TCP " + config.getIp() + ":" + config.getPort())
+                    + " (" + (config.isIec870() ? "IEC-870" : "DLMS") + ")");
 
             // Ir a la siguiente actividad
             // v3.0: menú propio para IEC-870, el de siempre para DLMS.

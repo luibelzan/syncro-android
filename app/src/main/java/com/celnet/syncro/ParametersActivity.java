@@ -13,6 +13,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.celnet.syncro.audit.AuditLog;
 import com.celnet.syncro.client.DLMSConnection;
 import com.celnet.syncro.models.parameters.ParametrosS06;
 import com.celnet.syncro.objects.instantValues.ParametersReader;
@@ -213,6 +214,7 @@ public class ParametersActivity extends BaseActivity {
 
                 ParametrosS06 p = ParametersReader.read(res.reader);
                 conn.close();
+                AuditLog.log(ParametersActivity.this, "LECTURA DE PARAMETROS", cntId);
 
                 // Guardar para el botón de exportar
                 lastParametros = p;

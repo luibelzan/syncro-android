@@ -11,6 +11,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.celnet.syncro.audit.AuditLog;
 import com.celnet.syncro.client.DLMSConnection;
 import com.celnet.syncro.models.parameters.MeterInfo;
 import com.celnet.syncro.models.parameters.MeterInfoDisplay;
@@ -62,6 +63,8 @@ public class IdsActivity extends BaseActivity {
 
                 MeterInfoDisplay display = MeterInfoDisplay.parse(
                         res.serialNumber, datos.equipo, datos.tipo, datos.firmware);
+
+                AuditLog.log(IdsActivity.this, "LECTURA DE IDENTIFICADORES", res.serialNumber);
 
                 runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);

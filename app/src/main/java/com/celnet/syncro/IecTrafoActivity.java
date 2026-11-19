@@ -12,6 +12,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.celnet.syncro.audit.AuditLog;
 import com.celnet.syncro.models.iec870.params.Iec870TrafoRatio;
 import com.celnet.syncro.objects.iec870.params.Iec870TrafoReader;
 import com.celnet.syncro.session.ConnectionConfig;
@@ -57,6 +58,7 @@ public class IecTrafoActivity extends BaseActivity {
             new Thread(() -> {
                 try {
                     Iec870TrafoRatio rt = Iec870TrafoReader.leer(IecTrafoActivity.this, config);
+                    AuditLog.log(IecTrafoActivity.this, "LECTURA DE RELACION DE TRANSFORMACION (IEC-870)");
 
                     runOnUiThread(() -> {
                         bloquear(false, btnRead, btnNext, progressBar);
@@ -98,6 +100,11 @@ public class IecTrafoActivity extends BaseActivity {
                         new Thread(() -> {
                             try {
                                 Iec870TrafoReader.programar(IecTrafoActivity.this, config, rt);
+                                AuditLog.log(IecTrafoActivity.this,
+                                        "PROGRAMACION DE RELACION DE TRANSFORMACION (IEC-870) [TENSION "
+                                                + rt.tensionPrimariaDv + "/" + rt.tensionSecundariaDv
+                                                + " dV, CORRIENTE " + rt.corrientePrimariaDa + "/"
+                                                + rt.corrienteSecundariaDa + " dA]");
                                 runOnUiThread(() -> {
                                     bloquear(false, btnRead, btnNext, progressBar);
                                     Toast.makeText(IecTrafoActivity.this,
@@ -106,6 +113,8 @@ public class IecTrafoActivity extends BaseActivity {
                                 });
                             } catch (Exception e) {
                                 e.printStackTrace();
+                                AuditLog.log(IecTrafoActivity.this,
+                                        "ERROR AL PROGRAMAR RELACION DE TRANSFORMACION (IEC-870)");
                                 runOnUiThread(() -> {
                                     bloquear(false, btnRead, btnNext, progressBar);
                                     mostrarError("No se pudo programar la relación de transformación.", e);

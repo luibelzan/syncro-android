@@ -12,6 +12,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.celnet.syncro.audit.AuditLog;
 import com.celnet.syncro.models.iec870.params.Iec870PortConfig;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
@@ -119,6 +120,10 @@ public class IecConfigContadorActivity extends BaseActivity {
     }
 
     private void guardar() {
+        AuditLog.log(this, "MODIFICACION DE CONFIGURACION SERIAL DE CONEXION CON CONTADOR (IEC-870) [BAUD "
+                + spinnerBaud.getText() + ", BITS DE DATOS " + spinnerDataBits.getText()
+                + ", PARIDAD " + spinnerParity.getText()
+                + ", BITS DE PARADA " + spinnerStopBits.getText() + "]");
         getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit()
                 .putInt(KEY_BAUD, entero(spinnerBaud, DEFAULT_BAUD))
                 .putInt(KEY_DATA_BITS, entero(spinnerDataBits, DEFAULT_DATA_BITS))

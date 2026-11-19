@@ -14,6 +14,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.celnet.syncro.audit.AuditLog;
 import com.celnet.syncro.export.IecExcelExport;
 import com.celnet.syncro.models.iec870.cierres.Iec870BillingRecord;
 import com.celnet.syncro.export.Iec870CierresXlsx;
@@ -84,9 +85,13 @@ public class ResultadosIecCierresActivity extends BaseActivity {
             contenedor.setPadding(contenedor.getPaddingLeft(), contenedor.getPaddingTop(),
                     contenedor.getPaddingRight(), contenedor.getPaddingBottom() + dp(88));
         }
-        btnExport.setOnClickListener(v -> IecExcelExport.exportar(this, cntId,
-                id -> nombreExcel(id, registros),
-                out -> Iec870CierresXlsx.generar(out, cntId != null ? cntId : "", registros)));
+        btnExport.setOnClickListener(v -> {
+            AuditLog.log(this, "EXPORTACION A EXCEL DE CIERRES "
+                    + (enCurso ? "EN CURSO " : "MEMORIZADOS ") + "(IEC-870)", cntId);
+            IecExcelExport.exportar(this, cntId,
+                    id -> nombreExcel(id, registros),
+                    out -> Iec870CierresXlsx.generar(out, cntId != null ? cntId : "", registros));
+        });
 
         // Agrupar por contrato + periodo (un cierre = un contrato y sus tarifas)
         Map<String, List<Iec870BillingRecord>> grupos = new LinkedHashMap<>();

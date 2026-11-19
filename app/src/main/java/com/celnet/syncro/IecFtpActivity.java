@@ -12,6 +12,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.celnet.syncro.audit.AuditLog;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
 /**
@@ -81,7 +82,18 @@ public class IecFtpActivity extends BaseActivity {
     }
 
     private void guardarConfiguracion() {
-        getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit()
+        SharedPreferences prefsActuales = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+
+        // Se anota qué se configuró, pero nunca el valor de la contraseña.
+        boolean passCambiada = !prefsActuales.getString("pass", "").equals(editPassFtp.getText().toString());
+        AuditLog.log(this, "MODIFICACION DE CONFIGURACION FTP DE ENVIO DE REPORTES ["
+                + "PROTOCOLO " + spinnerProtocolo.getText()
+                + ", SERVIDOR " + editDirFtp.getText() + ":" + editPortFtp.getText()
+                + ", CARPETA " + editFolderFtp.getText()
+                + ", USUARIO " + editUserFtp.getText()
+                + (passCambiada ? ", CONTRASEÑA MODIFICADA" : "") + "] (IEC-870)");
+
+        prefsActuales.edit()
                 .putString("protocolo", spinnerProtocolo.getText().toString())
                 .putString("dir", editDirFtp.getText().toString())
                 .putString("port", editPortFtp.getText().toString())

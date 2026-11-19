@@ -11,6 +11,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.celnet.syncro.audit.AuditLog;
 import com.celnet.syncro.models.iec870.params.Iec870DeviceInfo;
 import com.celnet.syncro.objects.iec870.params.Iec870InfoReader;
 import com.celnet.syncro.session.ConnectionConfig;
@@ -52,6 +53,8 @@ public class IecIdsActivity extends BaseActivity {
             new Thread(() -> {
                 try {
                     Iec870DeviceInfo info = Iec870InfoReader.leer(IecIdsActivity.this, config);
+
+                    AuditLog.log(IecIdsActivity.this, "LECTURA DE IDENTIFICADORES (IEC-870)", info.serie);
 
                     runOnUiThread(() -> {
                         bloquear(false, btnRead, progressBar);
