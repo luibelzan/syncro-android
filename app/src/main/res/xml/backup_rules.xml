@@ -10,4 +10,8 @@
    <include domain="sharedpref" path="."/>
    <exclude domain="sharedpref" path="device.xml"/>
 -->
+
+    <exclude domain="database" path="syncro_auth.db" />
+    <exclude domain="database" path="syncro_auth.db-wal" />
+    <exclude domain="database" path="syncro_auth.db-shm" />
 </full-backup-content>
