@@ -12,6 +12,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.celnet.syncro.audit.AuditLog;
 import com.celnet.syncro.client.DLMSConnection;
 import com.celnet.syncro.client.GXDLMSReader;
 import com.celnet.syncro.objects.params.DateReader;
@@ -60,6 +61,8 @@ public class DateActivity extends AppCompatActivity {
                     DLMSConnection.ConnectionResult res = conn.connectWithAutoDetect(DateActivity.this);
 
                     String date = DateReader.readDate(res.reader);
+
+                    AuditLog.log(DateActivity.this, "LECTURA DE FECHA Y HORA", res.serialNumber);
 
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);
