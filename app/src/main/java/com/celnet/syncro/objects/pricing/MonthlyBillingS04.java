@@ -210,10 +210,15 @@ public class MonthlyBillingS04 {
                 new GXSimpleEntry<>(obj, new GXDLMSCaptureObject(attributeIndex, 0)));
     }
 
+    /**
+     * Wh -> kWh enteros TRUNCANDO (no redondeando): es lo que hace el contador en su pantalla y el
+     * concentrador al leer el mismo cierre. Con Math.round un registro de 130.600 Wh salía como 131
+     * en Syncro y 130 en el concentrador, y la suma de las tarifas podía superar al total.
+     */
     private static String wattsAKilowatts(Object valorWh) {
         try {
             double wh = Double.parseDouble(valorWh.toString());
-            long kwh = Math.round(wh / 1000.0);
+            long kwh = Math.floorDiv((long) Math.floor(wh), 1000L);
             return String.valueOf(kwh);
         } catch (Exception e) {
             return String.valueOf(valorWh);
