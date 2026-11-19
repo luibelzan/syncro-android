@@ -7,248 +7,269 @@
     android:layout_height="match_parent"
     tools:context=".SecondActivity">
 
-    <LinearLayout
-        android:id="@+id/layoutMenu"
+    <!-- ScrollView: con fuente o tamaño de pantalla al máximo el menú no cabe y los
+         últimos iconos quedaban fuera de la pantalla sin poder llegar a ellos. -->
+    <ScrollView
+        android:id="@+id/scrollMenu"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="24dp"
-        app:layout_constraintTop_toTopOf="parent">
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- FILA 1 -->
         <LinearLayout
+            android:id="@+id/layoutMenu"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:weightSum="2"
-            android:layout_marginBottom="24dp">
+            android:orientation="vertical"
+            android:padding="24dp">
 
-            <!-- ICONO 1 -->
+            <!-- FILA 1 -->
             <LinearLayout
-                android:id="@+id/btnConfig"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:clickable="true"
-                android:focusable="true">
+                android:orientation="horizontal"
+                android:weightSum="2"
+                android:layout_marginBottom="24dp">
 
-                <ImageView
-                    android:layout_width="120dp"
-                    android:layout_height="120dp"
-                    android:src="@drawable/configuracion"
-                    android:padding="16dp"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
+                <!-- ICONO 1 -->
+                <LinearLayout
+                    android:id="@+id/btnConfig"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="@string/config"
-                    android:textSize="20sp"/>
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <ImageView
+                        android:layout_width="120dp"
+                        android:layout_height="120dp"
+                        android:src="@drawable/configuracion"
+                        android:padding="16dp"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/config"
+                        android:textAlignment="center"
+                        android:textSize="20sp"/>
+                </LinearLayout>
+
+                <!-- ICONO 2 -->
+                <LinearLayout
+                    android:id="@+id/btnReads"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <ImageView
+                        android:layout_width="120dp"
+                        android:layout_height="120dp"
+                        android:src="@drawable/lectura"
+                        android:padding="16dp"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/reads"
+                        android:textAlignment="center"
+                        android:textSize="20sp"/>
+                </LinearLayout>
+
             </LinearLayout>
 
-            <!-- ICONO 2 -->
+            <!-- FILA 2 -->
             <LinearLayout
-                android:id="@+id/btnReads"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:clickable="true"
-                android:focusable="true">
+                android:orientation="horizontal"
+                android:layout_marginBottom="24dp"
+                android:weightSum="2">
 
-                <ImageView
-                    android:layout_width="120dp"
-                    android:layout_height="120dp"
-                    android:src="@drawable/lectura"
-                    android:padding="16dp"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
+                <!-- ICONO 3 -->
+                <LinearLayout
+                    android:id="@+id/btnContracts"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="@string/reads"
-                    android:textSize="20sp"/>
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <ImageView
+                        android:layout_width="120dp"
+                        android:layout_height="120dp"
+                        android:src="@drawable/contratos"
+                        android:padding="16dp"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/contracts"
+                        android:textAlignment="center"
+                        android:textSize="20sp"/>
+                </LinearLayout>
+
+                <!-- ICONO 4 -->
+                <LinearLayout
+                    android:id="@+id/btnParams"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <ImageView
+                        android:layout_width="120dp"
+                        android:layout_height="120dp"
+                        android:src="@drawable/parametros"
+                        android:padding="16dp"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/params"
+                        android:textAlignment="center"
+                        android:textSize="20sp"/>
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- FILA 3 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="24dp"
+                android:weightSum="2">
+
+
+                <!-- ICONO 6 -->
+                <LinearLayout
+                    android:id="@+id/btnReports"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <ImageView
+                        android:layout_width="120dp"
+                        android:layout_height="120dp"
+                        android:src="@drawable/reportes"
+                        android:padding="16dp"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/reports"
+                        android:textAlignment="center"
+                        android:textSize="20sp"/>
+                </LinearLayout>
+
+                <!-- ICONO 5 -->
+                <LinearLayout
+                    android:id="@+id/btnPrime"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <ImageView
+                        android:layout_width="120dp"
+                        android:layout_height="120dp"
+                        android:src="@drawable/prime"
+                        android:padding="16dp"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/prime"
+                        android:textAlignment="center"
+                        android:textSize="20sp"/>
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- FILA 4 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="24dp"
+                android:weightSum="2">
+
+                <!-- ICONO 5 -->
+                <LinearLayout
+                    android:id="@+id/btnSondaStatus"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <ImageView
+                        android:layout_width="120dp"
+                        android:layout_height="120dp"
+                        android:src="@drawable/sondastatus"
+                        android:padding="16dp"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/sondastatus"
+                        android:textAlignment="center"
+                        android:textSize="20sp"/>
+                </LinearLayout>
+
+                <!-- ICONO 5 -->
+                <LinearLayout
+                    android:id="@+id/btnAbout"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <ImageView
+                        android:layout_width="120dp"
+                        android:layout_height="120dp"
+                        android:src="@drawable/acerca"
+                        android:padding="16dp"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/about"
+                        android:textAlignment="center"
+                        android:textSize="20sp"/>
+                </LinearLayout>
+
             </LinearLayout>
 
         </LinearLayout>
 
-        <!-- FILA 2 -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="24dp"
-            android:weightSum="2">
-
-            <!-- ICONO 3 -->
-            <LinearLayout
-                android:id="@+id/btnContracts"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:clickable="true"
-                android:focusable="true">
-
-                <ImageView
-                    android:layout_width="120dp"
-                    android:layout_height="120dp"
-                    android:src="@drawable/contratos"
-                    android:padding="16dp"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/contracts"
-                    android:textSize="20sp"/>
-            </LinearLayout>
-
-            <!-- ICONO 4 -->
-            <LinearLayout
-                android:id="@+id/btnParams"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:clickable="true"
-                android:focusable="true">
-
-                <ImageView
-                    android:layout_width="120dp"
-                    android:layout_height="120dp"
-                    android:src="@drawable/parametros"
-                    android:padding="16dp"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/params"
-                    android:textSize="20sp"/>
-            </LinearLayout>
-
-        </LinearLayout>
-
-        <!-- FILA 3 -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="24dp"
-            android:weightSum="2">
-
-
-            <!-- ICONO 6 -->
-            <LinearLayout
-                android:id="@+id/btnReports"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:clickable="true"
-                android:focusable="true">
-
-                <ImageView
-                    android:layout_width="120dp"
-                    android:layout_height="120dp"
-                    android:src="@drawable/reportes"
-                    android:padding="16dp"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/reports"
-                    android:textSize="20sp"/>
-            </LinearLayout>
-
-            <!-- ICONO 5 -->
-            <LinearLayout
-                android:id="@+id/btnPrime"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:clickable="true"
-                android:focusable="true">
-
-                <ImageView
-                    android:layout_width="120dp"
-                    android:layout_height="120dp"
-                    android:src="@drawable/prime"
-                    android:padding="16dp"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/prime"
-                    android:textSize="20sp"/>
-            </LinearLayout>
-
-        </LinearLayout>
-
-        <!-- FILA 4 -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="24dp"
-            android:weightSum="2">
-
-            <!-- ICONO 5 -->
-            <LinearLayout
-                android:id="@+id/btnSondaStatus"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:clickable="true"
-                android:focusable="true">
-
-                <ImageView
-                    android:layout_width="120dp"
-                    android:layout_height="120dp"
-                    android:src="@drawable/sondastatus"
-                    android:padding="16dp"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/sondastatus"
-                    android:textSize="20sp"/>
-            </LinearLayout>
-
-            <!-- ICONO 5 -->
-            <LinearLayout
-                android:id="@+id/btnAbout"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:clickable="true"
-                android:focusable="true">
-
-                <ImageView
-                    android:layout_width="120dp"
-                    android:layout_height="120dp"
-                    android:src="@drawable/acerca"
-                    android:padding="16dp"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/about"
-                    android:textSize="20sp"/>
-            </LinearLayout>
-
-        </LinearLayout>
-
-    </LinearLayout>
+    </ScrollView>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

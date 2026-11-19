@@ -21,168 +21,184 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
-    <LinearLayout
-        android:id="@+id/layoutMenu"
+    <!-- ScrollView: con fuente o tamaño de pantalla al máximo el menú no cabe y los
+         últimos iconos quedaban fuera de la pantalla sin poder llegar a ellos. -->
+    <ScrollView
+        android:id="@+id/scrollMenu"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="24dp"
+        android:layout_height="0dp"
+        android:fillViewport="true"
         app:layout_constraintTop_toBottomOf="@id/tvTitle"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- FILA 1 -->
         <LinearLayout
+            android:id="@+id/layoutMenu"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:weightSum="2"
-            android:layout_marginBottom="24dp">
+            android:orientation="vertical"
+            android:padding="24dp">
 
-            <!-- ICONO 1 -->
+            <!-- FILA 1 -->
             <LinearLayout
-                android:id="@+id/btnFtpStg"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:clickable="true"
-                android:focusable="true">
+                android:orientation="horizontal"
+                android:weightSum="2"
+                android:layout_marginBottom="24dp">
 
-                <ImageView
-                    android:layout_width="100dp"
-                    android:layout_height="100dp"
-                    android:padding="0dp"
-                    android:src="@drawable/ftp" />
-
-                <TextView
-                    android:layout_width="wrap_content"
+                <!-- ICONO 1 -->
+                <LinearLayout
+                    android:id="@+id/btnFtpStg"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="@string/ftpStg"
-                    android:textSize="20sp" />
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <ImageView
+                        android:layout_width="100dp"
+                        android:layout_height="100dp"
+                        android:padding="0dp"
+                        android:src="@drawable/ftp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/ftpStg"
+                        android:textAlignment="center"
+                        android:textSize="20sp" />
+                </LinearLayout>
+
+                <!-- ICONO 2 -->
+                <LinearLayout
+                    android:id="@+id/btnStg"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <ImageView
+                        android:layout_width="100dp"
+                        android:layout_height="100dp"
+                        android:padding="0dp"
+                        android:src="@drawable/stg" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/stg"
+                        android:textAlignment="center"
+                        android:textSize="20sp" />
+                </LinearLayout>
+
             </LinearLayout>
 
-            <!-- ICONO 2 -->
+            <!-- FILA 2 -->
             <LinearLayout
-                android:id="@+id/btnStg"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:clickable="true"
-                android:focusable="true">
+                android:orientation="horizontal"
+                android:weightSum="2"
+                android:layout_marginBottom="24dp">
 
-                <ImageView
-                    android:layout_width="100dp"
-                    android:layout_height="100dp"
-                    android:padding="0dp"
-                    android:src="@drawable/stg" />
-
-                <TextView
-                    android:layout_width="wrap_content"
+                <!-- ICONO 3 -->
+                <LinearLayout
+                    android:id="@+id/btnContador"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="@string/stg"
-                    android:textSize="20sp" />
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <ImageView
+                        android:layout_width="100dp"
+                        android:layout_height="100dp"
+                        android:padding="0dp"
+                        android:src="@drawable/contador" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/cnt"
+                        android:textAlignment="center"
+                        android:textSize="20sp" />
+                </LinearLayout>
+
+                <!-- ICONO 4 -->
+                <LinearLayout
+                    android:id="@+id/btnAppLog"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <ImageView
+                        android:layout_width="100dp"
+                        android:layout_height="100dp"
+                        android:padding="0dp"
+                        android:src="@drawable/applog" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/appLog"
+                        android:textAlignment="center"
+                        android:textSize="20sp" />
+                </LinearLayout>
             </LinearLayout>
 
+            <!-- FILA 3 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:weightSum="2">
+
+                <!-- ICONO 5 -->
+                <LinearLayout
+                    android:id="@+id/btnCambioPassword"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <ImageView
+                        android:layout_width="100dp"
+                        android:layout_height="100dp"
+                        android:padding="0dp"
+                        android:src="@drawable/passw" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/cambioPassword"
+                        android:textAlignment="center"
+                        android:textSize="20sp" />
+                </LinearLayout>
+
+                <!-- Hueco para mantener el tamaño de las columnas -->
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_weight="1" />
+            </LinearLayout>
         </LinearLayout>
 
-        <!-- FILA 2 -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:weightSum="2"
-            android:layout_marginBottom="24dp">
-
-            <!-- ICONO 3 -->
-            <LinearLayout
-                android:id="@+id/btnContador"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:clickable="true"
-                android:focusable="true">
-
-                <ImageView
-                    android:layout_width="100dp"
-                    android:layout_height="100dp"
-                    android:padding="0dp"
-                    android:src="@drawable/contador" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/cnt"
-                    android:textSize="20sp" />
-            </LinearLayout>
-
-            <!-- ICONO 4 -->
-            <LinearLayout
-                android:id="@+id/btnAppLog"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:clickable="true"
-                android:focusable="true">
-
-                <ImageView
-                    android:layout_width="100dp"
-                    android:layout_height="100dp"
-                    android:padding="0dp"
-                    android:src="@drawable/applog" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/appLog"
-                    android:textSize="20sp" />
-            </LinearLayout>
-        </LinearLayout>
-
-        <!-- FILA 3 -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:weightSum="2">
-
-            <!-- ICONO 5 -->
-            <LinearLayout
-                android:id="@+id/btnCambioPassword"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:clickable="true"
-                android:focusable="true">
-
-                <ImageView
-                    android:layout_width="100dp"
-                    android:layout_height="100dp"
-                    android:padding="0dp"
-                    android:src="@drawable/passw" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/cambioPassword"
-                    android:textSize="20sp" />
-            </LinearLayout>
-
-            <!-- Hueco para mantener el tamaño de las columnas -->
-            <View
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_weight="1" />
-        </LinearLayout>
-    </LinearLayout>
+    </ScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
