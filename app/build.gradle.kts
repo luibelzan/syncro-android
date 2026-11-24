@@ -11,7 +11,7 @@ android {
         applicationId = "com.celnet.syncro"
         minSdk = 30
         targetSdk = 36
-        versionCode = 15
+        versionCode = 16
         versionName = "3.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

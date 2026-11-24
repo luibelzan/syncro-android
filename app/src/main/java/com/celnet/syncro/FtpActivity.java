@@ -5,12 +5,14 @@ import android.os.Bundle;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.celnet.syncro.utils.FtpConfigInput;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 
@@ -48,11 +50,22 @@ public class FtpActivity extends BaseActivity {
         );
         spinnerProtocolo.setAdapter(adapter);
 
+        // Filtros ANTES de cargar: así también se limpia una configuración antigua defectuosa.
+        FtpConfigInput.aplicarFiltros(editDirFtp, editPortFtp, editFolderFtp, editUserFtp, editPassFtp);
+
         // 🔹 Cargar datos guardados
         cargarConfiguracion();
 
         // 🔹 Guardar datos al pulsar botón
         btnNext.setOnClickListener(v -> {
+            String error = FtpConfigInput.validar(
+                    spinnerProtocolo.getText().toString(),
+                    getResources().getStringArray(R.array.protocolo_array),
+                    editDirFtp, editPortFtp, editFolderFtp, editUserFtp, editPassFtp);
+            if (error != null) {
+                Toast.makeText(this, error, Toast.LENGTH_LONG).show();
+                return;
+            }
             guardarConfiguracion();
             finish();
         });
@@ -60,6 +73,7 @@ public class FtpActivity extends BaseActivity {
 
     private void guardarConfiguracion() {
         SharedPreferences prefs = getSharedPreferences("ftp_config", MODE_PRIVATE);
+
         SharedPreferences.Editor editor = prefs.edit();
 
         editor.putString("protocolo", spinnerProtocolo.getText().toString());
