@@ -9,6 +9,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -16,8 +17,11 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.celnet.syncro.export.IecExcelExport;
 import com.celnet.syncro.models.iec870.cierres.Iec870BillingRecord;
+import com.celnet.syncro.export.Iec870CierresJson;
 import com.celnet.syncro.export.Iec870CierresXlsx;
 import com.google.android.material.card.MaterialCardView;
+import com.celnet.syncro.session.ConnectionConfig;
+import com.celnet.syncro.session.SessionManager;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
 import java.util.ArrayList;
@@ -84,9 +88,23 @@ public class ResultadosIecCierresActivity extends BaseActivity {
             contenedor.setPadding(contenedor.getPaddingLeft(), contenedor.getPaddingTop(),
                     contenedor.getPaddingRight(), contenedor.getPaddingBottom() + dp(88));
         }
-        btnExport.setOnClickListener(v -> IecExcelExport.exportar(this, cntId,
-                id -> nombreExcel(id, registros),
-                out -> Iec870CierresXlsx.generar(out, cntId != null ? cntId : "", registros)));
+        btnExport.setOnClickListener(v -> {
+            if (enCurso) {
+                exportarExcel(cntId, registros);
+                return;
+            }
+            // Cierres memorizados: Excel o JSON
+            new AlertDialog.Builder(this)
+                    .setTitle("Exportar cierres memorizados")
+                    .setItems(new String[]{"Excel (.xlsx)", "JSON"}, (d, which) -> {
+                        if (which == 0) {
+                            exportarExcel(cntId, registros);
+                        } else {
+                            exportarJson(cntId, registros);
+                        }
+                    })
+                    .show();
+        });
 
         // Agrupar por contrato + periodo (un cierre = un contrato y sus tarifas)
         Map<String, List<Iec870BillingRecord>> grupos = new LinkedHashMap<>();
@@ -102,6 +120,26 @@ public class ResultadosIecCierresActivity extends BaseActivity {
         for (List<Iec870BillingRecord> grupo : grupos.values()) {
             addCierre(grupo);
         }
+    }
+
+    private void exportarExcel(String cntId, ArrayList<Iec870BillingRecord> registros) {
+        IecExcelExport.exportar(this, cntId,
+                id -> nombreExcel(id, registros),
+                out -> Iec870CierresXlsx.generar(out, cntId != null ? cntId : "", registros));
+    }
+
+    /** Cierres memorizados en JSON; se guarda y envía igual que el Excel (carpeta IEC + FTP de IEC). */
+    private void exportarJson(String cntId, ArrayList<Iec870BillingRecord> registros) {
+        IecConfigContadorActivity.Config serial = IecConfigContadorActivity.cargar(this);
+        ConnectionConfig cc = SessionManager.getInstance().getConnectionConfig();
+        Iec870CierresJson.Puerto puerto = new Iec870CierresJson.Puerto(
+                serial.baud, serial.dataBits, serial.parity, serial.stopBits,
+                cc != null ? cc.getIecLinkAddress() : 0,
+                cc != null ? cc.getIecMeasuringPoint() : 0,
+                cc != null ? cc.getIecPassword() : 0);
+        IecExcelExport.exportar(this, cntId,
+                id -> IecExcelExport.limpiar(id) + "_Cierres_" + IecExcelExport.fechaActual() + ".json",
+                out -> Iec870CierresJson.generar(out, cntId != null ? cntId : "", registros, puerto));
     }
 
     /**
