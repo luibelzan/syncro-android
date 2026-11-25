@@ -13,6 +13,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -23,6 +24,8 @@ import com.celnet.syncro.adapters.CurvaAdapter;
 import com.celnet.syncro.adapters.CurvaCorrienteAdapter;
 import com.celnet.syncro.adapters.CurvaEnergiaFaseAdapter;
 import com.celnet.syncro.adapters.CurvaVoltajeAdapter;
+import com.celnet.syncro.export.Iec870CierresJson;
+import com.celnet.syncro.export.Iec870CurvasJson;
 import com.celnet.syncro.export.IecExcelExport;
 import com.celnet.syncro.models.curvas.CurvaCorrienteFila;
 import com.celnet.syncro.models.curvas.CurvaEnergiaFaseFila;
@@ -31,6 +34,8 @@ import com.celnet.syncro.models.curvas.CurvaVoltajeFila;
 import com.celnet.syncro.models.curvas.TipoCurva;
 import com.celnet.syncro.export.Iec870CurvasXlsx;
 import com.celnet.syncro.models.iec870.curvas.Iec870LoadProfileRow;
+import com.celnet.syncro.session.ConnectionConfig;
+import com.celnet.syncro.session.SessionManager;
 import com.celnet.syncro.utils.Utils;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
@@ -256,7 +261,23 @@ public class ResultadosCurvasActivity extends BaseActivity {
             @SuppressWarnings({"unchecked", "deprecation"})
             ArrayList<Iec870LoadProfileRow> registrosIec = (ArrayList<Iec870LoadProfileRow>)
                     getIntent().getSerializableExtra("datos_curva_iec");
-            btnExport.setOnClickListener(v -> exportarExcelIec(registrosIec, cntId));
+            String periodoIec = getIntent().getStringExtra("periodo_iec");
+            btnExport.setOnClickListener(v -> {
+                if (registrosIec == null || registrosIec.isEmpty()) {
+                    Toast.makeText(this, "No hay datos para exportar", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                new AlertDialog.Builder(this)
+                        .setTitle("Exportar curva")
+                        .setItems(new String[]{"Excel (.xlsx)", "JSON"}, (d, which) -> {
+                            if (which == 0) {
+                                exportarExcelIec(registrosIec, cntId);
+                            } else {
+                                exportarJsonIec(registrosIec, cntId, periodoIec);
+                            }
+                        })
+                        .show();
+            });
             return;
         }
 
@@ -385,6 +406,22 @@ public class ResultadosCurvasActivity extends BaseActivity {
         IecExcelExport.exportar(this, contador,
                 id -> nombreExcel(id, registros),
                 out -> Iec870CurvasXlsx.generar(out, contador, registros));
+    }
+
+    /** Curva horaria/cuartihoraria en JSON; se guarda y envía igual que el Excel (carpeta IEC + FTP de IEC). */
+    private void exportarJsonIec(ArrayList<Iec870LoadProfileRow> registros, String contador,
+                                 String periodo) {
+        IecConfigContadorActivity.Config serial = IecConfigContadorActivity.cargar(this);
+        ConnectionConfig cc = SessionManager.getInstance().getConnectionConfig();
+        Iec870CierresJson.Puerto puerto = new Iec870CierresJson.Puerto(
+                serial.baud, serial.dataBits, serial.parity, serial.stopBits,
+                cc != null ? cc.getIecLinkAddress() : 0,
+                cc != null ? cc.getIecMeasuringPoint() : 0,
+                cc != null ? cc.getIecPassword() : 0);
+        IecExcelExport.exportar(this, contador,
+                id -> IecExcelExport.limpiar(id) + "_Curvas_" + IecExcelExport.fechaActual() + ".json",
+                out -> Iec870CurvasJson.generar(out, contador != null ? contador : "", registros,
+                        periodo, puerto));
     }
 
     /** "IdCnt_Curvas_yyyyMMddHHmmss.xlsx" (la fecha y hora de la exportación, como en DLMS). */

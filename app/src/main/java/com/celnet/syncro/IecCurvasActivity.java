@@ -128,6 +128,9 @@ public class IecCurvasActivity extends BaseActivity {
                     intent.putParcelableArrayListExtra("datos_curva_tabla", res.filas);
                     // Registros completos: la exportación a Excel necesita las calidades de cada total
                     intent.putExtra("datos_curva_iec", res.registros);
+                    // Periodo de la curva (para el nombre/tipo del informe JSON)
+                    intent.putExtra("periodo_iec", periodoIec == Iec870Client.Periodo.CUARTOHORARIA
+                            ? "Quarterly" : "Hourly");
 
                     runOnUiThread(() -> {
                         restaurarUi(progressBar, btnNext, editFechaInicio, editFechaFin);
