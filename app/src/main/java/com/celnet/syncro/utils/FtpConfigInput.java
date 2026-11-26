@@ -36,10 +36,76 @@ public final class FtpConfigInput {
         return Character.isWhitespace(c) || Character.isSpaceChar(c);
     }
 
-    /** Servidor: letras, dígitos y . - _ : [ ] % (nombres DNS, IPv4 e IPv6). */
+    /** Servidor: letras, dígitos y . - _ : (nombre DNS, IPv4 o IPv6 sin corchetes). */
     static boolean hostValido(char c) {
         return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')
-                || c == '.' || c == '-' || c == '_' || c == ':' || c == '[' || c == ']' || c == '%';
+                || c == '.' || c == '-' || c == '_' || c == ':';
+    }
+
+    // ---------------------------------------------------------------- servidor: IP o DNS
+
+    /** null si el texto es una IPv4, una IPv6 o un nombre DNS válido; si no, el motivo. */
+    public static String errorHost(String h) {
+        if (h.length() > MAX_HOST) return "Servidor demasiado largo (máx. " + MAX_HOST + " caracteres)";
+        if (h.indexOf(':') >= 0) {
+            return esIpv6(h) ? null : "Dirección IPv6 no válida";
+        }
+        if (h.matches("[0-9.]+")) {
+            return esIpv4(h) ? null : "Dirección IP no válida (ejemplo: 192.168.1.10)";
+        }
+        return esDns(h) ? null : "Nombre de servidor (DNS) no válido";
+    }
+
+    static boolean esIpv4(String h) {
+        String[] p = h.split("\\.", -1);
+        if (p.length != 4) return false;
+        for (String o : p) {
+            if (o.isEmpty() || o.length() > 3) return false;
+            if (o.length() > 1 && o.charAt(0) == '0') return false;   // sin ceros a la izquierda
+            if (Integer.parseInt(o) > 255) return false;
+        }
+        return true;
+    }
+
+    /** Etiquetas de 1-63 caracteres (letras, dígitos, - y _), sin - al inicio/fin; la última no puede ser numérica. */
+    static boolean esDns(String h) {
+        if (h.length() > MAX_HOST) return false;
+        String[] et = h.split("\\.", -1);
+        for (String e : et) {
+            if (e.isEmpty() || e.length() > 63) return false;
+            if (e.startsWith("-") || e.endsWith("-")) return false;
+            for (int i = 0; i < e.length(); i++) {
+                char c = e.charAt(i);
+                boolean ok = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
+                        || (c >= '0' && c <= '9') || c == '-' || c == '_';
+                if (!ok) return false;
+            }
+        }
+        return !et[et.length - 1].matches("[0-9]+");
+    }
+
+    static boolean esIpv6(String h) {
+        int dbl = h.indexOf("::");
+        if (dbl != h.lastIndexOf("::")) return false;                    // un solo "::"
+        if (h.startsWith(":") && !h.startsWith("::")) return false;
+        if (h.endsWith(":") && !h.endsWith("::")) return false;
+        String[] t = h.split(":", -1);
+        int grupos = 0;
+        for (int i = 0; i < t.length; i++) {
+            String g = t[i];
+            if (g.isEmpty()) {
+                if (dbl < 0) return false;
+                continue;
+            }
+            if (g.indexOf('.') >= 0) {                                   // IPv4 incrustada al final
+                if (i != t.length - 1 || !esIpv4(g)) return false;
+                grupos += 2;
+            } else {
+                if (g.length() > 4 || !g.matches("[0-9a-fA-F]+")) return false;
+                grupos++;
+            }
+        }
+        return dbl < 0 ? grupos == 8 : grupos <= 7;
     }
 
     /** Carpeta: sin control, sin \ ? * " < > | y sin espacios raros (el espacio normal sí). */
@@ -140,8 +206,8 @@ public final class FtpConfigInput {
 
         String h = limpiarHost(texto(host));
         if (h.isEmpty()) return error(host, "Indique el servidor");
-        if (h.startsWith(".") || h.startsWith("-") || h.endsWith(".") || h.contains(".."))
-            return error(host, "Servidor no válido");
+        String errHost = errorHost(h);
+        if (errHost != null) return error(host, errHost);
         host.setText(h);
 
         String p = limpiarPuerto(texto(puerto));
