@@ -18,6 +18,7 @@ import com.celnet.syncro.adapters.CierreEnCursoAdapter;
 import com.celnet.syncro.models.cierres.CierreEnCursoFila;
 import com.celnet.syncro.export.S27ReportXml;
 import com.celnet.syncro.utils.Utils;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -53,7 +54,7 @@ public class ResultadosCierresEnCursoActivity extends BaseActivity {
             rv.setAdapter(new CierreEnCursoAdapter(datos));
         }
 
-        LinearLayout btnExport = findViewById(R.id.btnExport);
+        ExtendedFloatingActionButton btnExport = findViewById(R.id.btnExport);
 
         btnExport.setOnClickListener(v -> {
             if (datos == null || datos.isEmpty()) {

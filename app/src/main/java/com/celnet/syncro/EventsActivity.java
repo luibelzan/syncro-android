@@ -207,15 +207,6 @@ public class EventsActivity extends BaseActivity {
             String fechaFin = obtenerFechaInterna(editFechaFin);
             ConnectionConfig config = SessionManager.getInstance().getConnectionConfig();
 
-            Toast.makeText(EventsActivity.this,
-                    "Conexión: " + config.getType() + "\n" +
-                            "IP: " + config.getIp() + "\n" +
-                            "Puerto: " + config.getPort() + "\n" +
-                            "Dispositivo: " + config.getBluetoothDeviceName() + "\n" +
-                            "Fecha Inicio: " + fechaInicio + "\n" +
-                            "Fecha Fin: " + fechaFin,
-                    Toast.LENGTH_LONG).show();
-
             // Bloquear interacción mientras carga
             btnNext.setEnabled(false);
             progressBar.setVisibility(View.VISIBLE);

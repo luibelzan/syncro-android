@@ -146,16 +146,6 @@ public class CierresActivity extends BaseActivity {
 
             ConnectionConfig config = SessionManager.getInstance().getConnectionConfig();
 
-            // Mostrar valores en Toast de depuración
-            Toast.makeText(CierresActivity.this,
-                    "Conexión: " + config.getType() + "\n" +
-                            "IP: " + config.getIp() + "\n" +
-                            "Puerto: " + config.getPort() + "\n" +
-                            "Dispositivo: " + config.getBluetoothDeviceName() + "\n" +
-                            "Fecha Inicio: " + fechaInicio + "\n" +
-                            "Fecha Fin: " + fechaFin,
-                    Toast.LENGTH_LONG).show();
-
             // Bloquear interacción mientras carga
             btnNext.setEnabled(false);
             spinnerTipoCierre.setEnabled(false);
