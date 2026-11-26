@@ -6,7 +6,7 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.LinearLayout;
-import android.widget.TextView;
+import android.widget.ScrollView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.core.graphics.Insets;
@@ -16,6 +16,8 @@ import androidx.core.view.WindowInsetsCompat;
 import com.celnet.syncro.client.DLMSConnection;
 import com.celnet.syncro.models.instantvalues.RegistroS29;
 import com.celnet.syncro.models.instantvalues.TipoLecturaInstantanea;
+import com.celnet.syncro.models.instantvalues.ValoresS21Vista;
+import com.celnet.syncro.models.instantvalues.ValoresS21;
 import com.celnet.syncro.objects.instantValues.InstantaneousValuesReader;
 import com.celnet.syncro.session.ConnectionConfig;
 import com.celnet.syncro.session.SessionManager;
@@ -39,9 +41,8 @@ public class ValoresInstantaneosActivity extends BaseActivity {
         });
 
         LinearLayout progressBar = findViewById(R.id.progressContainer);
-        MaterialCardView cardResultados = findViewById(R.id.cardResultados);
-        LinearLayout layoutResultados = findViewById(R.id.layoutResultados);
-        TextView tvResultado = findViewById(R.id.tvResultado);
+        ScrollView scrollResultados = findViewById(R.id.scrollResultados);
+        LinearLayout contenedorResultados = findViewById(R.id.contenedorResultados);
         MaterialCardView cardSelector = findViewById(R.id.cardSelector);
 
         AutoCompleteTextView spinnerTipoLectura = findViewById(R.id.spinnerTipoLectura);
@@ -68,8 +69,7 @@ public class ValoresInstantaneosActivity extends BaseActivity {
             ConnectionConfig config = SessionManager.getInstance().getConnectionConfig();
 
             progressBar.setVisibility(View.VISIBLE);
-            cardResultados.setVisibility(View.GONE);
-            layoutResultados.setVisibility(View.GONE);
+            scrollResultados.setVisibility(View.GONE);
             btnLeer.setEnabled(false);
 
             new Thread(() -> {
@@ -80,17 +80,21 @@ public class ValoresInstantaneosActivity extends BaseActivity {
                 try {
                     DLMSConnection.ConnectionResult res = conn.connectWithAutoDetect(ValoresInstantaneosActivity.this);
 
-                    if (tipoFinal == TipoLecturaInstantanea.VALORES_S28) {
-                        // S28: sin cambios, se sigue mostrando en esta misma pantalla.
+                    if (tipoFinal == TipoLecturaInstantanea.VALORES_S21) {
+                        // S21: se muestra en esta misma pantalla, en tarjetas.
                         String datos = InstantaneousValuesReader.leerValores(res.reader);
+
+                        // Se separa el texto en secciones para mostrarlas en tarjetas.
+                        ValoresS21 valores = ValoresS21.parsear(datos);
 
                         runOnUiThread(() -> {
                             progressBar.setVisibility(View.GONE);
                             cardSelector.setVisibility(View.GONE);
-                            cardResultados.setVisibility(View.VISIBLE);
-                            layoutResultados.setVisibility(View.VISIBLE);
+                            ValoresS21Vista.mostrar(ValoresInstantaneosActivity.this,
+                                    contenedorResultados, valores, datos, res.serialNumber);
+                            scrollResultados.scrollTo(0, 0);
+                            scrollResultados.setVisibility(View.VISIBLE);
                             btnLeer.setEnabled(true);
-                            tvResultado.setText(datos);
                         });
 
                     } else {
