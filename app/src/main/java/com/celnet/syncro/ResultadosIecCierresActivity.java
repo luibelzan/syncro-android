@@ -9,7 +9,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -89,21 +88,18 @@ public class ResultadosIecCierresActivity extends BaseActivity {
                     contenedor.getPaddingRight(), contenedor.getPaddingBottom() + dp(88));
         }
         btnExport.setOnClickListener(v -> {
-            if (enCurso) {
-                exportarExcel(cntId, registros);
-                return;
+            // Formato elegido en la configuración STG de IEC (EXCEL / GISCE json)
+            boolean json = IecStgActivity.cargar(this).esJson();
+            if (json && enCurso) {
+                android.widget.Toast.makeText(this,
+                        "Los cierres en curso solo se exportan en Excel",
+                        android.widget.Toast.LENGTH_LONG).show();
             }
-            // Cierres memorizados: Excel o JSON
-            new AlertDialog.Builder(this)
-                    .setTitle("Exportar cierres memorizados")
-                    .setItems(new String[]{"Excel (.xlsx)", "JSON"}, (d, which) -> {
-                        if (which == 0) {
-                            exportarExcel(cntId, registros);
-                        } else {
-                            exportarJson(cntId, registros);
-                        }
-                    })
-                    .show();
+            if (json && !enCurso) {
+                exportarJson(cntId, registros);
+            } else {
+                exportarExcel(cntId, registros);
+            }
         });
 
         // Agrupar por contrato + periodo (un cierre = un contrato y sus tarifas)

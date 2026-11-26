@@ -13,7 +13,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AlertDialog;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -267,16 +266,12 @@ public class ResultadosCurvasActivity extends BaseActivity {
                     Toast.makeText(this, "No hay datos para exportar", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                new AlertDialog.Builder(this)
-                        .setTitle("Exportar curva")
-                        .setItems(new String[]{"Excel (.xlsx)", "JSON"}, (d, which) -> {
-                            if (which == 0) {
-                                exportarExcelIec(registrosIec, cntId);
-                            } else {
-                                exportarJsonIec(registrosIec, cntId, periodoIec);
-                            }
-                        })
-                        .show();
+                // Formato elegido en la configuración STG de IEC (EXCEL / GISCE json)
+                if (IecStgActivity.cargar(this).esJson()) {
+                    exportarJsonIec(registrosIec, cntId, periodoIec);
+                } else {
+                    exportarExcelIec(registrosIec, cntId);
+                }
             });
             return;
         }

@@ -158,6 +158,29 @@
                         android:textColor="@color/on_surface" />
                 </com.google.android.material.textfield.TextInputLayout>
 
+                <!-- Formato de los reportes -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/layoutFormato"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:hint="Formato reportes"
+                    app:boxCornerRadiusBottomEnd="12dp"
+                    app:boxCornerRadiusBottomStart="12dp"
+                    app:boxCornerRadiusTopEnd="12dp"
+                    app:boxCornerRadiusTopStart="12dp"
+                    app:boxStrokeColor="@color/primary"
+                    app:hintTextColor="@color/primary">
+
+                    <AutoCompleteTextView
+                        android:id="@+id/spinnerFormato"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="none"
+                        android:textColor="@color/on_surface" />
+                </com.google.android.material.textfield.TextInputLayout>
+
                 <!-- Nota informativa -->
                 <TextView
                     android:id="@+id/textInfoStg"

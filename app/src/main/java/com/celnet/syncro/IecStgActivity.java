@@ -24,12 +24,22 @@ public class IecStgActivity extends BaseActivity {
 
     private static final int CNC_NAME_MAX_LENGTH = 13;
 
+    /** Formatos de los reportes IEC-870 que se generan y envían. */
+    public static final String FORMATO_EXCEL = "EXCEL (xlsx)";
+    public static final String FORMATO_GISCE = "GISCE (json)";
+
     /** Valores guardados de la configuración STG de IEC (null = no guardado aún). */
     public static class Config {
         public String cncName = "Syncro";
         public String stgVersion = null;
         public String afterGenerate = null;
         public String afterSend = null;
+        public String formato = FORMATO_EXCEL;
+
+        /** true si los reportes deben generarse en JSON (GISCE). */
+        public boolean esJson() {
+            return FORMATO_GISCE.equals(formato);
+        }
     }
 
     /** Lee la configuración STG de IEC. */
@@ -40,10 +50,12 @@ public class IecStgActivity extends BaseActivity {
         c.stgVersion = prefs.getString("stgVersion", null);
         c.afterGenerate = prefs.getString("afterGenerate", null);
         c.afterSend = prefs.getString("afterSend", null);
+        String f = prefs.getString("formato", FORMATO_EXCEL);
+        c.formato = FORMATO_GISCE.equals(f) ? FORMATO_GISCE : FORMATO_EXCEL;
         return c;
     }
 
-    private AutoCompleteTextView spinnerAfterGenerate, spinnerAfterSend, spinnerStgVersion;
+    private AutoCompleteTextView spinnerAfterGenerate, spinnerAfterSend, spinnerStgVersion, spinnerFormato;
     private EditText editCncName;
     private TextInputLayout layoutCncName;
 
@@ -61,6 +73,7 @@ public class IecStgActivity extends BaseActivity {
         spinnerAfterGenerate = findViewById(R.id.spinnerAfterGenerate);
         spinnerAfterSend = findViewById(R.id.spinnerAfterSend);
         spinnerStgVersion = findViewById(R.id.spinnerStgVersion);
+        spinnerFormato = findViewById(R.id.spinnerFormato);
         editCncName = findViewById(R.id.editCncName);
         layoutCncName = (TextInputLayout) editCncName.getParent().getParent();
         ExtendedFloatingActionButton btnNext = findViewById(R.id.btnNext);
@@ -68,6 +81,9 @@ public class IecStgActivity extends BaseActivity {
         configurarDesplegable(spinnerAfterGenerate, R.array.afterGenerate_array);
         configurarDesplegable(spinnerAfterSend, R.array.afterSend_array);
         configurarDesplegable(spinnerStgVersion, R.array.stgVersion_array);
+        spinnerFormato.setAdapter(new ArrayAdapter<>(this,
+                android.R.layout.simple_dropdown_item_1line,
+                new String[]{FORMATO_EXCEL, FORMATO_GISCE}));
 
         mostrarConfiguracion();
 
@@ -108,6 +124,8 @@ public class IecStgActivity extends BaseActivity {
                 .putString("stgVersion", spinnerStgVersion.getText().toString())
                 .putString("afterGenerate", spinnerAfterGenerate.getText().toString())
                 .putString("afterSend", spinnerAfterSend.getText().toString())
+                .putString("formato", FORMATO_GISCE.equals(spinnerFormato.getText().toString())
+                        ? FORMATO_GISCE : FORMATO_EXCEL)
                 .apply();
     }
 
@@ -123,5 +141,6 @@ public class IecStgActivity extends BaseActivity {
         if (c.afterSend != null) {
             spinnerAfterSend.setText(c.afterSend, false);
         }
+        spinnerFormato.setText(c.formato, false);
     }
 }
